@@ -91,6 +91,7 @@ assert(
 );
 
 assert(fileExists("index.html"), "index.html exists");
+assert(fileExists("public/.nojekyll"), "GitHub Pages no-Jekyll marker exists");
 assert(fileExists("src/main.ts"), "src/main.ts exists");
 assert(fileExists("src/camera.ts"), "src/camera.ts exists");
 assert(fileExists("src/effects.ts"), "src/effects.ts exists");
@@ -103,6 +104,7 @@ assert(indexSource.includes('property="og:title"'), "index has Open Graph title"
 assert(indexSource.includes('property="og:description"'), "index has Open Graph description");
 
 assert(fileExists("dist/index.html"), "dist/index.html exists after build");
+assert(fileExists("dist/.nojekyll"), "dist includes GitHub Pages no-Jekyll marker");
 assert(directoryExists("dist/assets"), "dist/assets exists after build");
 assert(/assets\/index-.*\.js/.test(distIndex), "dist index references bundled JavaScript");
 assert(/assets\/index-.*\.css/.test(distIndex), "dist index references bundled CSS");
