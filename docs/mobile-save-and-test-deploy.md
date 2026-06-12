@@ -178,9 +178,10 @@ Not yet verified:
 Verified HTTPS URL:
 
 - `https://souluk319.github.io/TrashCam2004/`
-- Latest deployed bundle: `assets/index-DJDukQqd.js` and `assets/index-CgIRwTF0.css` from `gh-pages` commit `4a9e84e`.
+- Latest deployed bundle: `assets/index-DJDukQqd.js` and `assets/index-CgIRwTF0.css` from `gh-pages` commit `6d36964`.
 - Synthetic check passed at `?demo=1&debug=1&save=prepare` with 390px viewport, `secure=true`, active render frames, evidence controls, report updates, and PNG prepare.
-- Live `.nojekyll` marker returned HTTP 200.
+- Live `favicon.svg` and `.nojekyll` returned HTTP 200.
+- `npm run verify:pages` passed against the stable URL with matching hashed assets, PNG prepare, evidence report updates, no overflow, and no browser warnings/errors.
 
 Important honesty rule:
 

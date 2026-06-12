@@ -107,6 +107,7 @@ Verification:
 - Local evidence UI verification passed at 390px with synthetic source: saved-file/effect checkboxes were visible in `?debug=1`, the phone report updated their values, and no overflow or console warnings/errors appeared. This is still not real phone acceptance.
 - Latest evidence UI was deployed to `gh-pages` commit `4a9e84e` and verified on the stable URL. Live Pages served `assets/index-DJDukQqd.js` / `assets/index-CgIRwTF0.css`, `.nojekyll` returned HTTP 200, and `?demo=1&debug=1&save=prepare` at 390px passed PNG prepare, report update, no-overflow, and no-console checks.
 - `npm run verify:pages` now automates the stable URL check: live hashed assets must match the current Pages build, `.nojekyll` must be reachable, demo PNG prepare and evidence report update must pass, and browser warnings/errors or horizontal overflow fail the check.
+- Latest `gh-pages` commit `6d36964` adds the base-path-safe favicon and passes `npm run verify:pages`: live assets match local Pages build, live `favicon.svg`/`.nojekyll` return HTTP 200, PNG prepare succeeds, and the evidence report updates without browser warnings/errors.
 
 Exit criteria:
 

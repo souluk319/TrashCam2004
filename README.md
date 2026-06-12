@@ -155,6 +155,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 stable HTTPS evidence deployment: `gh-pages` was updated to `4a9e84e`; live Pages now serves `assets/index-DJDukQqd.js` and `assets/index-CgIRwTF0.css`, `.nojekyll` returns HTTP 200, and `https://souluk319.github.io/TrashCam2004/?demo=1&debug=1&save=prepare` verified the evidence controls, PNG prepare, phone report manual values, no horizontal overflow, and no console warnings/errors.
 - 2026-06-12 stable Pages verification script: `npm run verify:pages` added. It builds with the GitHub Pages base path, checks that live Pages serves the same hashed JS/CSS assets, verifies `.nojekyll`, runs a headless 390px demo save/evidence flow, and fails on browser warnings/errors or horizontal overflow.
 - 2026-06-12 favicon added through `%BASE_URL%favicon.svg` so GitHub Pages and local builds avoid the default missing favicon request.
+- 2026-06-12 stable Pages verification pass: `gh-pages` was updated to `6d36964`, live `favicon.svg` and `.nojekyll` returned HTTP 200, and `npm run verify:pages` passed with live `assets/index-DJDukQqd.js` / `assets/index-CgIRwTF0.css`, PNG prepare `693404` bytes, manual evidence report updates, and `gate=synthetic-or-local-check`.
 
 ## Local development
 
