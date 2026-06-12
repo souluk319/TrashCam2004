@@ -157,8 +157,30 @@ h1 {
 
 .control-bar {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+.preset-pack-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.preset-pack-button {
+  min-height: 38px;
+  padding: 0 8px;
+  border-color: #6a6440;
+  background: #17150f;
+  color: #c9c29a;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.preset-pack-button[aria-selected="true"] {
+  border-color: #2bff7d;
+  background: #18301f;
+  color: #e4ffd6;
 }
 
 .preset-group {
@@ -174,6 +196,10 @@ h1 {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.preset-button[hidden] {
+  display: none;
 }
 
 .preset-button[aria-pressed="true"] {
@@ -308,14 +334,29 @@ h1 {
     padding-inline: 8px;
   }
 
+  .preview {
+    max-height: calc(100dvh - 248px);
+  }
+
+  .preset-pack-tabs,
   .preset-group {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 4px;
+  }
+
+  .preset-pack-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .preset-pack-button {
+    min-height: 36px;
+    padding-inline: 4px;
+    font-size: 10px;
   }
 
   .preset-button {
     padding-inline: 4px;
-    font-size: 11px;
+    font-size: 10px;
   }
 
   .action-row {
@@ -329,7 +370,7 @@ h1 {
 
 @media (max-height: 620px) {
   .preview {
-    max-height: calc(100dvh - 164px);
+    max-height: calc(100dvh - 220px);
   }
 
   button {

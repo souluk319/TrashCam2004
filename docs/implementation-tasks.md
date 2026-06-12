@@ -74,6 +74,8 @@ Verified:
 - 2026-06-12 continuation: public beta polish added. `index.html` now includes description/Open Graph metadata, and the app includes a compact Privacy dialog stating that camera frames stay in the browser and TrashCam does not upload photos or video.
 - 2026-06-12 continuation: `ASCII Terminal Cam`, `Deep Fried Meme Cam`, and `Sticker Booth Cam` added as extra public-beta fun presets. They use ASCII terminal rendering, deep-fried meme color damage, and sticker photo-booth overlays.
 - 2026-06-12 continuation: the new fun presets were verified on production preview with `?demo=1&debug=1&save=prepare` at 390px. Result: 12 preset buttons, Privacy dialog opened, active presets `ascii`/`deepfried`/`stickerbooth`, PNG prepared for all three, no horizontal overflow, no console warnings/errors.
+- 2026-06-12 continuation: productization preset navigation added. The 12 presets are now grouped behind `Trash`, `Future`, and `Game` pack tabs.
+- 2026-06-12 continuation: pack-tab navigation was verified through the temporary HTTPS tunnel with `?demo=1&debug=1&save=prepare` at 390px. Result: `Trash` pack showed 8 visible presets, `Future` pack switched to `Cyberpunk`/`ASCII`, `Cyberpunk` PNG prepare succeeded, no horizontal overflow, no console warnings/errors.
 
 Not yet verified:
 
@@ -250,6 +252,7 @@ Exit criteria:
 - [x] Add safe-area padding for iPhone.
 - [x] Keep status copy short.
 - [x] Confirm no explanatory onboarding blocks were added.
+- [x] Group the 12 presets behind `Trash`, `Future`, and `Game` pack tabs to reduce mobile control crowding.
 
 Exit criteria:
 

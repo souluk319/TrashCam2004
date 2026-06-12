@@ -135,6 +135,9 @@ assert(mainSource.includes("data-debug-report"), "debug panel exposes generated 
 assert(mainSource.includes("navigator.clipboard"), "debug panel can copy state to clipboard");
 assert(mainSource.includes("data-privacy-open"), "app exposes privacy dialog trigger");
 assert(mainSource.includes("does not upload photos or video"), "privacy dialog explains local camera handling");
+assert(mainSource.includes("data-preset-pack"), "app exposes preset pack tabs");
+assert(mainSource.includes("activePresetCategory"), "preset pack state is tracked");
+assert(mainSource.includes("button.hidden = button.dataset.category !== activePresetCategory"), "preset buttons filter by active pack");
 
 assert(saveSource.includes("canvas.toBlob"), "save path converts canvas to PNG blob");
 assert(saveSource.includes("getSaveCapability"), "save path exposes share capability diagnostics");

@@ -135,6 +135,8 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 preset expansion: `ASCII Terminal Cam`, `Deep Fried Meme Cam`, and `Sticker Booth Cam` added. They use ASCII terminal rendering, deep-fried meme color damage, and sticker photo-booth overlays.
 - 2026-06-12 production preset recheck: `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` at 390px showed 12 preset buttons, opened the Privacy dialog, switched to `ascii`, `deepfried`, and `stickerbooth`, prepared PNG filenames for all three modes, had no horizontal overflow, and produced no console warnings/errors. This is still synthetic-source verification, not a real phone camera test.
 - 2026-06-12 public beta diagnostics: `?debug=1` now exposes app version and preset count in both the visible panel and copied state report.
+- 2026-06-12 productization polish: preset controls now use `Trash`, `Future`, and `Game` pack tabs so mobile users are not staring at all 12 modes at once.
+- 2026-06-12 pack-tab verification: temporary HTTPS tunnel + `?demo=1&debug=1&save=prepare` at 390px showed the `Trash` pack filtering to 8 visible presets, `Future` switching to `Cyberpunk`/`ASCII`, `Cyberpunk` PNG prepare succeeding, no horizontal overflow, and no console warnings/errors.
 
 ## Local development
 

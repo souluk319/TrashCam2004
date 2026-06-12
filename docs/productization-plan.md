@@ -167,11 +167,13 @@ If any phone check fails, open the same URL with `?debug=1`, tap `Copy state`, a
 
 ### 1. Preset pack navigation
 
+Status: implemented.
+
 Problem:
 
 - 12 preset buttons are fun, but the control bar can feel crowded.
 
-Recommended fix:
+Implemented fix:
 
 - Add pack tabs: `Trash`, `Future`, `Game`.
 - Show only presets from the selected pack.
@@ -182,6 +184,11 @@ Exit criteria:
 - Mobile controls feel calmer.
 - No preset names wrap awkwardly.
 - Existing preset data structure with `category` remains useful.
+
+Verification:
+
+- Temporary HTTPS tunnel + `?demo=1&debug=1&save=prepare` at 390px showed `Trash` filtering to 8 visible presets.
+- Switching to `Future` showed `Cyberpunk` and `ASCII`, selected `Cyberpunk`, prepared a PNG, had no horizontal overflow, and produced no console warnings/errors.
 
 ### 2. Capture review state
 

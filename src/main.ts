@@ -26,13 +26,18 @@ import {
   drawTimestamp
 } from "./effects";
 import { startDemoSource, type DemoSource } from "./demo-source";
-import { DEFAULT_PRESET, PRESETS, getPresetById, type Preset } from "./presets";
+import { DEFAULT_PRESET, PRESETS, getPresetById, type Preset, type PresetCategory } from "./presets";
 import { getSaveCapability, saveCanvas } from "./save";
 import "./styles.css";
 
 const CANVAS_WIDTH = 640;
 const CANVAS_HEIGHT = 480;
 const APP_VERSION = "0.1.0-beta.1";
+const PRESET_PACKS: Array<{ category: PresetCategory; label: string }> = [
+  { category: "trash", label: "Trash" },
+  { category: "future", label: "Future" },
+  { category: "game", label: "Game" }
+];
 
 const app = requireNode(document.querySelector<HTMLDivElement>("#app"), "App root not found.");
 const rootParams = new URLSearchParams(window.location.search);
@@ -56,6 +61,22 @@ app.innerHTML = `
     </section>
 
     <footer class="control-bar">
+      <div class="preset-pack-tabs" role="tablist" aria-label="Preset pack">
+        ${PRESET_PACKS.map(
+          (pack) => `
+            <button
+              class="preset-pack-button"
+              type="button"
+              role="tab"
+              data-preset-pack="${pack.category}"
+              aria-selected="${pack.category === DEFAULT_PRESET.category}"
+            >
+              ${pack.label}
+            </button>
+          `
+        ).join("")}
+      </div>
+
       <div class="preset-group" role="group" aria-label="Preset">
         ${PRESETS.map(
           (preset) => `
@@ -132,6 +153,7 @@ const privacyCloseButton = requireNode(
   app.querySelector<HTMLButtonElement>("[data-privacy-close]"),
   "Privacy close button is missing."
 );
+const presetPackButtons = Array.from(app.querySelectorAll<HTMLButtonElement>("[data-preset-pack]"));
 const presetButtons = Array.from(app.querySelectorAll<HTMLButtonElement>("[data-preset]"));
 const debugFields = new Map<string, HTMLOutputElement>();
 
@@ -148,6 +170,7 @@ const lowCanvas = document.createElement("canvas");
 const lowCtx = requireContext(lowCanvas.getContext("2d", { willReadFrequently: true }));
 
 let activePreset = DEFAULT_PRESET;
+let activePresetCategory: PresetCategory = DEFAULT_PRESET.category;
 let activeStream: MediaStream | null = null;
 let activeDemoSource: DemoSource | null = null;
 let animationFrame = 0;
@@ -168,6 +191,7 @@ setAppState("videoSize", "0x0");
 setAppState("renderedFrames", "0");
 setAppState("activePreset", activePreset.id);
 setAppState("presetCategory", activePreset.category);
+syncPresetButtons();
 
 if (shouldSkipCameraForLocalCheck()) {
   setAppState("sourceMode", "off");
@@ -185,11 +209,15 @@ if (shouldSkipCameraForLocalCheck()) {
 presetButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const presetId = button.dataset.preset as Preset["id"];
-    activePreset = getPresetById(presetId);
-    setAppState("activePreset", activePreset.id);
-    setAppState("presetCategory", activePreset.category);
-    syncPresetButtons();
-    setStatus(activePreset.caption);
+    selectPreset(getPresetById(presetId));
+  });
+});
+
+presetPackButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const category = button.dataset.presetPack as PresetCategory;
+    const firstPresetInPack = PRESETS.find((preset) => preset.category === category) ?? DEFAULT_PRESET;
+    selectPreset(firstPresetInPack);
   });
 });
 
@@ -577,9 +605,23 @@ function drawCyworldWash(ctx: CanvasRenderingContext2D): void {
 }
 
 function syncPresetButtons(): void {
+  presetPackButtons.forEach((button) => {
+    button.setAttribute("aria-selected", String(button.dataset.presetPack === activePresetCategory));
+  });
+
   presetButtons.forEach((button) => {
+    button.hidden = button.dataset.category !== activePresetCategory;
     button.setAttribute("aria-pressed", String(button.dataset.preset === activePreset.id));
   });
+}
+
+function selectPreset(preset: Preset): void {
+  activePreset = preset;
+  activePresetCategory = preset.category;
+  setAppState("activePreset", activePreset.id);
+  setAppState("presetCategory", activePreset.category);
+  syncPresetButtons();
+  setStatus(activePreset.caption);
 }
 
 function handleCameraFailure(error: unknown): void {
