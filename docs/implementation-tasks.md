@@ -89,6 +89,7 @@ Verified:
 - 2026-06-12 continuation: `npm run smoke` now checks the fake-camera script contract, and `npm run readiness` rechecked successfully after the fake-camera verification addition.
 - 2026-06-12 continuation: phone acceptance evidence controls added to `?debug=1`. The phone report now records saved-file-open and saved-effect-visible values, and real camera runs can only reach `phone-pass-candidate` after both are checked following shared/downloaded save.
 - 2026-06-12 continuation: production preview evidence UI rechecked at `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` in a 390px viewport. Result: evidence controls visible, PNG prepared, report updated with manual evidence values, no horizontal overflow, no console warnings/errors.
+- 2026-06-12 continuation: evidence UI deployed to `gh-pages` commit `4a9e84e`. Stable URL now serves `assets/index-DJDukQqd.js` and `assets/index-CgIRwTF0.css`; live `?demo=1&debug=1&save=prepare` at 390px verified evidence controls, PNG prepare, phone report manual values, no horizontal overflow, and no console warnings/errors.
 
 Not yet verified:
 
@@ -298,6 +299,7 @@ Then verify:
 - [x] `?demo=1&save=prepare` succeeds on the stable local URL `http://127.0.0.1:5174/`.
 - [x] Production dist preview succeeds on `http://127.0.0.1:4174/?demo=1&save=prepare`.
 - [x] Production dist preview succeeds on `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare`.
+- [x] Stable GitHub Pages URL succeeds on `https://souluk319.github.io/TrashCam2004/?demo=1&debug=1&save=prepare` with evidence controls and PNG prepare.
 - [x] Production dist preview rechecked after save fallback hardening with `?demo=1&debug=1&save=prepare`.
 - [x] Production dist preview rechecked after Receipt/CCTV/School ID preset expansion with `?demo=1&debug=1&save=prepare` at 390px.
 - [x] Production dist preview rechecked after public beta polish and ASCII/Deep Fried/Sticker preset expansion with `?demo=1&debug=1&save=prepare` at 390px.

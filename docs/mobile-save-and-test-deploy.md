@@ -170,7 +170,9 @@ Not yet verified:
 Verified HTTPS URL:
 
 - `https://souluk319.github.io/TrashCam2004/`
-- Synthetic check passed at `?demo=1&debug=1&save=prepare` with 390px viewport, `secure=true`, active render frames, pack-tab switching, and PNG prepare.
+- Latest deployed bundle: `assets/index-DJDukQqd.js` and `assets/index-CgIRwTF0.css` from `gh-pages` commit `4a9e84e`.
+- Synthetic check passed at `?demo=1&debug=1&save=prepare` with 390px viewport, `secure=true`, active render frames, evidence controls, report updates, and PNG prepare.
+- Live `.nojekyll` marker returned HTTP 200.
 
 Important honesty rule:
 

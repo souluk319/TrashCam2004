@@ -151,6 +151,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 fake-camera verification: `npm run verify:fake-camera` passed using Chrome fake media. Result: app reported `source=camera`, `camera=ready`, non-zero source video size, PNG prepared at `766737` bytes, phone-test report included `source=camera`, capture review opened, and the script exited cleanly. This is stronger than `?demo=1`, but it is still not a physical webcam or real phone test.
 - 2026-06-12 phone acceptance evidence: `?debug=1` now includes file-open and effect-visible checkboxes. For a real camera run, `acceptanceGate` advances from save-needed to `manual-file-open-needed`, then `manual-effect-check-needed`, and finally `phone-pass-candidate` only after the saved file is opened and the effect is confirmed.
 - 2026-06-12 evidence UI recheck: production preview at `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` in a 390px viewport showed the new evidence controls, prepared a PNG, updated `data-phone-test-report`, had no horizontal overflow, and produced no console warnings/errors. This is still synthetic-source verification.
+- 2026-06-12 stable HTTPS evidence deployment: `gh-pages` was updated to `4a9e84e`; live Pages now serves `assets/index-DJDukQqd.js` and `assets/index-CgIRwTF0.css`, `.nojekyll` returns HTTP 200, and `https://souluk319.github.io/TrashCam2004/?demo=1&debug=1&save=prepare` verified the evidence controls, PNG prepare, phone report manual values, no horizontal overflow, and no console warnings/errors.
 
 ## Local development
 
