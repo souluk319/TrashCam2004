@@ -152,8 +152,12 @@ Not yet verified:
 
 - Real desktop camera permission and live stream
 - Real downloaded/shared PNG file usability
-- HTTPS deployment URL
 - Real iPhone Safari or Android Chrome full loop
+
+Verified HTTPS URL:
+
+- `https://souluk319.github.io/TrashCam2004/`
+- Synthetic check passed at `?demo=1&debug=1&save=prepare` with 390px viewport, `secure=true`, active render frames, pack-tab switching, and PNG prepare.
 
 Important honesty rule:
 

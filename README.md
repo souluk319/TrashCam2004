@@ -138,6 +138,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 productization polish: preset controls now use `Trash`, `Future`, and `Game` pack tabs so mobile users are not staring at all 12 modes at once.
 - 2026-06-12 pack-tab verification: temporary HTTPS tunnel + `?demo=1&debug=1&save=prepare` at 390px showed the `Trash` pack filtering to 8 visible presets, `Future` switching to `Cyberpunk`/`ASCII`, `Cyberpunk` PNG prepare succeeding, no horizontal overflow, and no console warnings/errors.
 - 2026-06-12 GitHub Pages pipeline: added a Pages build script, enabled the Pages site, and prepared `gh-pages` branch deployment for stable HTTPS at `https://souluk319.github.io/TrashCam2004/`.
+- 2026-06-12 stable HTTPS recheck: `https://souluk319.github.io/TrashCam2004/?demo=1&debug=1&save=prepare` loaded from GitHub Pages at 390px, reported `secure=true`, rendered demo frames, switched `Game` pack to `Pixel Art`/`Voxel`, prepared a Pixel Art PNG, had no horizontal overflow, and produced no console warnings/errors.
 
 ## Local development
 
@@ -279,7 +280,7 @@ This runs the production build and checks:
 - School ID overlay helper exists
 - ASCII terminal, deep fried, and sticker booth helpers exist
 
-This does not prove real camera permission, actual downloaded/shared file usability, HTTPS deployment, or phone support.
+This does not prove real camera permission, actual downloaded/shared file usability, or phone support.
 
 ## Deployment readiness check
 
@@ -327,7 +328,8 @@ expected URL -> https://souluk319.github.io/TrashCam2004/
 Current local note:
 
 - `vercel` CLI is not installed in this shell.
-- Deployment has not been run yet.
+- Stable GitHub Pages deployment has been run and synthetically verified.
+- Real camera permission and phone save/share remain unverified.
 - Do not call the MVP done until at least one real phone completes the HTTPS camera/save loop.
 
 Manual deploy path:

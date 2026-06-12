@@ -91,6 +91,11 @@ Fallback path:
 - Cloudflare Pages can also work with the normal build command and output directory.
 - Cloudflare Quick Tunnel is only for temporary testing, not a stable product URL.
 
+Verification:
+
+- GitHub Pages returned HTTP 200 at `https://souluk319.github.io/TrashCam2004/?debug=1`.
+- Browser verification passed at `?demo=1&debug=1&save=prepare` with 390px viewport: `secure=true`, version `0.1.0-beta.1`, preset count `12`, demo render frames advancing, `Game` pack switching to `Pixel Art`/`Voxel`, Pixel Art PNG prepare, no horizontal overflow, and no console warnings/errors.
+
 Exit criteria:
 
 - Public HTTPS URL returns the app.

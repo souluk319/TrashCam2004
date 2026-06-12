@@ -77,16 +77,16 @@ Verified:
 - 2026-06-12 continuation: productization preset navigation added. The 12 presets are now grouped behind `Trash`, `Future`, and `Game` pack tabs.
 - 2026-06-12 continuation: pack-tab navigation was verified through the temporary HTTPS tunnel with `?demo=1&debug=1&save=prepare` at 390px. Result: `Trash` pack showed 8 visible presets, `Future` pack switched to `Cyberpunk`/`ASCII`, `Cyberpunk` PNG prepare succeeded, no horizontal overflow, no console warnings/errors.
 - 2026-06-12 continuation: GitHub Pages deployment pipeline added and Pages site enabled. `npm run build:pages` builds with `/TrashCam2004/` Vite base path, `dist` is published through the `gh-pages` branch, and the stable URL is `https://souluk319.github.io/TrashCam2004/`.
+- 2026-06-12 continuation: stable GitHub Pages URL verified with `?demo=1&debug=1&save=prepare` at 390px. Result: HTTP 200, `secure=true`, app version `0.1.0-beta.1`, preset count `12`, `Game` pack switched to `Pixel Art`/`Voxel`, Pixel Art PNG prepare succeeded, no horizontal overflow, no console warnings/errors.
 
 Not yet verified:
 
 - Real desktop browser camera permission and live camera stream.
 - Desktop PNG save using an actual camera frame.
 - Actual downloaded/shared PNG file receipt and usability on a real browser/device.
-- HTTPS deployment.
 - Real iPhone Safari / Android Chrome test.
 - Vercel CLI is not installed in this shell, so deployment was not attempted.
-- GitHub Pages still needs a pushed `gh-pages` branch and live URL check to prove stable HTTPS deployment. Readiness now treats Vercel CLI absence as a note because GitHub Pages is the configured fallback.
+- GitHub Pages stable HTTPS deployment is verified with synthetic source only; it does not prove real phone camera/save behavior.
 
 ## Phase 0 - Repo sanity
 
@@ -306,9 +306,9 @@ Exit criteria:
 - [x] Add Vercel build/output configuration.
 - [x] Add Vercel response headers for same-origin camera allowance and unused permission lock-down.
 - [x] Add no-side-effect readiness check before external deployment.
-- [ ] Deploy to Vercel or another HTTPS static host.
-- [ ] Record the deployed URL in project notes or final report.
-- [ ] Open deployed URL on desktop first.
+- [x] Deploy to Vercel or another HTTPS static host.
+- [x] Record the deployed URL in project notes or final report.
+- [x] Open deployed URL on desktop first.
 - [ ] Open deployed URL on phone.
 
 Exit criteria:

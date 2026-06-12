@@ -99,7 +99,7 @@ warn("vercel CLI is not installed or not on PATH; GitHub Pages is the configured
 
 warn("desktop real-camera permission test still requires explicit approval before accepting the prompt");
 warn("actual PNG download/share usability still requires a real browser/device check");
-warn("stable HTTPS deployment still needs a pushed gh-pages branch and GitHub Pages source check");
+warn("stable HTTPS deployment is configured through GitHub Pages; real-device camera/save verification remains");
 warn("goal completion requires at least one real phone to complete camera preview and PNG save/share");
 
 console.log("\nSummary:");
