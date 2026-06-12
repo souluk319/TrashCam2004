@@ -75,6 +75,12 @@ if (packageJson.scripts?.["verify:pages"] === "npm run build:pages && node scrip
   block("stable Pages verification script missing or changed");
 }
 
+if (packageJson.scripts?.["verify:camera-switch"] === "npm run build && node scripts/camera-switch-check.mjs") {
+  pass("camera switch verification script is available");
+} else {
+  block("camera switch verification script missing or changed");
+}
+
 if (packageJson.scripts?.["verify:booth"] === "npm run build && node scripts/booth-check.mjs") {
   pass("4-Cut Booth verification script is available");
 } else {

@@ -5,7 +5,7 @@ import { spawn } from "node:child_process";
 import net from "node:net";
 
 const PREVIEW_PORT = 4174;
-const PREVIEW_URL = `http://127.0.0.1:${PREVIEW_PORT}/?demo=1&debug=1&save=prepare&boothFast=1`;
+const PREVIEW_URL = `http://127.0.0.1:${PREVIEW_PORT}/?debug=1&save=prepare`;
 const CHROME_CANDIDATES = [
   process.env.CHROME_BIN,
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -33,7 +33,7 @@ async function main() {
     await ensurePreviewServer();
     const chromePath = await findChrome();
     const debuggingPort = await findFreePort();
-    userDataDir = mkdtempSync(join(tmpdir(), "trashcam-booth-check-"));
+    userDataDir = mkdtempSync(join(tmpdir(), "trashcam-camera-switch-"));
 
     chromeProcess = spawn(chromePath, [
       "--headless=new",
@@ -43,6 +43,8 @@ async function main() {
       "--no-first-run",
       "--no-default-browser-check",
       "--autoplay-policy=no-user-gesture-required",
+      "--use-fake-device-for-media-stream",
+      "--use-fake-ui-for-media-stream",
       PREVIEW_URL
     ], {
       stdio: ["ignore", "ignore", "pipe"]
@@ -51,80 +53,48 @@ async function main() {
     await waitForDevTools(debuggingPort);
     const pageTarget = await waitForPageTarget(debuggingPort);
     const client = await connectToCdp(pageTarget.webSocketDebuggerUrl);
-    const browserProblems = [];
-
-    client.on("Log.entryAdded", ({ entry }) => {
-      if (entry.level === "error" || entry.level === "warning") {
-        browserProblems.push(`${entry.level}: ${entry.text}`);
-      }
-    });
-    client.on("Runtime.exceptionThrown", ({ exceptionDetails }) => {
-      browserProblems.push(`exception: ${exceptionDetails.text ?? "runtime exception"}`);
-    });
 
     try {
       await client.send("Runtime.enable");
-      await client.send("Log.enable");
       await client.send("Page.enable");
-      await client.send("Emulation.setDeviceMetricsOverride", {
-        width: 390,
-        height: 844,
-        deviceScaleFactor: 2,
-        mobile: true
-      });
-      await waitForDemoReady(client);
-      logOk("4-Cut Booth check loaded demo camera");
+      await waitForCameraReady(client);
 
-      await evaluate(client, `document.querySelector('button[data-capture-mode="booth"]')?.click()`);
-      await waitForState(client, (state) => state.captureMode === "booth", "capture mode did not switch to booth");
+      const initialState = await readAppState(client);
 
-      await evaluate(client, "document.querySelector('[data-save]')?.click()");
-      await waitForState(
-        client,
-        (state) => state.boothState === "ready" && state.boothCuts === "4" && state.filledBoothThumbs === 4,
-        "4-Cut Booth did not capture 4 frames"
-      );
-      logOk("4-Cut Booth captured 4 frames");
+      if (initialState.cameraFacing !== "user") {
+        fail(`expected initial facing=user, got ${initialState.cameraFacing}`);
+      }
 
-      await evaluate(client, `document.querySelector('button[data-booth-thumb-slot="1"]')?.click()`);
-      await waitForState(client, (state) => state.boothRetake === "2", "4-Cut Booth did not enter cut 2 retake state");
+      if (!initialState.hasSwitch || initialState.switchDisabled) {
+        fail(`expected enabled camera switch, got has=${initialState.hasSwitch} disabled=${initialState.switchDisabled}`);
+      }
 
-      await evaluate(client, "document.querySelector('[data-save]')?.click()");
-      await waitForState(
+      await evaluate(client, `document.querySelector("[data-camera-switch]")?.click()`);
+      const switchedState = await waitForState(
         client,
         (state) => (
-          state.boothState === "ready"
-          && state.boothCuts === "4"
-          && state.filledBoothThumbs === 4
-          && state.boothRetake === "-"
+          state.source === "camera"
+          && state.camera === "ready"
+          && state.cameraFacing === "environment"
+          && state.frames > 0
         ),
-        "4-Cut Booth did not replace cut 2"
+        "camera switch did not reach facing=environment"
       );
-      logOk("4-Cut Booth retook cut 2");
 
-      await evaluate(client, `document.querySelector('[data-booth-frame="instant-film"]')?.click()`);
-      await waitForState(client, (state) => state.boothFrame === "instant-film", "booth frame did not switch to Instant Film");
+      if (!switchedState.debugReportHasFacing || !switchedState.phoneReportHasFacing) {
+        fail("camera facing did not appear in copied reports");
+      }
+
+      logOk("fake camera switched from user to environment");
 
       await evaluate(client, "document.querySelector('[data-save]')?.click()");
-      const finalState = await waitForState(
+      const savedState = await waitForState(
         client,
         (state) => state.save === "prepared" && state.captureReview === "visible" && state.bytes > 0,
-        "4-Cut Booth strip did not prepare PNG"
+        "camera switch save did not prepare PNG"
       );
 
-      if (!finalState.filename.includes("4-cut-booth-instant-film")) {
-        fail(`expected booth filename, got ${finalState.filename}`);
-      }
-
-      if (finalState.overflowCount !== 0) {
-        fail(`expected no horizontal overflow, got ${finalState.overflowCount}`);
-      }
-
-      if (browserProblems.length > 0) {
-        fail(`browser problems: ${browserProblems.join(" | ")}`);
-      }
-
-      logOk(`4-Cut Booth strip prepared: ${finalState.bytes} bytes`);
+      logOk(`camera switch PNG prepared: ${savedState.bytes} bytes`);
     } finally {
       await client.close();
     }
@@ -133,17 +103,11 @@ async function main() {
   }
 }
 
-async function waitForDemoReady(client) {
+async function waitForCameraReady(client) {
   await waitForState(
     client,
-    (state) => (
-      state.source === "demo"
-      && state.camera === "ready"
-      && state.frames > 0
-      && state.hasBoothMode
-      && state.hasInstantFilmFrame
-    ),
-    "demo source did not become ready"
+    (state) => state.source === "camera" && state.camera === "ready" && state.frames > 0,
+    "fake camera did not become ready"
   );
 }
 
@@ -161,33 +125,22 @@ async function waitForState(client, predicate, timeoutMessage) {
 async function readAppState(client) {
   return evaluate(client, `(() => {
     const app = document.querySelector("#app");
-    const overflowing = [];
-
-    for (const element of Array.from(document.querySelectorAll("*"))) {
-      const rect = element.getBoundingClientRect();
-
-      if (rect.width > 0 && (rect.left < -1 || rect.right > window.innerWidth + 1)) {
-        overflowing.push(element.tagName);
-      }
-    }
+    const debugReport = document.querySelector("[data-copy-debug]")?.dataset.debugReport ?? "";
+    const phoneReport = document.querySelector("[data-copy-phone-test]")?.dataset.phoneTestReport ?? "";
+    const switchButton = document.querySelector("[data-camera-switch]");
 
     return {
       source: app?.dataset.sourceMode ?? "",
       camera: app?.dataset.cameraState ?? "",
+      cameraFacing: app?.dataset.cameraFacing ?? "",
       frames: Number(app?.dataset.renderedFrames ?? 0),
-      captureMode: app?.dataset.captureMode ?? "",
-      boothState: app?.dataset.boothState ?? "",
-      boothCuts: app?.dataset.boothCuts ?? "",
-      boothFrame: app?.dataset.boothFrame ?? "",
-      boothRetake: app?.dataset.boothRetake ?? "",
       save: app?.dataset.lastSaveKind ?? "",
       captureReview: app?.dataset.captureReview ?? "",
       bytes: Number(app?.dataset.lastSaveBytes ?? 0),
-      filename: app?.dataset.lastSaveName ?? "",
-      hasBoothMode: Boolean(document.querySelector('button[data-capture-mode="booth"]')),
-      hasInstantFilmFrame: Boolean(document.querySelector('[data-booth-frame="instant-film"]')),
-      filledBoothThumbs: Array.from(document.querySelectorAll("[data-booth-thumb]")).filter((canvas) => canvas.dataset.filled === "yes").length,
-      overflowCount: overflowing.length
+      hasSwitch: Boolean(switchButton),
+      switchDisabled: Boolean(switchButton?.disabled),
+      debugReportHasFacing: debugReport.includes("facing=environment"),
+      phoneReportHasFacing: phoneReport.includes("facing=environment")
     };
   })()`);
 }
@@ -220,7 +173,7 @@ async function findChrome() {
     }
   }
 
-  fail("Chrome/Chromium not found. Set CHROME_BIN to run 4-Cut Booth verification.");
+  fail("Chrome/Chromium not found. Set CHROME_BIN to run camera switch verification.");
 }
 
 function canSpawn(command, args) {
@@ -279,23 +232,18 @@ async function waitForPageTarget(port) {
   let lastTargets = [];
 
   await waitFor(async () => {
-    try {
-      const response = await fetch(`http://127.0.0.1:${port}/json/list`);
-      lastTargets = await response.json();
-      return lastTargets.some((target) => target.type === "page" && target.webSocketDebuggerUrl);
-    } catch {
-      return false;
-    }
-  }, 10_000, () => `Chrome page target did not appear: ${JSON.stringify(lastTargets)}`);
+    const response = await fetch(`http://127.0.0.1:${port}/json/list`);
+    lastTargets = await response.json();
+    return lastTargets.some((target) => target.type === "page" && target.url.startsWith(PREVIEW_URL));
+  }, 10_000, "Chrome page target did not open preview URL");
 
-  return lastTargets.find((target) => target.type === "page" && target.webSocketDebuggerUrl);
+  return lastTargets.find((target) => target.type === "page" && target.url.startsWith(PREVIEW_URL));
 }
 
-async function connectToCdp(webSocketDebuggerUrl) {
-  const socket = new WebSocket(webSocketDebuggerUrl);
-  let nextId = 1;
+async function connectToCdp(url) {
+  const socket = new WebSocket(url);
   const pending = new Map();
-  const listeners = new Map();
+  let nextId = 1;
 
   await new Promise((resolve, reject) => {
     socket.addEventListener("open", resolve, { once: true });
@@ -305,27 +253,24 @@ async function connectToCdp(webSocketDebuggerUrl) {
   socket.addEventListener("message", (event) => {
     const message = JSON.parse(event.data);
 
-    if (message.id) {
-      const request = pending.get(message.id);
-      if (!request) {
-        return;
-      }
-
-      pending.delete(message.id);
-
-      if (message.error) {
-        request.reject(new Error(message.error.message));
-      } else {
-        request.resolve(message.result ?? {});
-      }
+    if (!message.id) {
       return;
     }
 
-    if (message.method) {
-      for (const listener of listeners.get(message.method) ?? []) {
-        listener(message.params ?? {});
-      }
+    const request = pending.get(message.id);
+
+    if (!request) {
+      return;
     }
+
+    pending.delete(message.id);
+
+    if (message.error) {
+      request.reject(new Error(message.error.message));
+      return;
+    }
+
+    request.resolve(message.result);
   });
 
   return {
@@ -333,15 +278,9 @@ async function connectToCdp(webSocketDebuggerUrl) {
       const id = nextId;
       nextId += 1;
       socket.send(JSON.stringify({ id, method, params }));
-
       return new Promise((resolve, reject) => {
         pending.set(id, { resolve, reject });
       });
-    },
-    on(method, listener) {
-      const methodListeners = listeners.get(method) ?? [];
-      methodListeners.push(listener);
-      listeners.set(method, methodListeners);
     },
     close() {
       socket.close();
@@ -420,13 +359,9 @@ process.on("SIGINT", () => {
   cleanup();
   process.exit(130);
 });
-process.on("SIGTERM", () => {
-  cleanup();
-  process.exit(143);
-});
 
-main().catch((error) => {
+void main().catch((error) => {
   cleanup();
-  console.error(`fail - ${error.message}`);
+  console.error(error instanceof Error ? error.message : error);
   process.exit(1);
 });

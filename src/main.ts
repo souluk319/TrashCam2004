@@ -1,4 +1,4 @@
-import { CameraError, startCamera, stopStream } from "./camera";
+import { CameraError, startCamera, stopStream, type CameraFacing } from "./camera";
 import {
   VOXEL_BLOCK_PALETTE,
   applyBlockAverage,
@@ -94,10 +94,10 @@ app.innerHTML = `
       </div>
       <div class="booth-thumbs" aria-label="4-Cut Booth captured frames">
         ${Array.from({ length: BOOTH_CUT_COUNT }, (_, index) => `
-          <div class="booth-thumb" data-booth-thumb-slot="${index}">
+          <button class="booth-thumb" type="button" data-booth-thumb-slot="${index}" disabled aria-label="Retake cut ${index + 1}">
             <canvas data-booth-thumb="${index}" width="160" height="120"></canvas>
             <span>${index + 1}</span>
-          </div>
+          </button>
         `).join("")}
       </div>
       <div class="booth-frame-row" role="group" aria-label="4-Cut Booth frame">
@@ -111,7 +111,7 @@ app.innerHTML = `
             ${template.label}
           </button>
         `).join("")}
-        <button class="booth-reset-button" type="button" data-booth-reset hidden>Retake</button>
+        <button class="booth-reset-button" type="button" data-booth-reset hidden>Reset all</button>
       </div>
     </section>
 
@@ -155,6 +155,7 @@ app.innerHTML = `
 
       <div class="action-row">
         <button class="save-button" type="button" data-save disabled>Save PNG</button>
+        <button class="camera-switch-button" type="button" data-camera-switch disabled>Flip camera</button>
         <button class="retry-button" type="button" data-retry hidden>Retry camera</button>
       </div>
     </footer>
@@ -163,6 +164,7 @@ app.innerHTML = `
       <div><span>source</span><output data-debug-key="sourceMode">-</output></div>
       <div><span>camera</span><output data-debug-key="cameraState">-</output></div>
       <div><span>error</span><output data-debug-key="cameraError">-</output></div>
+      <div><span>facing</span><output data-debug-key="cameraFacing">-</output></div>
       <div><span>secure</span><output data-debug-key="secureContext">-</output></div>
       <div><span>version</span><output data-debug-key="appVersion">-</output></div>
       <div><span>presets</span><output data-debug-key="presetCount">-</output></div>
@@ -170,6 +172,7 @@ app.innerHTML = `
       <div><span>booth</span><output data-debug-key="boothState">-</output></div>
       <div><span>cuts</span><output data-debug-key="boothCuts">0</output></div>
       <div><span>frame</span><output data-debug-key="boothFrame">-</output></div>
+      <div><span>retake</span><output data-debug-key="boothRetake">-</output></div>
       <div><span>frames</span><output data-debug-key="renderedFrames">0</output></div>
       <div><span>preset</span><output data-debug-key="activePreset">-</output></div>
       <div><span>category</span><output data-debug-key="presetCategory">-</output></div>
@@ -214,6 +217,10 @@ const previewCanvas = requireNode(
 const statusLine = requireNode(app.querySelector<HTMLParagraphElement>("[data-status]"), "Status node is missing.");
 const bootCard = requireNode(app.querySelector<HTMLDivElement>("[data-boot-card]"), "Boot card is missing.");
 const saveButton = requireNode(app.querySelector<HTMLButtonElement>("[data-save]"), "Save button is missing.");
+const cameraSwitchButton = requireNode(
+  app.querySelector<HTMLButtonElement>("[data-camera-switch]"),
+  "Camera switch button is missing."
+);
 const retryButton = requireNode(app.querySelector<HTMLButtonElement>("[data-retry]"), "Retry button is missing.");
 const boothCountdown = requireNode(
   app.querySelector<HTMLDivElement>("[data-booth-countdown]"),
@@ -307,6 +314,7 @@ const modeButtons = Array.from(app.querySelectorAll<HTMLButtonElement>("[data-ca
 const presetPackButtons = Array.from(app.querySelectorAll<HTMLButtonElement>("[data-preset-pack]"));
 const presetButtons = Array.from(app.querySelectorAll<HTMLButtonElement>("[data-preset]"));
 const boothFrameButtons = Array.from(app.querySelectorAll<HTMLButtonElement>("[data-booth-frame]"));
+const boothThumbButtons = Array.from(app.querySelectorAll<HTMLButtonElement>("[data-booth-thumb-slot]"));
 const boothThumbCanvases = Array.from(app.querySelectorAll<HTMLCanvasElement>("[data-booth-thumb]"));
 const debugFields = new Map<string, HTMLOutputElement>();
 
@@ -327,9 +335,12 @@ const photoStripComposer = new PhotoStripComposer();
 let captureMode: CaptureMode = "single";
 let boothState: BoothState = "idle";
 let selectedBoothFrame: FrameTemplate = BOOTH_FRAME_TEMPLATES[0];
+let boothRetakeIndex: number | null = null;
 let boothRunId = 0;
 let activePreset = DEFAULT_PRESET;
 let activePresetCategory: PresetCategory = DEFAULT_PRESET.category;
+let cameraFacing: CameraFacing = "user";
+let previousCameraFacing: CameraFacing = "user";
 let activeStream: MediaStream | null = null;
 let activeDemoSource: DemoSource | null = null;
 let animationFrame = 0;
@@ -337,6 +348,7 @@ let lastRenderedAt = 0;
 let renderedFrames = 0;
 let isRendering = false;
 let isSaving = false;
+let isSwitchingCamera = false;
 let lastCaptureBlob: Blob | null = null;
 let lastCaptureFilename = "";
 let lastCapturePreset: Preset = DEFAULT_PRESET;
@@ -347,6 +359,7 @@ setCanvasPlaceholder();
 setAppState("sourceMode", "camera");
 setAppState("cameraState", "booting");
 setAppState("cameraError", "none");
+setAppState("cameraFacing", cameraFacing);
 setAppState("secureContext", String(window.isSecureContext));
 setAppState("appVersion", APP_VERSION);
 setAppState("presetCount", String(PRESETS.length));
@@ -357,6 +370,7 @@ setAppState("captureMode", captureMode);
 setAppState("boothState", boothState);
 setAppState("boothCuts", "0");
 setAppState("boothFrame", selectedBoothFrame.id);
+setAppState("boothRetake", "-");
 setAppState("activePreset", activePreset.id);
 setAppState("presetCategory", activePreset.category);
 setAppState("captureReview", "hidden");
@@ -391,6 +405,13 @@ boothFrameButtons.forEach((button) => {
   });
 });
 
+boothThumbButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const index = Number(button.dataset.boothThumbSlot);
+    selectBoothRetake(index);
+  });
+});
+
 boothResetButton.addEventListener("click", () => {
   resetBoothSession();
   setStatus("4-Cut Booth reset.");
@@ -413,6 +434,10 @@ presetPackButtons.forEach((button) => {
 
 retryButton.addEventListener("click", () => {
   void bootCamera();
+});
+
+cameraSwitchButton.addEventListener("click", () => {
+  void switchCameraFacing();
 });
 
 saveButton.addEventListener("click", () => {
@@ -475,6 +500,7 @@ async function bootCamera(): Promise<void> {
   setAppState("sourceMode", "camera");
   setAppState("cameraState", "booting");
   setAppState("cameraError", "none");
+  setAppState("cameraFacing", cameraFacing);
   setAppState("renderedFrames", "0");
   renderedFrames = 0;
   setStatus("카메라 여는 중...");
@@ -489,9 +515,10 @@ async function bootCamera(): Promise<void> {
   activeStream = null;
 
   try {
-    activeStream = await startCamera(video);
+    activeStream = await startCamera(video, cameraFacing);
     setAppState("cameraState", "ready");
     setAppState("cameraError", "none");
+    setAppState("cameraFacing", cameraFacing);
     refreshVideoState();
     bootCard.hidden = true;
     setStatus(captureMode === "booth" ? "4-Cut Booth ready." : activePreset.caption);
@@ -502,10 +529,65 @@ async function bootCamera(): Promise<void> {
   }
 }
 
+async function switchCameraFacing(): Promise<void> {
+  if (!canSwitchCamera()) {
+    return;
+  }
+
+  previousCameraFacing = cameraFacing;
+  const nextFacing = cameraFacing === "user" ? "environment" : "user";
+
+  isSwitchingCamera = true;
+  stopRenderLoop();
+  stopDemoSource();
+  stopStream(activeStream);
+  activeStream = null;
+  hideCaptureReview();
+  setAppState("sourceMode", "camera");
+  setAppState("cameraState", "booting");
+  setAppState("cameraError", "none");
+  setAppState("renderedFrames", "0");
+  renderedFrames = 0;
+  bootCard.hidden = false;
+  retryButton.hidden = true;
+  setStatus(`${getFacingLabel(nextFacing)} camera 전환 중...`);
+  syncPrimaryActionState();
+
+  try {
+    activeStream = await startCamera(video, nextFacing);
+    cameraFacing = nextFacing;
+    finishCameraSwitch("Camera switched.");
+  } catch (switchError) {
+    setStatus("카메라 전환 실패. 이전 카메라 복구 중...");
+
+    try {
+      activeStream = await startCamera(video, previousCameraFacing);
+      cameraFacing = previousCameraFacing;
+      finishCameraSwitch("전환 실패. 이전 카메라로 복구했다.");
+    } catch {
+      isSwitchingCamera = false;
+      handleCameraFailure(switchError);
+    }
+  }
+}
+
+function finishCameraSwitch(message: string): void {
+  isSwitchingCamera = false;
+  setAppState("cameraState", "ready");
+  setAppState("cameraError", "none");
+  setAppState("cameraFacing", cameraFacing);
+  refreshVideoState();
+  bootCard.hidden = true;
+  setStatus(message);
+  startRenderLoop();
+  syncPrimaryActionState();
+}
+
 async function bootDemoSource(): Promise<void> {
   setAppState("sourceMode", "demo");
   setAppState("cameraState", "booting");
   setAppState("cameraError", "none");
+  setAppState("cameraFacing", cameraFacing);
   setAppState("renderedFrames", "0");
   renderedFrames = 0;
   setStatus("synthetic camera 검증 중...");
@@ -596,6 +678,11 @@ async function shareLastCapture(): Promise<void> {
 }
 
 async function handleBoothPrimaryAction(): Promise<void> {
+  if (boothRetakeIndex !== null) {
+    await runBoothRetake(boothRetakeIndex);
+    return;
+  }
+
   if (captureSession.complete) {
     await saveBoothStrip();
     return;
@@ -611,6 +698,7 @@ async function runBoothCaptureSequence(): Promise<void> {
 
   const runId = boothRunId + 1;
   boothRunId = runId;
+  clearBoothRetake();
   captureSession.reset();
   clearBoothThumbnails();
   hideCaptureReview();
@@ -650,6 +738,41 @@ async function runBoothCaptureSequence(): Promise<void> {
   setBoothState("ready");
   updateBoothProgress("Pick frame, save strip");
   setStatus("4-Cut Booth ready.");
+}
+
+async function runBoothRetake(index: number): Promise<void> {
+  if (isSaving || boothState === "countdown" || boothState === "capturing" || activeStream === null) {
+    return;
+  }
+
+  const cutNumber = index + 1;
+  const runId = boothRunId + 1;
+  boothRunId = runId;
+  hideCaptureReview();
+  setBoothState("countdown");
+
+  for (let second = getBoothCountdownSeconds(); second >= 1; second -= 1) {
+    if (runId !== boothRunId || captureMode !== "booth" || boothRetakeIndex !== index) {
+      return;
+    }
+
+    showBoothCountdown(second, cutNumber);
+    setStatus(`Retake Cut ${cutNumber} - ${second}`);
+    await delay(getBoothCountdownDelayMs());
+  }
+
+  if (runId !== boothRunId || captureMode !== "booth" || boothRetakeIndex !== index) {
+    return;
+  }
+
+  setBoothState("capturing");
+  const frame = captureSession.replaceFrame(index, previewCanvas);
+  drawBoothThumbnail(frame, index);
+  clearBoothRetake();
+  hideBoothCountdown();
+  setBoothState("ready");
+  updateBoothProgress(`Cut ${cutNumber} retaken`);
+  setStatus(`Cut ${cutNumber} retaken.`);
 }
 
 async function saveBoothStrip(): Promise<void> {
@@ -774,8 +897,28 @@ function selectBoothFrame(frameId: string): void {
   }
 }
 
+function selectBoothRetake(index: number): void {
+  if (!Number.isInteger(index) || index < 0 || index >= captureSession.count || isBoothBusy()) {
+    return;
+  }
+
+  boothRetakeIndex = index;
+  setAppState("boothRetake", String(index + 1));
+  updateBoothProgress(`Ready to retake cut ${index + 1}`);
+  setStatus(`Retake Cut ${index + 1} selected.`);
+  syncBoothUi();
+  syncPrimaryActionState();
+}
+
+function clearBoothRetake(): void {
+  boothRetakeIndex = null;
+  setAppState("boothRetake", "-");
+  syncBoothUi();
+}
+
 function resetBoothSession(): void {
   boothRunId += 1;
+  clearBoothRetake();
   captureSession.reset();
   clearBoothThumbnails();
   hideBoothCountdown();
@@ -804,6 +947,12 @@ function syncCaptureModeUi(): void {
 function syncBoothUi(): void {
   boothPanel.hidden = captureMode !== "booth";
   boothResetButton.hidden = captureMode !== "booth" || (boothState === "idle" && captureSession.count === 0);
+  boothThumbButtons.forEach((button, index) => {
+    const isFilled = index < captureSession.count;
+    button.disabled = captureMode !== "booth" || !isFilled || isBoothBusy();
+    button.dataset.retakeSelected = boothRetakeIndex === index ? "yes" : "no";
+    button.setAttribute("aria-pressed", String(boothRetakeIndex === index));
+  });
   syncBoothFrameButtons();
 }
 
@@ -815,16 +964,45 @@ function syncBoothFrameButtons(): void {
 
 function syncPrimaryActionState(): void {
   const readyForAction = activeStream !== null && app.dataset.cameraState === "ready";
-  const boothBusy = boothState === "countdown" || boothState === "capturing" || boothState === "saving";
+  const boothBusy = isBoothBusy();
 
   if (captureMode === "booth") {
-    saveButton.textContent = captureSession.complete ? "Save Strip" : "Start 4-Cut";
+    saveButton.textContent = getBoothPrimaryLabel();
     saveButton.disabled = isSaving || !readyForAction || boothBusy;
+    syncCameraSwitchState();
     return;
   }
 
   saveButton.textContent = "Save PNG";
   saveButton.disabled = isSaving || !readyForAction;
+  syncCameraSwitchState();
+}
+
+function syncCameraSwitchState(): void {
+  cameraSwitchButton.disabled = !canSwitchCamera();
+}
+
+function canSwitchCamera(): boolean {
+  return (
+    !isSaving
+    && !isSwitchingCamera
+    && !isBoothBusy()
+    && activeStream !== null
+    && app.dataset.sourceMode === "camera"
+    && app.dataset.cameraState === "ready"
+  );
+}
+
+function isBoothBusy(): boolean {
+  return boothState === "countdown" || boothState === "capturing" || boothState === "saving";
+}
+
+function getBoothPrimaryLabel(): string {
+  if (boothRetakeIndex !== null) {
+    return `Retake Cut ${boothRetakeIndex + 1}`;
+  }
+
+  return captureSession.complete ? "Save Strip" : "Start 4-Cut";
 }
 
 function showBoothCountdown(second: number, cutNumber: number): void {
@@ -854,6 +1032,12 @@ function clearBoothThumbnails(): void {
     ctx.lineWidth = 2;
     ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
   });
+
+  boothThumbButtons.forEach((button) => {
+    button.disabled = true;
+    button.dataset.retakeSelected = "no";
+    button.setAttribute("aria-pressed", "false");
+  });
 }
 
 function drawBoothThumbnail(frame: HTMLCanvasElement, index: number): void {
@@ -868,6 +1052,7 @@ function drawBoothThumbnail(frame: HTMLCanvasElement, index: number): void {
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
   canvas.dataset.filled = "yes";
+  syncBoothUi();
 }
 
 function getBoothCountdownSeconds(): number {
@@ -884,6 +1069,10 @@ function getBoothBetweenShotsDelayMs(): number {
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+function getFacingLabel(facing: CameraFacing): string {
+  return facing === "user" ? "Front" : "Rear";
 }
 
 function resetManualEvidence(): void {
@@ -967,7 +1156,7 @@ function drawFrame(): void {
   lowCtx.imageSmoothingEnabled = false;
   previewCtx.imageSmoothingEnabled = false;
 
-  drawVideoCover(lowCtx, video, preset.lowWidth, preset.lowHeight);
+  drawVideoCover(lowCtx, video, preset.lowWidth, preset.lowHeight, cameraFacing === "user");
 
   if (preset.pixelArt || preset.voxelBlock || preset.receiptPrinter) {
     const lowImageData = lowCtx.getImageData(0, 0, preset.lowWidth, preset.lowHeight);
@@ -1137,7 +1326,8 @@ function drawVideoCover(
   ctx: CanvasRenderingContext2D,
   source: HTMLVideoElement,
   targetWidth: number,
-  targetHeight: number
+  targetHeight: number,
+  mirrored: boolean
 ): void {
   const sourceWidth = source.videoWidth || targetWidth;
   const sourceHeight = source.videoHeight || targetHeight;
@@ -1155,11 +1345,16 @@ function drawVideoCover(
   const cropX = (sourceWidth - cropWidth) / 2;
   const cropY = (sourceHeight - cropHeight) / 2;
 
-  ctx.save();
-  ctx.translate(targetWidth, 0);
-  ctx.scale(-1, 1);
+  if (mirrored) {
+    ctx.save();
+    ctx.translate(targetWidth, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(source, cropX, cropY, cropWidth, cropHeight, 0, 0, targetWidth, targetHeight);
+    ctx.restore();
+    return;
+  }
+
   ctx.drawImage(source, cropX, cropY, cropWidth, cropHeight, 0, 0, targetWidth, targetHeight);
-  ctx.restore();
 }
 
 function drawCyworldWash(ctx: CanvasRenderingContext2D): void {
@@ -1198,6 +1393,7 @@ function selectPreset(preset: Preset): void {
 }
 
 function handleCameraFailure(error: unknown): void {
+  isSwitchingCamera = false;
   setAppState("cameraState", "failed");
   setAppState("cameraError", error instanceof CameraError ? error.kind : "unknown");
   retryButton.hidden = false;
@@ -1320,6 +1516,7 @@ function buildDebugReport(): string {
     `source=${app.dataset.sourceMode ?? "-"}`,
     `camera=${app.dataset.cameraState ?? "-"}`,
     `cameraError=${app.dataset.cameraError ?? "-"}`,
+    `facing=${app.dataset.cameraFacing ?? "-"}`,
     `secure=${app.dataset.secureContext ?? "-"}`,
     `version=${app.dataset.appVersion ?? "-"}`,
     `presets=${app.dataset.presetCount ?? "-"}`,
@@ -1327,6 +1524,7 @@ function buildDebugReport(): string {
     `booth=${app.dataset.boothState ?? "-"}`,
     `boothCuts=${app.dataset.boothCuts ?? "-"}`,
     `boothFrame=${app.dataset.boothFrame ?? "-"}`,
+    `boothRetake=${app.dataset.boothRetake ?? "-"}`,
     `viewport=${window.innerWidth}x${window.innerHeight}`,
     `devicePixelRatio=${window.devicePixelRatio}`,
     `video=${app.dataset.videoSize ?? "-"}`,
@@ -1365,6 +1563,7 @@ function buildPhoneTestReport(): string {
     `source=${app.dataset.sourceMode ?? "-"}`,
     `camera=${app.dataset.cameraState ?? "-"}`,
     `cameraError=${app.dataset.cameraError ?? "-"}`,
+    `facing=${app.dataset.cameraFacing ?? "-"}`,
     `secure=${app.dataset.secureContext ?? "-"}`,
     `version=${app.dataset.appVersion ?? "-"}`,
     `presets=${app.dataset.presetCount ?? "-"}`,
@@ -1372,6 +1571,7 @@ function buildPhoneTestReport(): string {
     `booth=${app.dataset.boothState ?? "-"}`,
     `boothCuts=${app.dataset.boothCuts ?? "-"}`,
     `boothFrame=${app.dataset.boothFrame ?? "-"}`,
+    `boothRetake=${app.dataset.boothRetake ?? "-"}`,
     `viewport=${window.innerWidth}x${window.innerHeight}`,
     `devicePixelRatio=${window.devicePixelRatio}`,
     `video=${app.dataset.videoSize ?? "-"}`,

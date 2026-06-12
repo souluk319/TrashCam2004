@@ -319,8 +319,25 @@ h1 {
 .booth-thumb {
   position: relative;
   min-width: 0;
+  min-height: 0;
+  padding: 0;
   border: 1px solid #3e3a27;
   background: #050505;
+  overflow: hidden;
+}
+
+.booth-thumb:not(:disabled) {
+  cursor: pointer;
+}
+
+.booth-thumb:not(:disabled):hover,
+.booth-thumb[data-retake-selected="yes"] {
+  border-color: #d7ff66;
+  box-shadow: inset 0 0 0 2px #d7ff66;
+}
+
+.booth-thumb:disabled {
+  opacity: 1;
 }
 
 .booth-thumb canvas {
@@ -346,7 +363,7 @@ h1 {
 
 .booth-frame-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
 }
 
@@ -447,7 +464,7 @@ h1 {
 
 .action-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   gap: 8px;
 }
 
@@ -461,10 +478,19 @@ h1 {
   text-transform: uppercase;
 }
 
+.camera-switch-button,
 .retry-button {
   padding: 0 14px;
   border-color: #2bff7d;
   color: #2bff7d;
+  background: #171d13;
+  text-transform: uppercase;
+}
+
+.camera-switch-button {
+  border-color: #e9d56a;
+  color: #fff2b8;
+  background: #2a2414;
 }
 
 .retry-button[hidden] {

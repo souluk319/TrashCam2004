@@ -4,7 +4,7 @@
 
 Create the minimum testable web MVP for TrashCam 2004.
 
-The app must run as a static Vite TypeScript web app, open on smartphones through an HTTPS deployment URL, request the front camera, show a deliberately degraded live preview, and let users save or share a captured PNG.
+The app must run as a static Vite TypeScript web app, open on smartphones through an HTTPS deployment URL, request the front camera by default, allow front/rear camera switching when the browser exposes it, show a deliberately degraded live preview, and let users save or share a captured PNG.
 
 This is not a polished product pass. It is a real-device test build.
 
@@ -36,6 +36,7 @@ Layout:
 - Bottom control bar:
   - Preset segmented control
   - Save/share button
+  - Compact `Flip camera` button
   - Retry camera button shown only after camera failure
 - Small app title: `TrashCam 2004`
 - Short status line only for camera, saving, or error states.
@@ -50,6 +51,7 @@ Open app
 -> User allows permission
 -> Hidden video receives stream
 -> Canvas renders degraded preview
+-> User can flip to rear camera while idle/ready
 -> User changes preset
 -> User taps save
 -> App creates PNG
@@ -67,7 +69,7 @@ Default mode. Tapping save captures the current filtered preview and saves one P
 
 Product-style mode expansion. Public app copy should use `4-Cut Booth`, `Four Cut`, or `Photo Strip` naming. Do not use `인생네컷` in shipped UI copy.
 
-First pass flow:
+Current V2 flow:
 
 ```text
 Select 4-Cut Booth
@@ -76,24 +78,25 @@ Select 4-Cut Booth
 -> 3 second countdown per cut
 -> capture 4 filtered frames
 -> show 4 thumbnails
--> choose White or Black frame
+-> optionally tap a filled thumbnail to retake that cut
+-> choose White, Black, or Instant Film frame
 -> compose one vertical photo-strip canvas
 -> save/share PNG through the existing save path
 ```
 
-First pass scope:
+Current scope:
 
 - Capture 4 frames.
 - Compose a vertical photo strip.
-- Include White and Black frame templates.
+- Include White, Black, and Instant Film frame templates.
+- Retake an individual captured cut by tapping its thumbnail.
 - Save PNG.
 - Reuse existing `src/save.ts` delivery path and Capture Review UI.
 
 Deferred:
 
 - Background picker.
-- Instant Film, Cyberpunk, Pixel, and Voxel dedicated strip frames.
-- Individual cut retake.
+- Cyberpunk, Pixel, and Voxel dedicated strip frames.
 - Cut reorder.
 - Stickers/text.
 - GIF or short video output.
@@ -102,12 +105,18 @@ Deferred:
 
 Use `navigator.mediaDevices.getUserMedia()`.
 
-Preferred constraints:
+Camera facing type:
+
+```ts
+type CameraFacing = "user" | "environment";
+```
+
+Preferred constraints for the selected facing:
 
 ```ts
 {
   video: {
-    facingMode: "user",
+    facingMode: { ideal: facing },
     width: { ideal: 640 },
     height: { ideal: 480 }
   },
@@ -119,11 +128,22 @@ Fallback:
 
 - Before requesting camera access, check that the page is running in a secure context.
 - If the page is not a secure context, do not call `getUserMedia()`. Show a short HTTPS/localhost guidance message instead.
-- If the strict front-camera request fails, retry with `{ video: true, audio: false }`.
+- If the selected-facing request fails for availability/constraint reasons, retry with generic video constraints.
+- If permission is denied, do not fallback. Report permission denied immediately.
 - If all camera access fails, show a short error and a retry button.
 - After a stream is acquired, keep video metadata/playback startup bounded. If metadata or playback does not start, stop the acquired stream and show retry instead of leaving an endless loading state.
 
 The camera should start automatically on load. Do not require a separate "start" button unless browser behavior forces it.
+
+Camera switching:
+
+- Default facing is `user`.
+- `Flip camera` toggles between `user` and `environment`.
+- Front camera preview and saved output are mirrored.
+- Rear camera preview and saved output are not mirrored.
+- Switching is disabled while countdown, capture, or save is in progress.
+- Existing 4-Cut Booth frames remain when the camera is switched.
+- If the requested facing fails, attempt to restore the previous facing before showing camera failure UI.
 
 ## Canvas pipeline
 
@@ -482,11 +502,13 @@ It should include:
 
 - source mode
 - camera state and camera error kind
+- camera facing
 - secure context
 - viewport and device pixel ratio in the copyable report
 - source video dimensions
 - rendered frame count
 - active preset
+- capture mode, booth frame, booth cut count, and booth retake target
 - save/share capability
 - last save kind, byte size, and filename
 - current status text

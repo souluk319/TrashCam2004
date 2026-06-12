@@ -15,23 +15,30 @@ export class CameraError extends Error {
   }
 }
 
-const FRONT_CAMERA_CONSTRAINTS: MediaStreamConstraints = {
+export type CameraFacing = "user" | "environment";
+
+function getCameraConstraints(facing: CameraFacing): MediaStreamConstraints {
+  return {
+    video: {
+      facingMode: { ideal: facing },
+      width: { ideal: 640 },
+      height: { ideal: 480 }
+    },
+    audio: false
+  };
+}
+
+const GENERIC_CAMERA_CONSTRAINTS: MediaStreamConstraints = {
   video: {
-    facingMode: "user",
     width: { ideal: 640 },
     height: { ideal: 480 }
   },
   audio: false
 };
 
-const GENERIC_CAMERA_CONSTRAINTS: MediaStreamConstraints = {
-  video: true,
-  audio: false
-};
-
 const CAMERA_START_TIMEOUT_MS = 8000;
 
-export async function startCamera(video: HTMLVideoElement): Promise<MediaStream> {
+export async function startCamera(video: HTMLVideoElement, facing: CameraFacing = "user"): Promise<MediaStream> {
   if (!window.isSecureContext) {
     throw new CameraError("insecure-context", "Camera access requires HTTPS or localhost.");
   }
@@ -40,7 +47,7 @@ export async function startCamera(video: HTMLVideoElement): Promise<MediaStream>
     throw new CameraError("unsupported", "Camera API is not available.");
   }
 
-  const stream = await requestStream();
+  const stream = await requestStream(facing);
 
   try {
     prepareVideoElement(video);
@@ -66,9 +73,9 @@ export function stopStream(stream: MediaStream | null): void {
   stream?.getTracks().forEach((track) => track.stop());
 }
 
-async function requestStream(): Promise<MediaStream> {
+async function requestStream(facing: CameraFacing): Promise<MediaStream> {
   try {
-    return await navigator.mediaDevices.getUserMedia(FRONT_CAMERA_CONSTRAINTS);
+    return await navigator.mediaDevices.getUserMedia(getCameraConstraints(facing));
   } catch (error) {
     if (isPermissionDenied(error)) {
       throw new CameraError("permission-denied", "Camera permission was denied.");

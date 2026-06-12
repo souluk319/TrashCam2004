@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TrashCam 2004 should be tested as a web app before any native app work. The minimum useful test is a link that people can open on their own smartphones, run the front camera, and save or share the damaged image.
+TrashCam 2004 should be tested as a web app before any native app work. The minimum useful test is a link that people can open on their own smartphones, run the camera, flip to the rear camera when available, and save or share the damaged image.
 
 ## Browser constraints
 
@@ -28,7 +28,9 @@ HTTP에서는 폰 카메라가 안 열린다. HTTPS 링크로 다시 열어줘.
 
 After camera permission succeeds, video startup is also bounded. If metadata or playback does not start, the app should stop any acquired camera tracks, expose a `cameraError` value in `?debug=1`, and show retry instead of spinning forever.
 
-The debug report also records app version, preset count, viewport size, device pixel ratio, and source video dimensions so a phone failure can be separated into build version, layout, camera stream, and render issues faster.
+The app starts with the front camera and exposes `Flip camera` for switching to the rear camera when the browser/device supports it. The front camera is mirrored; the rear camera is rendered and saved in normal direction. Switching is disabled while countdown, capture, or save is in progress. Existing 4-Cut Booth captures are kept across a camera switch.
+
+The debug report also records app version, preset count, `facing`, viewport size, device pixel ratio, and source video dimensions so a phone failure can be separated into build version, layout, selected camera stream, and render issues faster.
 
 ### Saving
 
@@ -120,10 +122,17 @@ Already verified locally:
   - `npm run verify:booth` opens production preview with `?demo=1&debug=1&save=prepare&boothFast=1`
   - switches to `4-Cut Booth`
   - captures 4 frames
-  - selects the Black frame
+  - retakes cut 2
+  - selects the `Instant Film` frame
   - prepares a vertical strip PNG
   - opens capture review
   - checks 390px no-overflow
+- camera-switch synthetic verification:
+  - `npm run verify:camera-switch` opens production preview with Chrome fake media
+  - verifies initial `facing=user`
+  - clicks `Flip camera`
+  - verifies `facing=environment`, render frames advance again, reports include facing, and PNG prepare succeeds
+  - this is a source contract check only; it does not prove a physical rear camera exists
 - `?demo=1&debug=1&save=prepare` at 390px:
   - visible debug panel
   - `camera=ready`
@@ -195,17 +204,18 @@ Not yet verified:
 
 - Real desktop camera permission and live stream
 - Real desktop downloaded PNG using an actual camera frame
-- Real phone 4-Cut Booth capture and saved strip usability
+- Real phone 4-Cut Booth capture/retake and saved Instant Film strip usability
+- Real phone rear camera switching and mirror-off saved output
 - Native share sheet and phone Photos/Files save usability
 - Real iPhone Safari or Android Chrome full loop
 
 Verified HTTPS URL:
 
 - `https://souluk319.github.io/TrashCam2004/`
-- Latest deployed bundle: `assets/index-CNl1gmS3.js` and `assets/index-CMtLtmE0.css` from `gh-pages` commit `486ef19`.
+- Latest deployed bundle: `assets/index-B-OuLwml.js` and `assets/index-Chw8z5gI.css` from `gh-pages` commit `7866c5c`.
 - Synthetic check passed at `?demo=1&debug=1&save=prepare` with 390px viewport, `secure=true`, active render frames, evidence controls, editable phone-report values, PNG prepare, and live 4-Cut Booth strip prepare.
 - Live `favicon.svg` and `.nojekyll` returned HTTP 200.
-- `npm run verify:pages` passed against the stable URL with matching hashed assets, normal PNG prepare, live 4-Cut Booth strip prepare, evidence report updates, no overflow, and no browser warnings/errors.
+- `npm run verify:pages` passed against the stable URL with matching hashed assets, normal PNG prepare, live 4-Cut Booth cut 2 retake plus Instant Film strip prepare, evidence report updates, no overflow, and no browser warnings/errors.
 
 Important honesty rule:
 
@@ -218,6 +228,7 @@ Run these before any HTTPS deployment attempt:
 ```bash
 npm run smoke
 npm run verify:fake-camera
+npm run verify:camera-switch
 npm run verify:booth
 npm run verify:download
 npm run verify:phone-report:self-test
@@ -238,7 +249,7 @@ TrashCam 2004 readiness check
 npm run verify:booth
 ```
 
-This builds the app, opens production preview in demo mode with a fast booth countdown, captures 4 frames, selects the Black frame, saves a vertical strip PNG through `?save=prepare`, and verifies capture review plus 390px no-overflow.
+This builds the app, opens production preview in demo mode with a fast booth countdown, captures 4 frames, retakes cut 2, selects the `Instant Film` frame, saves a vertical strip PNG through `?save=prepare`, and verifies capture review plus 390px no-overflow.
 
 It proves the generated photo-strip canvas path works. It does not prove physical phone camera capture, native share sheet behavior, or saved strip usability on iPhone/Android.
 
@@ -272,6 +283,7 @@ Pass checklist:
 
 - Browser asks for camera permission.
 - After permission, preview changes from `NO SIGNAL` to live degraded camera.
+- `Flip camera` can switch to the rear camera when available, and the rear preview is not mirrored.
 - Preset buttons visibly change the effect.
 - `Save PNG` creates a PNG file that opens locally.
 - With `?debug=1`, `camera` becomes `ready`, `frames` increases, and `save` changes after tapping `Save PNG`.
@@ -319,11 +331,14 @@ iPhone Safari:
 - Camera permission prompt appears.
 - Permission accepted.
 - Front camera preview renders.
+- `Flip camera` switches to the rear camera, or fails and restores the front camera without losing the session.
+- Rear camera preview and saved PNG are not mirrored.
 - Default preset looks visibly damaged.
 - At least one other preset visibly changes the preview.
 - `Save PNG` opens a share/save path or creates a usable file.
 - Saved/shared PNG opens and contains the degraded effect.
 - In `?debug=1`, `file opened` and `effect visible` can both be checked.
+- In `4-Cut Booth`, capture four cuts, retake one filled cut, select `Instant Film`, and save a usable strip.
 - `Copy phone test` includes `acceptanceCandidate=yes` or `acceptanceGate=phone-pass-candidate`.
 
 Android Chrome:
@@ -332,11 +347,14 @@ Android Chrome:
 - Camera permission prompt appears.
 - Permission accepted.
 - Front camera preview renders.
+- `Flip camera` switches to the rear camera, or fails and restores the front camera without losing the session.
+- Rear camera preview and saved PNG are not mirrored.
 - Default preset looks visibly damaged.
 - At least one other preset visibly changes the preview.
 - `Save PNG` opens share or download path.
 - Saved/downloaded PNG opens and contains the degraded effect.
 - In `?debug=1`, `file opened` and `effect visible` can both be checked.
+- In `4-Cut Booth`, capture four cuts, retake one filled cut, select `Instant Film`, and save a usable strip.
 - `Copy phone test` includes `acceptanceCandidate=yes` or `acceptanceGate=phone-pass-candidate`.
 
 Record failures with:
@@ -346,6 +364,7 @@ Record failures with:
 - exact URL
 - exact visible error/status text
 - `cameraError` from the `?debug=1` state report
+- `facing` from the copied report
 - `version` and `presets` from the copied report
 - `shareCapability`, `video`, `viewport`, and `devicePixelRatio` from the copied report
 - `userAgent`, `platform`, `maxTouchPoints`, `screen`, `orientation`, `language`, and `mobileCandidate` from the copied report
@@ -363,3 +382,4 @@ The project is ready for first external testing when:
 4. At least one low-quality preset is applied.
 5. Save/share button produces a usable PNG on phone.
 6. `?debug=1` phone report can reach `acceptanceGate=phone-pass-candidate` after the saved image is opened and confirmed.
+7. Camera switching is tested on at least one real phone, including rear-camera mirror-off behavior.

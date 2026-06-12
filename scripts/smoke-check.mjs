@@ -50,12 +50,16 @@ const indexSource = readText("index.html");
 const distIndex = fileExists("dist/index.html") ? readText("dist/index.html") : "";
 const mainSource = readText("src/main.ts");
 const cameraSource = readText("src/camera.ts");
+const photoStripSource = readText("src/photo-strip.ts");
 const saveSource = readText("src/save.ts");
 const effectsSource = readText("src/effects.ts");
 const presetSource = readText("src/presets.ts");
 const viteConfigSource = readText("vite.config.ts");
 const fakeCameraSource = fileExists("scripts/fake-camera-check.mjs")
   ? readText("scripts/fake-camera-check.mjs")
+  : "";
+const cameraSwitchSource = fileExists("scripts/camera-switch-check.mjs")
+  ? readText("scripts/camera-switch-check.mjs")
   : "";
 const boothCheckSource = fileExists("scripts/booth-check.mjs")
   ? readText("scripts/booth-check.mjs")
@@ -93,6 +97,10 @@ assert(
   "package.json has fake camera verification script",
 );
 assert(
+  packageJson.scripts?.["verify:camera-switch"] === "npm run build && node scripts/camera-switch-check.mjs",
+  "package.json has camera switch verification script",
+);
+assert(
   packageJson.scripts?.["verify:booth"] === "npm run build && node scripts/booth-check.mjs",
   "package.json has 4-Cut Booth verification script",
 );
@@ -128,10 +136,19 @@ assert(fakeCameraSource.includes('camera === "ready"'), "fake camera verificatio
 assert(fakeCameraSource.includes('phoneReport.includes("source=camera")'), "fake camera verification checks phone test report camera source");
 assert(fakeCameraSource.includes('captureReview === "visible"'), "fake camera verification checks capture review after save");
 assert(fakeCameraSource.includes("cleanup();"), "fake camera verification cleans up browser processes");
+assert(cameraSwitchSource.includes("--use-fake-device-for-media-stream"), "camera switch verification uses Chrome fake media device");
+assert(cameraSwitchSource.includes('cameraFacing !== "user"'), "camera switch verification requires initial facing=user");
+assert(cameraSwitchSource.includes('cameraFacing === "environment"'), "camera switch verification requires facing=environment after flip");
+assert(cameraSwitchSource.includes('debugReport.includes("facing=environment")'), "camera switch verification checks debug report facing");
+assert(cameraSwitchSource.includes('phoneReport.includes("facing=environment")'), "camera switch verification checks phone test report facing");
+assert(cameraSwitchSource.includes('state.save === "prepared"'), "camera switch verification checks PNG prepare after flip");
 assert(boothCheckSource.includes("boothFast=1"), "4-Cut Booth verification uses fast countdown mode");
 assert(boothCheckSource.includes('captureMode === "booth"'), "4-Cut Booth verification switches capture mode");
 assert(boothCheckSource.includes('boothCuts === "4"'), "4-Cut Booth verification requires four captured cuts");
-assert(boothCheckSource.includes("4-cut-booth-classic-black"), "4-Cut Booth verification checks strip filename");
+assert(boothCheckSource.includes('boothRetake === "2"'), "4-Cut Booth verification enters per-cut retake");
+assert(boothCheckSource.includes('boothRetake === "-"'), "4-Cut Booth verification exits per-cut retake");
+assert(boothCheckSource.includes('data-booth-frame="instant-film"'), "4-Cut Booth verification selects Instant Film frame");
+assert(boothCheckSource.includes("4-cut-booth-instant-film"), "4-Cut Booth verification checks Instant Film strip filename");
 assert(downloadCheckSource.includes("Browser.setDownloadBehavior"), "download verification allows a controlled Chrome download folder");
 assert(downloadCheckSource.includes('state.save === "downloaded"'), "download verification requires fallback downloaded state");
 assert(downloadCheckSource.includes("PNG_SIGNATURE"), "download verification checks PNG file signature");
@@ -153,7 +170,8 @@ assert(pagesCheckSource.includes("overflowCount"), "stable Pages verification ch
 assert(pagesCheckSource.includes("browserProblems"), "stable Pages verification checks browser warnings/errors");
 assert(pagesCheckSource.includes("BOOTH_CHECK_URL"), "stable Pages verification includes 4-Cut Booth URL");
 assert(pagesCheckSource.includes("runBoothFlow"), "stable Pages verification runs 4-Cut Booth flow");
-assert(pagesCheckSource.includes("4-cut-booth-classic-black"), "stable Pages verification checks 4-Cut Booth filename");
+assert(pagesCheckSource.includes('boothRetake === "2"'), "stable Pages verification checks 4-Cut Booth retake");
+assert(pagesCheckSource.includes("4-cut-booth-instant-film"), "stable Pages verification checks Instant Film 4-Cut Booth filename");
 assert(phoneTestGuideSource.includes("https://souluk319.github.io/TrashCam2004/?debug=1"), "phone test guide prints stable debug URL");
 assert(phoneTestGuideSource.includes("Copy phone test"), "phone test guide explains copied phone report");
 assert(phoneTestGuideSource.includes("pbpaste | npm run verify:phone-report"), "phone test guide prints verification command");
@@ -183,6 +201,7 @@ assert(fileExists("src/save.ts"), "src/save.ts exists");
 assert(fileExists("src/demo-source.ts"), "src/demo-source.ts exists");
 assert(fileExists("scripts/readiness-check.mjs"), "readiness check script exists");
 assert(fileExists("scripts/fake-camera-check.mjs"), "fake camera verification script exists");
+assert(fileExists("scripts/camera-switch-check.mjs"), "camera switch verification script exists");
 assert(fileExists("scripts/booth-check.mjs"), "4-Cut Booth verification script exists");
 assert(fileExists("scripts/download-check.mjs"), "fallback download verification script exists");
 assert(fileExists("scripts/phone-report-check.mjs"), "phone report verification script exists");
@@ -204,8 +223,11 @@ assert(cameraSource.includes("navigator.mediaDevices.getUserMedia"), "camera use
 assert(cameraSource.includes("window.isSecureContext"), "camera checks secure context before getUserMedia");
 assert(cameraSource.includes('"insecure-context"'), "camera has insecure context error kind");
 assert(cameraSource.includes('"playback-blocked"'), "camera distinguishes blocked video playback");
-assert(cameraSource.includes('facingMode: "user"'), "camera prefers front-facing mode");
+assert(cameraSource.includes('export type CameraFacing = "user" | "environment"'), "camera exposes front/rear facing type");
+assert(cameraSource.includes("startCamera(video: HTMLVideoElement, facing: CameraFacing"), "camera start accepts selected facing");
+assert(cameraSource.includes("facingMode: { ideal: facing }"), "camera requests selected facing mode");
 assert(cameraSource.includes("GENERIC_CAMERA_CONSTRAINTS"), "camera has generic fallback constraints");
+assert(cameraSource.includes("isPermissionDenied(error)"), "camera does not generic-fallback permission denial");
 assert(cameraSource.includes("CAMERA_START_TIMEOUT_MS"), "camera startup has a bounded metadata wait");
 assert(cameraSource.includes("stopStream(stream)"), "camera stops acquired stream after startup failure");
 
@@ -219,12 +241,14 @@ assert(mainSource.includes('setAppState("renderedFrames"'), "app exposes render 
 assert(mainSource.includes("shouldShowDebugPanel"), "app has opt-in debug panel mode");
 assert(mainSource.includes('data-debug-key="cameraState"'), "debug panel exposes camera state");
 assert(mainSource.includes('data-debug-key="cameraError"'), "debug panel exposes camera failure reason");
+assert(mainSource.includes('data-debug-key="cameraFacing"'), "debug panel exposes camera facing");
 assert(mainSource.includes('data-debug-key="appVersion"'), "debug panel exposes app version");
 assert(mainSource.includes('data-debug-key="presetCount"'), "debug panel exposes preset count");
 assert(mainSource.includes('data-debug-key="shareCapability"'), "debug panel exposes save/share capability");
 assert(mainSource.includes('data-debug-key="captureReview"'), "debug panel exposes capture review state");
 assert(mainSource.includes('data-debug-key="acceptanceGate"'), "debug panel exposes real-device acceptance gate");
 assert(mainSource.includes('data-debug-key="videoSize"'), "debug panel exposes source video dimensions");
+assert(mainSource.includes('data-debug-key="boothRetake"'), "debug panel exposes 4-Cut Booth retake cut");
 assert(mainSource.includes('data-debug-key="manualSavedFileOpened"'), "debug panel exposes manual saved-file evidence");
 assert(mainSource.includes('data-debug-key="manualSavedEffectVisible"'), "debug panel exposes manual saved-effect evidence");
 assert(mainSource.includes("data-manual-file-opened"), "debug panel has manual saved-file checkbox");
@@ -233,6 +257,7 @@ assert(mainSource.includes("data-phone-device-input"), "debug panel has phone de
 assert(mainSource.includes("data-phone-browser-input"), "debug panel has phone browser report input");
 assert(mainSource.includes("data-phone-notes-input"), "debug panel has phone notes report input");
 assert(mainSource.includes("cameraError="), "debug report includes camera failure reason");
+assert(mainSource.includes("facing="), "debug report includes camera facing");
 assert(mainSource.includes("version="), "debug report includes app version");
 assert(mainSource.includes("presets="), "debug report includes preset count");
 assert(mainSource.includes("viewport="), "debug report includes viewport size");
@@ -273,12 +298,29 @@ assert(mainSource.includes("runBoothCaptureSequence"), "app can run 4-Cut Booth 
 assert(mainSource.includes("saveBoothStrip"), "app can save a composed 4-Cut Booth strip");
 assert(mainSource.includes("data-booth-frame"), "app exposes 4-Cut Booth frame choices");
 assert(mainSource.includes("boothFast"), "app supports fast booth countdown verification mode");
+assert(mainSource.includes("data-camera-switch"), "app exposes camera switch control");
+assert(mainSource.includes("switchCameraFacing"), "app can switch between front and rear camera");
+assert(mainSource.includes('cameraFacing === "user"'), "render path mirrors front camera only");
+assert(
+  mainSource.includes('drawVideoCover(lowCtx, video, preset.lowWidth, preset.lowHeight, cameraFacing === "user")'),
+  "render passes facing mirror flag",
+);
+assert(mainSource.includes("runBoothRetake"), "app can retake a single 4-Cut Booth cut");
+assert(mainSource.includes("replaceFrame"), "app replaces a single 4-Cut Booth frame");
+assert(mainSource.includes("data-booth-thumb-slot"), "captured 4-Cut Booth thumbs are interactive retake controls");
+assert(mainSource.includes("Retake Cut"), "4-Cut Booth primary button can show retake state");
 assert(mainSource.includes("data-capture-panel"), "app exposes capture review panel");
 assert(mainSource.includes("data-capture-image"), "capture review renders the saved PNG");
 assert(mainSource.includes("data-share-again"), "capture review can share the same saved PNG again");
 assert(mainSource.includes("data-back-camera"), "capture review can return to the live camera");
 assert(mainSource.includes("lastCaptureBlob"), "app stores the last capture blob for reuse");
 assert(mainSource.includes("URL.revokeObjectURL"), "app revokes capture object URLs");
+
+assert(photoStripSource.includes('FrameTemplateId = "classic-white" | "classic-black" | "instant-film"'), "photo strip supports Instant Film frame id");
+assert(photoStripSource.includes('label: "Instant Film"'), "photo strip exposes Instant Film label");
+assert(photoStripSource.includes('slug: "instant-film"'), "photo strip filename slug supports Instant Film");
+assert(photoStripSource.includes("replaceFrame(index"), "capture session can replace a single 4-Cut Booth frame");
+assert(photoStripSource.includes("REAL FAKE PHOTO"), "Instant Film frame draws a distinct footer");
 
 assert(saveSource.includes("canvas.toBlob"), "save path converts canvas to PNG blob");
 assert(saveSource.includes("saveNamedCanvas"), "save path can save a canvas with explicit filename");

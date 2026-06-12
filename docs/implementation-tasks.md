@@ -103,6 +103,14 @@ Verified:
 - 2026-06-12 continuation: `4-Cut Booth` first pass added. It introduces `Single Shot` / `4-Cut Booth` mode switching, four sequential captures, vertical strip composition, White and Black frame templates, and PNG save through the existing capture review path.
 - 2026-06-12 continuation: `npm run verify:booth` added and verified. It runs production preview in demo/prepare/fast-booth mode, captures 4 frames, selects the Black frame, prepares a strip PNG, opens capture review, and checks 390px no-overflow.
 - 2026-06-12 continuation: `gh-pages` updated to `486ef19` and `npm run verify:pages` passed after 4-Cut Booth deployment. Result: live Pages served `assets/index-CNl1gmS3.js`, standard PNG prepare opened capture review, phone evidence report updated, and 4-Cut Booth prepared a non-zero Black frame strip PNG.
+- 2026-06-13 continuation: `feat/dev0.1` feature hardening added front/rear camera switching. `startCamera(video, facing)` accepts `CameraFacing = "user" | "environment"`, requests `facingMode: { ideal: facing }`, keeps permission-denied as a hard failure, and falls back only for availability/constraint failure. `Flip camera` is disabled during countdown/capturing/saving, preserves existing 4-Cut Booth cuts, and restores the previous facing if the requested facing fails.
+- 2026-06-13 continuation: preview/save orientation now follows camera facing. Front camera is mirrored; rear camera is drawn normal direction through `drawVideoCover(..., mirrored)`.
+- 2026-06-13 continuation: 4-Cut Booth V2 added per-cut retake. Filled thumbnails are interactive buttons, selected retake changes the primary action to `Retake Cut N`, and the selected cut is replaced without clearing the other three.
+- 2026-06-13 continuation: `Instant Film` frame added with `instant-film` slug, warm paper styling, subtle texture, date/footer copy, and existing vertical strip output.
+- 2026-06-13 continuation: debug reports now include `facing` and `boothRetake` alongside `boothFrame`, so real phone reports can show which camera/path was tested.
+- 2026-06-13 continuation: `npm run verify:camera-switch` added for Chrome fake media. It verifies source camera readiness, initial `facing=user`, flip to `facing=environment`, render frames after switch, report fields, and PNG prepare. This is not a physical rear-camera proof.
+- 2026-06-13 continuation: `npm run verify:booth` and `npm run verify:pages` were updated to cover cut 2 retake plus `Instant Film` strip PNG preparation.
+- 2026-06-13 continuation: `gh-pages` updated to `7866c5c` and `npm run verify:pages` passed. Result: live Pages served `assets/index-B-OuLwml.js` / `assets/index-Chw8z5gI.css`, normal PNG prepare opened capture review, phone evidence report updated, and live 4-Cut Booth retook cut 2 then prepared an `Instant Film` strip PNG.
 
 Not yet verified:
 
@@ -141,6 +149,7 @@ Exit criteria:
   - `preview:local`
   - `smoke`
   - `verify:fake-camera`
+  - `verify:camera-switch`
   - `verify:booth`
   - `verify:download`
   - `verify:phone-report`
@@ -190,8 +199,14 @@ Exit criteria:
 ## Phase 3 - Camera startup
 
 - [x] Request camera on page load.
-- [x] Prefer front camera using `facingMode: "user"`.
+- [x] Prefer front camera by default using selected `CameraFacing`.
+- [x] Support front/rear camera switching with `facingMode: { ideal: facing }`.
 - [x] Fall back to generic video if front-camera constraints fail.
+- [x] Preserve permission-denied as an immediate failure without generic fallback.
+- [x] Restore the previous facing if a camera switch fails.
+- [x] Disable camera switching during countdown/capturing/saving.
+- [x] Keep existing 4-Cut Booth cuts across camera switching.
+- [x] Mirror front camera preview/save output and keep rear camera output normal.
 - [x] Attach stream to hidden video.
 - [x] Wait until video metadata is ready before rendering.
 - [x] Bound camera metadata/playback startup so the app does not stay stuck loading forever.
@@ -204,6 +219,7 @@ Exit criteria:
 - [x] Add synthetic camera mode for local render verification without permission prompts.
 - [x] Add non-visual render state attributes for smoke verification.
 - [x] Add Chrome fake-camera verification for the real `getUserMedia()` path without accepting a physical camera permission prompt.
+- [x] Add Chrome fake-media camera-switch verification for app state/render/save contract.
 
 Exit criteria:
 
@@ -313,11 +329,23 @@ Exit criteria:
 - [x] Add fast verification path with `?boothFast=1`.
 - [x] Add `npm run verify:booth`.
 
+## Phase 7B - 4-Cut Booth V2
+
+- [x] Keep app UI naming public-safe. Do not use `인생네컷` in shipped copy.
+- [x] Make filled cut thumbnails interactive.
+- [x] Add per-cut retake state via `boothRetake`.
+- [x] Change primary action text to `Retake Cut N` when a cut is selected.
+- [x] Replace only the selected cut during retake.
+- [x] Rename full reset button to `Reset all`.
+- [x] Add `Instant Film` frame template.
+- [x] Add `instant-film` filename slug.
+- [x] Include `boothRetake` and `boothFrame=instant-film` in debug/report state.
+- [x] Update automated 4-Cut Booth verification to retake cut 2 and prepare an Instant Film strip.
+
 Deferred:
 
 - [ ] Background selection.
-- [ ] Instant Film, Cyberpunk, Pixel, and Voxel dedicated frames.
-- [ ] Retake individual cut.
+- [ ] Cyberpunk, Pixel, and Voxel dedicated frames.
 - [ ] Reorder cuts.
 - [ ] Stickers/text.
 - [ ] GIF or short video output.
@@ -359,13 +387,16 @@ Then verify:
 - [x] `npm run verify:download` confirms the actual fallback-downloaded file on disk has the expected filename, byte size, PNG signature, and 640x480 dimensions.
 - [x] `npm run verify:phone-report:self-test` confirms the phone report parser accepts pass evidence and rejects demo/prepare-only reports.
 - [x] `npm run verify:booth` confirms the synthetic 4-Cut Booth flow captures 4 cuts and prepares a vertical strip PNG.
+- [x] `npm run verify:camera-switch` confirms the fake-media camera switch contract from `facing=user` to `facing=environment`.
+- [x] `npm run verify:booth` confirms per-cut retake and Instant Film strip preparation.
 - [x] Phone report verifier requires filled device/browser fields before accepting real-device evidence.
 - [x] Stable GitHub Pages verification confirms editable phone-report values are copied into the live report.
-- [x] Stable GitHub Pages verification confirms the live 4-Cut Booth flow captures 4 cuts and prepares a Black frame strip PNG.
+- [x] Stable GitHub Pages verification confirms the live 4-Cut Booth flow captures 4 cuts, retakes one cut, and prepares an Instant Film strip PNG.
 - [x] `npm run phone:test` prints the stable real-phone checklist and verifier command.
 - [ ] Actual downloaded/shared PNG file from a real camera run is confirmed usable in a real browser/device.
 - [ ] Actual real-device `Copy phone test` report passes `npm run verify:phone-report`.
 - [ ] Actual real-device 4-Cut Booth capture and saved strip usability are confirmed.
+- [ ] Actual real-device rear camera switch and mirror-off preview/save behavior are confirmed.
 - [x] Presets switch in `?demo=1`.
 - [x] Pixel Art Cam switches in `?demo=1` and prepares a PNG in `?save=prepare`.
 - [x] Cyberpunk Cam and Voxel Block Cam switch in `?demo=1` and prepare PNGs in `?save=prepare`.
@@ -404,16 +435,20 @@ iPhone Safari:
 - [ ] HTTPS URL opens.
 - [ ] Camera permission prompt appears.
 - [ ] Front camera preview renders.
+- [ ] Rear camera switch works and rear preview is not mirrored.
 - [ ] Degraded preset is visible.
 - [ ] Save/share creates a usable PNG or opens a usable path.
+- [ ] 4-Cut Booth can capture some cuts, switch camera while idle/ready, retake or continue the booth flow, and save a usable strip.
 
 Android Chrome:
 
 - [ ] HTTPS URL opens.
 - [ ] Camera permission prompt appears.
 - [ ] Front camera preview renders.
+- [ ] Rear camera switch works and rear preview is not mirrored.
 - [ ] Degraded preset is visible.
 - [ ] Save/share creates a usable PNG or downloads a usable PNG.
+- [ ] 4-Cut Booth can capture some cuts, switch camera while idle/ready, retake or continue the booth flow, and save a usable strip.
 
 Exit criteria:
 
@@ -434,6 +469,7 @@ When the loop finishes, report:
 ## Known risks
 
 - iPhone Safari may not save directly to Photos.
+- Some devices may not expose a usable rear camera through browser constraints; the app should restore the previous stream.
 - Some browsers require user interaction before camera playback.
 - Web Share API file support varies.
 - Canvas effects may be too heavy if resolution or FPS is too high.

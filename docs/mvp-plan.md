@@ -2,9 +2,9 @@
 
 ## Goal
 
-Build a browser MVP that turns the front camera into a live low-quality webcam preview and lets the user save a still image.
+Build a browser MVP that turns the phone camera into a live low-quality webcam preview and lets the user save a still image. It starts on the front camera and can switch to the rear camera when supported.
 
-The working target is the minimum testable web deployment: a real HTTPS link that 성욱 and other people can open on their own phones, use the front camera, and save or share the result.
+The working target is the minimum testable web deployment: a real HTTPS link that 성욱 and other people can open on their own phones, use the camera, and save or share the result.
 
 ## Non-goals
 

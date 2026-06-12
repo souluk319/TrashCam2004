@@ -320,6 +320,7 @@ async function waitForDemoReady(client, expectedAssets) {
       && state.hasPhoneBrowserInput
       && state.hasPhoneNotesInput
       && state.hasBoothMode
+      && state.hasInstantFilmFrame
     );
   }, 15_000, "stable Pages demo did not reach ready state");
 }
@@ -364,11 +365,28 @@ async function runBoothFlow(client) {
     return state.boothState === "ready" && state.boothCuts === "4" && state.filledBoothThumbs === 4;
   }, 12_000, "stable Pages 4-Cut Booth did not capture four frames");
 
-  await evaluate(client, `document.querySelector('[data-booth-frame="classic-black"]')?.click()`);
+  await evaluate(client, `document.querySelector('button[data-booth-thumb-slot="1"]')?.click()`);
   await waitFor(async () => {
     const state = await readAppState(client);
-    return state.boothFrame === "classic-black";
-  }, 5_000, "stable Pages 4-Cut Booth frame did not change");
+    return state.boothRetake === "2";
+  }, 5_000, "stable Pages 4-Cut Booth did not enter cut 2 retake state");
+
+  await evaluate(client, "document.querySelector('[data-save]')?.click()");
+  await waitFor(async () => {
+    const state = await readAppState(client);
+    return (
+      state.boothState === "ready"
+      && state.boothCuts === "4"
+      && state.filledBoothThumbs === 4
+      && state.boothRetake === "-"
+    );
+  }, 12_000, "stable Pages 4-Cut Booth did not replace cut 2");
+
+  await evaluate(client, `document.querySelector('[data-booth-frame="instant-film"]')?.click()`);
+  await waitFor(async () => {
+    const state = await readAppState(client);
+    return state.boothFrame === "instant-film";
+  }, 5_000, "stable Pages 4-Cut Booth frame did not change to Instant Film");
 
   await evaluate(client, "document.querySelector('[data-save]')?.click()");
   await waitFor(async () => {
@@ -377,7 +395,7 @@ async function runBoothFlow(client) {
       state.save === "prepared"
       && state.captureReview === "visible"
       && state.bytes > 0
-      && state.filename.includes("4-cut-booth-classic-black")
+      && state.filename.includes("4-cut-booth-instant-film")
     );
   }, 8_000, "stable Pages 4-Cut Booth strip did not prepare PNG");
 }
@@ -413,6 +431,8 @@ async function readAppState(client) {
       boothState: app?.dataset.boothState ?? "",
       boothCuts: app?.dataset.boothCuts ?? "",
       boothFrame: app?.dataset.boothFrame ?? "",
+      boothRetake: app?.dataset.boothRetake ?? "",
+      cameraFacing: app?.dataset.cameraFacing ?? "",
       manualFile: app?.dataset.manualSavedFileOpened ?? "",
       manualEffect: app?.dataset.manualSavedEffectVisible ?? "",
       phoneDevice: app?.dataset.phoneDevice ?? "",
@@ -424,6 +444,7 @@ async function readAppState(client) {
       hasPhoneBrowserInput: Boolean(document.querySelector("[data-phone-browser-input]")),
       hasPhoneNotesInput: Boolean(document.querySelector("[data-phone-notes-input]")),
       hasBoothMode: Boolean(document.querySelector('button[data-capture-mode="booth"]')),
+      hasInstantFilmFrame: Boolean(document.querySelector('[data-booth-frame="instant-film"]')),
       filledBoothThumbs: Array.from(document.querySelectorAll("[data-booth-thumb]")).filter((canvas) => canvas.dataset.filled === "yes").length,
       reportHasManualFileYes: phoneReport.includes("manualSavedFileOpened=yes"),
       reportHasManualEffectYes: phoneReport.includes("manualSavedEffectVisible=yes"),

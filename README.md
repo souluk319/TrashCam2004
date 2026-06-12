@@ -2,12 +2,12 @@
 
 ## One-line
 
-Phone front-camera web app that intentionally downgrades the image into a 2000s low-quality PC webcam look.
+Phone camera web app that intentionally downgrades the image into a 2000s low-quality PC webcam look, with front/rear switching when the browser supports it.
 
 ## Core idea
 
 Most camera apps try to make people look better. TrashCam 2004 does the opposite:
-it turns the front camera into a broken-looking old webcam with pixelation, color bleed, noise, low frame rate, and cursed presets.
+it turns the camera into a broken-looking old webcam with pixelation, color bleed, noise, low frame rate, and cursed presets.
 
 The value is not utility. The value is instant visual comedy.
 
@@ -20,7 +20,7 @@ Public naming guardrail: do not use `인생네컷` inside the app UI. Use `4-Cut
 ## Target experience
 
 1. Open the app on a phone.
-2. Allow front-camera access.
+2. Allow camera access.
 3. See a live degraded preview immediately.
 4. Switch between ugly presets.
 5. Save a still image.
@@ -29,7 +29,7 @@ Public naming guardrail: do not use `인생네컷` inside the app UI. Use `4-Cut
 
 ### Must have
 
-- Front camera access through the browser.
+- Camera access through the browser, front by default.
 - Live canvas preview.
 - Low-resolution pixelated rendering.
 - Noise, color shift, and compression-like artifacts.
@@ -59,7 +59,7 @@ Done means:
 
 1. The app is deployed on HTTPS.
 2. A phone can open the link.
-3. The browser asks for front-camera permission.
+3. The browser asks for camera permission.
 4. The live preview starts.
 5. At least one trash preset is visibly active.
 6. The user can save or share a captured PNG from the phone.
@@ -89,13 +89,14 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 ## Current build status
 
 - Vite TypeScript app exists.
-- Camera startup, canvas render loop, baseline plus expanded presets, and PNG save/share path are implemented.
+- Camera startup, front/rear camera switching, canvas render loop, baseline plus expanded presets, and PNG save/share path are implemented.
 - `npm install` succeeds.
 - `npm run build` succeeds.
 - `npm run smoke` succeeds.
 - `npm run verify:fake-camera` succeeds. It launches Chrome with a fake media device and verifies the real `getUserMedia()` code path reaches `source=camera`, `camera=ready`, PNG preparation, and capture review.
+- `npm run verify:camera-switch` exists for Chrome fake-media verification of `Flip camera`: initial `facing=user`, switch to `facing=environment`, render recovery, facing in reports, and PNG preparation. It is not a physical rear-camera proof.
 - `npm run verify:download` succeeds. It launches Chrome against the production preview, triggers fallback download, and verifies the saved PNG file on disk by filename, byte size, PNG signature, and 640x480 dimensions.
-- `npm run verify:booth` succeeds. It verifies the 4-Cut Booth first pass in demo mode: mode switch, four captured cuts, White/Black frame controls, vertical strip PNG preparation, capture review, and no mobile overflow.
+- `npm run verify:booth` succeeds. It verifies 4-Cut Booth V2 in demo mode: mode switch, four captured cuts, cut 2 retake, Instant Film frame selection, vertical strip PNG preparation, capture review, and no mobile overflow.
 - `npm run verify:phone-report:self-test` succeeds. It self-tests the parser that will validate real `Copy phone test` reports after phone testing.
 - `npm run verify:pages` exists to compare the current Pages build against the live GitHub Pages URL and run a headless demo/evidence check.
 - `npm run readiness` succeeds as a no-side-effect deployment status report, while noting that Vercel CLI and real device tests still require approval.
@@ -111,6 +112,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
   - `data-source-mode`
   - `data-camera-state`
   - `data-camera-error`
+  - `data-camera-facing`
   - `data-secure-context`
   - `data-share-capability`
   - `data-video-size`
@@ -121,7 +123,8 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
   - `data-last-save-name`
   - `data-capture-review`
   - `data-acceptance-gate`
-- Physical camera permission, native share sheet, phone Photos/Files save usability, 4-Cut Booth on a real phone, and phone tests still need manual/external verification.
+  - `data-booth-retake`
+- Physical camera permission, real rear-camera switching/mirror-off output, native share sheet, phone Photos/Files save usability, 4-Cut Booth on a real phone, and phone tests still need manual/external verification.
 - 2026-06-12 local browser recheck: `?demo=1&save=prepare` on a 390px viewport at `http://127.0.0.1:5174/` rendered frames, had no horizontal overflow, and prepared a PNG Blob/File with no console warnings or errors.
 - Camera startup now checks `window.isSecureContext` before requesting camera access. On non-HTTPS/non-localhost pages, the UI shows explicit HTTPS guidance instead of a vague unsupported-camera error.
 - Camera startup now has a bounded metadata/playback wait. If video startup fails after permission, acquired tracks are stopped, retry is shown, and `?debug=1` exposes `cameraError`.
@@ -171,8 +174,12 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 phone report verifier: `npm run verify:phone-report` added for pasted real-device reports, with `npm run verify:phone-report:self-test` covering pass/fail fixtures. It rejects `demo=1`, `save=prepare`, non-camera source, missing saved-file/effect evidence, and anything short of `acceptanceGate=phone-pass-candidate`.
 - 2026-06-12 phone report metadata: `?debug=1` now includes editable `device`, `browser`, and `notes` inputs. `Copy phone test` copies those sanitized values, and `npm run verify:phone-report` now requires non-empty device/browser fields.
 - 2026-06-12 stable Pages metadata deployment: `gh-pages` was updated to `d8bb81e`, live Pages served `assets/index-C15NFgUv.js`, and `npm run verify:pages` passed with editable phone-report values, PNG prepare `694072` bytes, no overflow, and `gate=synthetic-or-local-check`.
-- 2026-06-12 4-Cut Booth first pass: mode selector added for `Single Shot` / `4-Cut Booth`; booth mode captures 4 filtered frames, composes a vertical photo strip, supports White and Black frame templates, saves through the existing PNG path, and shows the strip in Capture Review. `npm run verify:booth` passed on production preview with `?demo=1&debug=1&save=prepare&boothFast=1`, producing `trashcam-2004-4-cut-booth-classic-black-...png` and no 390px mobile overflow. This is still synthetic-source verification, not a real phone camera/save test.
+- 2026-06-12 4-Cut Booth first pass: mode selector added for `Single Shot` / `4-Cut Booth`; booth mode captures 4 filtered frames, composes a vertical photo strip, supports White and Black frame templates, saves through the existing PNG path, and shows the strip in Capture Review. Initial `npm run verify:booth` passed on production preview with `?demo=1&debug=1&save=prepare&boothFast=1`, producing `trashcam-2004-4-cut-booth-classic-black-...png` and no 390px mobile overflow. This is still synthetic-source verification, not a real phone camera/save test.
 - 2026-06-12 stable Pages 4-Cut deployment: `gh-pages` was updated to `486ef19`, live Pages served `assets/index-CNl1gmS3.js`, and `npm run verify:pages` passed. Result: live hashed assets matched local Pages build, normal PNG prepare opened Capture Review, phone evidence report updated, and live 4-Cut Booth prepared a non-zero Black frame strip PNG with no 390px mobile overflow.
+- 2026-06-13 feature hardening: `Flip camera` added with `CameraFacing = "user" | "environment"`, selected-facing constraints, previous-facing restore on switch failure, front-only mirroring, and debug/report `facing`. Switching is disabled during countdown/capturing/saving and keeps existing 4-Cut Booth cuts.
+- 2026-06-13 4-Cut Booth V2: filled cut thumbnails can be selected for `Retake Cut N`, retake replaces only that frame, `Reset all` is explicit, and `Instant Film` frame output uses `trashcam-2004-4-cut-booth-instant-film-...png`.
+- 2026-06-13 verification updates: `npm run verify:camera-switch` added; `npm run verify:booth` and `npm run verify:pages` now cover cut 2 retake plus Instant Film strip preparation.
+- 2026-06-13 stable Pages deployment: `gh-pages` was updated to `7866c5c`, live Pages served `assets/index-B-OuLwml.js` / `assets/index-Chw8z5gI.css`, and `npm run verify:pages` passed with normal PNG prepare, phone evidence report update, and live 4-Cut Booth cut 2 retake plus Instant Film strip prepare.
 
 ## Local development
 
@@ -305,7 +312,8 @@ This runs the production build and checks:
 - Vercel config includes camera/permission and basic response headers
 - camera code checks secure context before requesting camera access
 - camera code bounds video startup and stops an acquired stream if playback startup fails
-- camera code uses `getUserMedia()` with front-camera preference and fallback
+- camera code uses `getUserMedia()` with selected front/rear facing preference and fallback
+- camera switch verification script exists and checks fake-media facing transition, render recovery, reports, and PNG prepare
 - save code uses `canvas.toBlob()`, Web Share API, and download fallback
 - save code guards mobile share capability checks so fallback download remains available
 - save code supports `?save=prepare` for non-downloading local PNG preparation checks
@@ -327,7 +335,8 @@ This runs the production build and checks:
 - CCTV grayscale tint and HUD helpers exist
 - School ID overlay helper exists
 - ASCII terminal, deep fried, and sticker booth helpers exist
-- stable Pages verification script exists and checks live hashed assets, evidence controls, PNG prepare, no-overflow, and browser warnings/errors
+- stable Pages verification script exists and checks live hashed assets, evidence controls, PNG prepare, 4-Cut Booth retake plus Instant Film strip preparation, no-overflow, and browser warnings/errors
+- 4-Cut Booth verification covers per-cut retake and Instant Film strip preparation
 
 This does not prove real camera permission, native share sheet behavior, or phone support.
 
@@ -349,6 +358,16 @@ It proves:
 - the phone-test report includes `source=camera`
 
 It does not prove a physical webcam, native download/share receipt, iPhone Safari, or Android Chrome behavior.
+
+## Camera switch verification
+
+```bash
+npm run verify:camera-switch
+```
+
+This builds the app, opens production preview in Chrome with fake media, clicks `Flip camera`, and verifies `facing=user` changes to `facing=environment`, render frames resume, copied reports include facing, and PNG preparation still works.
+
+It proves the app contract, not that a specific phone exposes a physical rear camera.
 
 ## Fallback download verification
 

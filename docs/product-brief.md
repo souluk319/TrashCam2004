@@ -6,7 +6,7 @@ Modern camera apps are too clean, too polished, and too flattering. There is roo
 
 ## Product concept
 
-TrashCam 2004 is a browser-based front-camera app that makes the user look like they are being captured by an old PC webcam in a noisy internet cafe.
+TrashCam 2004 is a browser-based camera app that starts with the front camera and makes the user look like they are being captured by an old PC webcam in a noisy internet cafe. When supported, users can flip to the rear camera for friends, objects, and booth-style play.
 
 It should feel less like a filter app and more like opening a cursed old webcam utility from the early broadband era.
 
@@ -106,4 +106,3 @@ Examples:
 - Does the default preset look intentionally bad?
 - Can the user save an image without reading instructions?
 - Does it work on a real phone, not only desktop?
-

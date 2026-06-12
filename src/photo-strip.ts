@@ -1,6 +1,6 @@
 export const BOOTH_CUT_COUNT = 4;
 
-export type FrameTemplateId = "classic-white" | "classic-black";
+export type FrameTemplateId = "classic-white" | "classic-black" | "instant-film";
 
 export type FrameTemplate = {
   id: FrameTemplateId;
@@ -39,6 +39,18 @@ export const BOOTH_FRAME_TEMPLATES: FrameTemplate[] = [
     ink: "#f5efcf",
     muted: "#a7a07c",
     shadow: "rgba(0, 0, 0, 0.55)"
+  },
+  {
+    id: "instant-film",
+    label: "Instant Film",
+    slug: "instant-film",
+    background: "#cbbf9b",
+    paper: "#fff6dc",
+    slot: "#11100c",
+    slotBorder: "#eadbb2",
+    ink: "#2a2215",
+    muted: "#8d7b50",
+    shadow: "rgba(50, 35, 18, 0.34)"
   }
 ];
 
@@ -67,6 +79,24 @@ export class CaptureSession {
       throw new Error("4-Cut Booth session is already complete.");
     }
 
+    const frame = this.cloneFrame(source);
+    this.frames.push(frame);
+
+    return frame;
+  }
+
+  replaceFrame(index: number, source: HTMLCanvasElement): HTMLCanvasElement {
+    if (index < 0 || index >= this.frames.length) {
+      throw new Error(`4-Cut Booth cut ${index + 1} is not ready.`);
+    }
+
+    const frame = this.cloneFrame(source);
+    this.frames[index] = frame;
+
+    return frame;
+  }
+
+  private cloneFrame(source: HTMLCanvasElement): HTMLCanvasElement {
     const frame = document.createElement("canvas");
     const frameContext = requireContext(frame.getContext("2d"));
 
@@ -74,7 +104,6 @@ export class CaptureSession {
     frame.height = this.frameHeight;
     frameContext.imageSmoothingEnabled = false;
     frameContext.drawImage(source, 0, 0, this.frameWidth, this.frameHeight);
-    this.frames.push(frame);
 
     return frame;
   }
@@ -153,6 +182,15 @@ export class PhotoStripComposer {
       ctx.fillRect(x, 34, 1, stripHeight - 68);
     }
 
+    if (template.id === "instant-film") {
+      ctx.globalAlpha = 0.08;
+      ctx.fillStyle = "#b79b62";
+
+      for (let y = 52; y < stripHeight - 48; y += 41) {
+        ctx.fillRect(40, y, stripWidth - 80, 2);
+      }
+    }
+
     ctx.restore();
   }
 
@@ -160,7 +198,7 @@ export class PhotoStripComposer {
     ctx.fillStyle = template.ink;
     ctx.font = "700 26px 'Courier New', monospace";
     ctx.textAlign = "center";
-    ctx.fillText("4-CUT BOOTH", stripWidth / 2, 60);
+    ctx.fillText(template.id === "instant-film" ? "INSTANT FILM" : "4-CUT BOOTH", stripWidth / 2, 60);
     ctx.fillStyle = template.muted;
     ctx.font = "16px 'Courier New', monospace";
     ctx.fillText("TRASHCAM 2004", stripWidth / 2, 82);
@@ -195,7 +233,7 @@ export class PhotoStripComposer {
     ctx.fillStyle = template.ink;
     ctx.font = "700 24px 'Courier New', monospace";
     ctx.textAlign = "center";
-    ctx.fillText("SAVE THE DAMAGE", stripWidth / 2, stripHeight - 92);
+    ctx.fillText(template.id === "instant-film" ? "REAL FAKE PHOTO" : "SAVE THE DAMAGE", stripWidth / 2, stripHeight - 92);
     ctx.fillStyle = template.muted;
     ctx.font = "16px 'Courier New', monospace";
     ctx.fillText(formatDateLabel(now), stripWidth / 2, stripHeight - 62);

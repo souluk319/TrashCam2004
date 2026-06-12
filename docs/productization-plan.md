@@ -11,14 +11,15 @@ Open public link -> allow camera -> funny live preview -> switch presets -> save
 ## Current state
 
 - Static Vite + TypeScript app is implemented.
-- Camera, canvas render loop, preset switching, `4-Cut Booth` first pass, PNG save/share fallback, capture review, `?demo=1`, `?debug=1`, and `?save=prepare` exist.
+- Camera, camera switching, canvas render loop, preset switching, `4-Cut Booth` V2, PNG save/share fallback, capture review, `?demo=1`, `?debug=1`, and `?save=prepare` exist.
 - Public beta polish exists: Open Graph metadata, Privacy dialog, 12 presets, app version, preset count diagnostics, capture review, phone-test report copying, editable device/browser/notes fields, automatic device/browser evidence, and debug-only saved-file/effect evidence controls.
 - Local synthetic verification passes.
-- Local 4-Cut Booth verification passes: `npm run verify:booth` proves mode switching, four captures, Black frame strip composition, PNG preparation, capture review, and 390px no-overflow in demo mode.
+- Local 4-Cut Booth verification passes: `npm run verify:booth` proves mode switching, four captures, per-cut retake, Instant Film strip composition, PNG preparation, capture review, and 390px no-overflow in demo mode.
 - Local fake-camera verification passes: `npm run verify:fake-camera` uses Chrome fake media to prove the real `getUserMedia()` path reaches `source=camera`, `camera=ready`, PNG preparation, and capture review.
+- Local camera-switch verification exists: `npm run verify:camera-switch` uses Chrome fake media to prove the app can move from `facing=user` to `facing=environment`, resume rendering, include facing in reports, and prepare a PNG. It does not prove a physical rear camera.
 - Local fallback-download verification passes: `npm run verify:download` proves the production preview can write a PNG file to disk and that the file matches app-reported bytes, PNG signature, and 640x480 dimensions.
 - Phone report verifier exists: `npm run verify:phone-report` validates pasted real-device evidence, requires filled device/browser fields, and `npm run verify:phone-report:self-test` proves the parser rejects demo/prepare-only reports.
-- Actual product risk is now real physical camera permission, native share/save behavior, and external phone behavior, not source code structure.
+- Actual product risk is now real physical camera permission, rear-camera availability/orientation, native share/save behavior, and external phone behavior, not source code structure.
 
 ## Product success criteria
 
@@ -27,7 +28,8 @@ TrashCam becomes a public beta when all P0 items are true:
 - A stable HTTPS URL exists.
 - iPhone Safari opens the URL, requests camera permission, renders live preview, and saves or shares a usable PNG.
 - Android Chrome opens the URL, requests camera permission, renders live preview, and saves or shares a usable PNG.
-- `?debug=1` report can identify failures by version, preset count, manually entered device/browser/notes, browser/device evidence, touch/screen/orientation signals, video size, viewport, camera state, acceptance gate, save state, and saved-file usability evidence.
+- On at least one real phone, `Flip camera` reaches the rear camera or restores the previous front stream cleanly, and rear-camera output is not mirrored.
+- `?debug=1` report can identify failures by version, preset count, manually entered device/browser/notes, browser/device evidence, touch/screen/orientation signals, facing, video size, viewport, camera state, acceptance gate, save state, and saved-file usability evidence.
 - Privacy copy is visible from the app and honestly states that camera frames stay in the browser.
 - The app still works with no backend, no account, no upload, and no database.
 
@@ -58,6 +60,7 @@ Actions:
 npm run build
 npm run smoke
 npm run verify:fake-camera
+npm run verify:camera-switch
 npm run verify:booth
 npm run verify:download
 npm run verify:phone-report:self-test
@@ -71,6 +74,7 @@ Exit criteria:
 - Build passes.
 - Smoke passes.
 - Fake-camera verification passes.
+- Camera-switch fake-media verification passes.
 - 4-Cut Booth synthetic verification passes.
 - Fallback-download file verification passes.
 - Phone-report parser self-test passes.
@@ -119,7 +123,9 @@ Verification:
 - `npm run verify:pages` now automates the stable URL check: live hashed assets must match the current Pages build, `.nojekyll` must be reachable, demo PNG prepare and evidence report update must pass, and browser warnings/errors or horizontal overflow fail the check.
 - Latest `gh-pages` commit `6d36964` adds the base-path-safe favicon and passes `npm run verify:pages`: live assets match local Pages build, live `favicon.svg`/`.nojekyll` return HTTP 200, PNG prepare succeeds, and the evidence report updates without browser warnings/errors.
 - Latest phone-report metadata deployment is on `gh-pages` commit `d8bb81e`. `npm run verify:pages` passed with live `assets/index-C15NFgUv.js`, editable device/browser/notes values in the report, PNG prepare `694072` bytes, and `gate=synthetic-or-local-check`.
-- 4-Cut Booth first pass is implemented and deployed to GitHub Pages. `npm run verify:booth` passed locally, and `npm run verify:pages` passed against the live URL with a Black frame strip PNG. It still needs real phone acceptance.
+- 4-Cut Booth V2 is implemented and deployed to GitHub Pages. `npm run verify:booth` covers cut 2 retake and `Instant Film` strip preparation locally, and `npm run verify:pages` passed the same flow on the stable URL. It still needs real phone acceptance.
+- Camera switching is implemented and deployed to GitHub Pages. `npm run verify:camera-switch` covers the app contract with fake media, but a real phone must still prove rear-camera selection and mirror-off output.
+- Latest `gh-pages` commit `7866c5c` serves `assets/index-B-OuLwml.js` / `assets/index-Chw8z5gI.css`; `npm run verify:pages` passed with normal PNG prepare, phone evidence report update, and live `Instant Film` booth strip prepare.
 - Phone-test reports now include automatic evidence fields: `userAgent`, `platform`, `maxTouchPoints`, physical `screen`, `orientation`, `language`, and `mobileCandidate`. Smoke, fake-camera, and stable Pages verification check these fields exist.
 - Latest `gh-pages` commit `9063556` deploys the automatic evidence report expansion and passes `npm run verify:pages`: live Pages serves `assets/index-DV-6-8CJ.js`, PNG prepare reaches `694042` bytes, evidence report updates, and the acceptance gate remains `synthetic-or-local-check`.
 
@@ -136,6 +142,7 @@ Owner: 성욱
 Automated preflight:
 
 - `npm run verify:fake-camera` now covers the browser `getUserMedia()` path without accepting a real permission prompt.
+- `npm run verify:camera-switch` covers the app's camera-facing state transition and render/save recovery after switching.
 - `npm run verify:download` now covers desktop fallback file receipt without touching the user's real Downloads folder.
 - `npm run verify:phone-report` will validate the copied `Copy phone test` report after the manual desktop or phone run.
 - `npm run phone:test` prints the stable real-phone URL, exact checklist, and verifier command for the manual run.
@@ -146,6 +153,7 @@ Actions:
 - Open deployed URL in desktop Chrome.
 - Allow camera permission.
 - Confirm live camera preview, not demo source.
+- Click `Flip camera` if another camera is available and confirm preview continues.
 - Switch at least these presets: `PC Bang Cam 2004`, `Pixel Art Cam`, `Cyberpunk Cam`, `Sticker Booth Cam`.
 - Save PNG.
 - Open the saved file and confirm it contains the effected image.
@@ -153,7 +161,7 @@ Actions:
 
 Exit criteria:
 
-- Debug report says `source=camera`, `camera=ready`, and `save=downloaded` or `save=shared`.
+- Debug report says `source=camera`, `camera=ready`, `facing=user` or `facing=environment`, and `save=downloaded` or `save=shared`.
 - Saved PNG opens correctly.
 - After opening the saved file and confirming the effect, `acceptanceGate` reaches `phone-pass-candidate`.
 - The copied phone-test report includes filled device/browser fields and passes `npm run verify:phone-report`.
@@ -167,6 +175,7 @@ Actions:
 - Open deployed HTTPS URL.
 - Allow camera permission.
 - Confirm preview starts within 5 seconds.
+- Tap `Flip camera` and confirm rear camera preview is not mirrored, or that the app restores front camera cleanly if rear camera is unavailable.
 - Switch to `Pixel Art Cam`.
 - Tap Save PNG.
 - Confirm native share sheet or save/download fallback works.
@@ -177,6 +186,7 @@ Pass:
 
 - Camera opens.
 - Preview updates.
+- Camera switch is usable or fails with clean restore.
 - Saved image includes the active effect.
 - No layout overlap blocks Save.
 - With `?debug=1`, the file-open/effect-visible checks can make `acceptanceGate=phone-pass-candidate`.
@@ -189,6 +199,7 @@ Actions:
 - Open deployed HTTPS URL.
 - Allow camera permission.
 - Confirm preview starts within 5 seconds.
+- Tap `Flip camera` and confirm rear camera preview is not mirrored, or that the app restores front camera cleanly if rear camera is unavailable.
 - Switch to `Pixel Art Cam`.
 - Tap Save PNG.
 - Confirm file download or share path works.
@@ -199,6 +210,7 @@ Pass:
 
 - Camera opens.
 - Preview updates.
+- Camera switch is usable or fails with clean restore.
 - Saved image includes the active effect.
 - No layout overlap blocks Save.
 - With `?debug=1`, the file-open/effect-visible checks can make `acceptanceGate=phone-pass-candidate`.
@@ -213,6 +225,7 @@ If any phone check fails, open the same URL with `?debug=1`, fill device/browser
 - Visible status/error
 - Copied phone test report
 - Automatic device/browser fields from the copied report
+- `facing` value from the copied report
 - Whether the failure is camera permission, camera playback, render, preset switch, save/share, or file usability
 
 ## P1 - Make it feel like a product
@@ -267,9 +280,9 @@ Verification:
 - `npm run smoke` passes and checks the capture review source contracts.
 - Production preview at `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` with a 390px viewport showed demo render ready, `Save PNG` -> `captureReview=visible`, object URL image preview, filename display, `Share again` reusing the same prepared PNG byte size, `Back to camera` -> `captureReview=hidden`, no horizontal overflow, and no console warnings/errors.
 
-### 3. 4-Cut Booth first pass
+### 3. 4-Cut Booth V2
 
-Status: implemented locally.
+Status: implemented on source branch.
 
 Problem:
 
@@ -279,23 +292,47 @@ Implemented fix:
 
 - Add `Single Shot` / `4-Cut Booth` mode switching.
 - Capture 4 filtered frames in sequence.
+- Let the user retake any filled cut by tapping its thumbnail.
 - Compose one vertical photo strip canvas.
-- Offer White and Black frame templates.
+- Offer White, Black, and Instant Film frame templates.
 - Save the strip through the existing PNG and Capture Review path.
 - Keep shipped UI naming to `4-Cut Booth`; do not use `인생네컷` in the app.
 
 Exit criteria:
 
 - Demo mode can produce a 4-cut PNG strip without camera/download prompts.
+- Demo mode can retake one cut and save an Instant Film strip.
 - Real phone test later proves camera capture and saved strip usability.
 
 Verification:
 
 - `npm run verify:booth` passed on production preview using `?demo=1&debug=1&save=prepare&boothFast=1`.
-- In-app browser 390px check produced `trashcam-2004-4-cut-booth-classic-black-...png`, opened Capture Review, and had no horizontal overflow.
-- GitHub Pages deployment `486ef19` passed `npm run verify:pages`; live 4-Cut Booth prepared a non-zero Black frame strip PNG.
+- Current verification selects cut 2 retake and prepares `trashcam-2004-4-cut-booth-instant-film-...png`.
+- GitHub Pages deployment `7866c5c` passed `npm run verify:pages` for the updated Instant Film/retake Pages check.
 
-### 4. Shareable brand polish
+### 4. Camera switch hardening
+
+Status: implemented on source branch.
+
+Problem:
+
+- Real users will expect to use the rear camera for friends, objects, and booth-style play.
+
+Implemented fix:
+
+- Add `CameraFacing = "user" | "environment"`.
+- Start with `user`, switch with `Flip camera`.
+- Mirror only the front camera.
+- Preserve existing 4-Cut Booth cuts across switching.
+- Disable switching while countdown/capturing/saving.
+- Restore the previous stream if the requested camera fails.
+
+Exit criteria:
+
+- `npm run verify:camera-switch` passes.
+- Real phone test confirms rear-camera orientation or clean restore.
+
+### 5. Shareable brand polish
 
 Actions:
 
