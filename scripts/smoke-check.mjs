@@ -66,6 +66,9 @@ const phoneReportCheckSource = fileExists("scripts/phone-report-check.mjs")
 const pagesCheckSource = fileExists("scripts/pages-check.mjs")
   ? readText("scripts/pages-check.mjs")
   : "";
+const phoneTestGuideSource = fileExists("scripts/phone-test-guide.mjs")
+  ? readText("scripts/phone-test-guide.mjs")
+  : "";
 
 assert(packageJson.scripts?.dev === "vite", "package.json has dev script");
 assert(
@@ -103,6 +106,10 @@ assert(
   "package.json has stable Pages verification script",
 );
 assert(
+  packageJson.scripts?.["phone:test"] === "node scripts/phone-test-guide.mjs",
+  "package.json has real phone test guide script",
+);
+assert(
   packageJson.scripts?.["build:pages"] === "VITE_BASE_PATH=/TrashCam2004/ npm run build",
   "package.json has GitHub Pages build script",
 );
@@ -133,6 +140,10 @@ assert(pagesCheckSource.includes("data-manual-file-opened"), "stable Pages verif
 assert(pagesCheckSource.includes("data-manual-effect-visible"), "stable Pages verification checks manual saved-effect control");
 assert(pagesCheckSource.includes("overflowCount"), "stable Pages verification checks horizontal overflow");
 assert(pagesCheckSource.includes("browserProblems"), "stable Pages verification checks browser warnings/errors");
+assert(phoneTestGuideSource.includes("https://souluk319.github.io/TrashCam2004/?debug=1"), "phone test guide prints stable debug URL");
+assert(phoneTestGuideSource.includes("Copy phone test"), "phone test guide explains copied phone report");
+assert(phoneTestGuideSource.includes("pbpaste | npm run verify:phone-report"), "phone test guide prints verification command");
+assert(phoneTestGuideSource.includes("--copy-url"), "phone test guide can copy the stable URL");
 
 assert(vercelJson.framework === "vite", "vercel framework is vite");
 assert(vercelJson.buildCommand === "npm run build", "vercel build command is npm run build");
@@ -160,6 +171,7 @@ assert(fileExists("scripts/fake-camera-check.mjs"), "fake camera verification sc
 assert(fileExists("scripts/download-check.mjs"), "fallback download verification script exists");
 assert(fileExists("scripts/phone-report-check.mjs"), "phone report verification script exists");
 assert(fileExists("scripts/pages-check.mjs"), "stable Pages verification script exists");
+assert(fileExists("scripts/phone-test-guide.mjs"), "real phone test guide script exists");
 assert(fileExists("public/favicon.svg"), "public favicon exists");
 assert(indexSource.includes('name="description"'), "index has public beta description meta");
 assert(indexSource.includes('property="og:title"'), "index has Open Graph title");

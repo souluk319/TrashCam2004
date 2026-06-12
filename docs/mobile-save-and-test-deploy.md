@@ -193,8 +193,8 @@ Not yet verified:
 Verified HTTPS URL:
 
 - `https://souluk319.github.io/TrashCam2004/`
-- Latest deployed bundle: `assets/index-DV-6-8CJ.js` and `assets/index-CgIRwTF0.css` from `gh-pages` commit `9063556`.
-- Synthetic check passed at `?demo=1&debug=1&save=prepare` with 390px viewport, `secure=true`, active render frames, evidence controls, report updates, and PNG prepare.
+- Latest deployed bundle: `assets/index-C15NFgUv.js` and `assets/index-1XxUydf5.css` from `gh-pages` commit `d8bb81e`.
+- Synthetic check passed at `?demo=1&debug=1&save=prepare` with 390px viewport, `secure=true`, active render frames, evidence controls, editable phone-report values, and PNG prepare.
 - Live `favicon.svg` and `.nojekyll` returned HTTP 200.
 - `npm run verify:pages` passed against the stable URL with matching hashed assets, PNG prepare `694042` bytes, automatic device evidence fields, evidence report updates, no overflow, and no browser warnings/errors.
 
@@ -211,6 +211,7 @@ npm run smoke
 npm run verify:fake-camera
 npm run verify:download
 npm run verify:phone-report:self-test
+npm run phone:test
 npm run readiness
 ```
 
@@ -258,6 +259,7 @@ Pass checklist:
 - After opening the saved file, check `file opened` and `effect visible`; on a real camera run this should move `acceptanceGate` to `phone-pass-candidate`.
 - If a debug run fails, tap `Copy state` and paste the copied report into the test notes.
 - After a debug run passes, tap `Copy phone test` and validate it with `pbpaste | npm run verify:phone-report`.
+- Use `npm run phone:test -- --copy-url` if the stable URL needs to be copied to a phone through Messages, Notes, or AirDrop.
 
 If Codex is driving a browser, do not accept the camera/download permission prompt unless 성욱 has explicitly approved that exact action.
 

@@ -353,6 +353,18 @@ It does not prove a physical camera frame, native share sheet behavior, iPhone S
 
 ## Phone report verification
 
+Print the real-phone checklist and stable URL:
+
+```bash
+npm run phone:test
+```
+
+Copy only the stable phone-test URL to the Mac clipboard:
+
+```bash
+npm run phone:test -- --copy-url
+```
+
 After a real phone test, open the app with:
 
 ```text

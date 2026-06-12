@@ -87,6 +87,12 @@ if (packageJson.scripts?.["verify:phone-report"] === "node scripts/phone-report-
   block("phone report verification script missing or changed");
 }
 
+if (packageJson.scripts?.["phone:test"] === "node scripts/phone-test-guide.mjs") {
+  pass("real phone test guide script is available");
+} else {
+  block("real phone test guide script missing or changed");
+}
+
 if (existsSync(join(root, "dist", "index.html"))) {
   pass("dist exists from latest smoke/build run");
 } else {

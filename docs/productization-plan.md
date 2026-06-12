@@ -60,6 +60,7 @@ npm run verify:fake-camera
 npm run verify:download
 npm run verify:phone-report:self-test
 npm run verify:pages
+npm run phone:test
 npm run readiness
 ```
 
@@ -133,6 +134,7 @@ Automated preflight:
 - `npm run verify:fake-camera` now covers the browser `getUserMedia()` path without accepting a real permission prompt.
 - `npm run verify:download` now covers desktop fallback file receipt without touching the user's real Downloads folder.
 - `npm run verify:phone-report` will validate the copied `Copy phone test` report after the manual desktop or phone run.
+- `npm run phone:test` prints the stable real-phone URL, exact checklist, and verifier command for the manual run.
 - These reduce code-path risk before manual testing, but they do not prove a physical webcam permission prompt, actual-camera image content, native share sheet behavior, or phone behavior.
 
 Actions:

@@ -99,6 +99,7 @@ Verified:
 - 2026-06-12 continuation: `npm run verify:phone-report` added for pasted `Copy phone test` output, plus `npm run verify:phone-report:self-test`. The self-test accepts a real-device pass fixture and rejects demo/prepare-only reports.
 - 2026-06-12 continuation: phone report metadata fields added. `?debug=1` now has editable device/browser/notes inputs, `Copy phone test` copies sanitized values, and `npm run verify:phone-report` requires device/browser to be filled.
 - 2026-06-12 continuation: `gh-pages` updated to `d8bb81e` and `npm run verify:pages` passed after the metadata fields. Result: live Pages served `assets/index-C15NFgUv.js`, editable phone-report values were included, PNG prepare reached `694072` bytes, and gate remained `synthetic-or-local-check`.
+- 2026-06-12 continuation: `npm run phone:test` added as a no-deploy real-phone handoff command. It prints the stable debug URL, manual phone checklist, `Copy phone test` instructions, and `pbpaste | npm run verify:phone-report`; `--copy-url` can copy the stable URL locally with `pbcopy`.
 
 Not yet verified:
 
@@ -141,6 +142,7 @@ Exit criteria:
   - `verify:phone-report`
   - `verify:phone-report:self-test`
   - `verify:pages`
+  - `phone:test`
   - `readiness`
 - [x] Create `src/` structure:
   - `main.ts`
@@ -326,6 +328,7 @@ Then verify:
 - [x] `npm run verify:phone-report:self-test` confirms the phone report parser accepts pass evidence and rejects demo/prepare-only reports.
 - [x] Phone report verifier requires filled device/browser fields before accepting real-device evidence.
 - [x] Stable GitHub Pages verification confirms editable phone-report values are copied into the live report.
+- [x] `npm run phone:test` prints the stable real-phone checklist and verifier command.
 - [ ] Actual downloaded/shared PNG file from a real camera run is confirmed usable in a real browser/device.
 - [ ] Actual real-device `Copy phone test` report passes `npm run verify:phone-report`.
 - [x] Presets switch in `?demo=1`.

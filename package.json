@@ -16,6 +16,7 @@
     "verify:phone-report": "node scripts/phone-report-check.mjs",
     "verify:phone-report:self-test": "node scripts/phone-report-check.mjs --self-test",
     "verify:pages": "npm run build:pages && node scripts/pages-check.mjs",
+    "phone:test": "node scripts/phone-test-guide.mjs",
     "readiness": "npm run smoke && node scripts/readiness-check.mjs"
   },
   "devDependencies": {
