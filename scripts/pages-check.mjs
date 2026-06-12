@@ -82,8 +82,17 @@ async function main() {
       logOk("stable Pages PNG prepare opened capture review");
 
       await evaluate(client, `(() => {
+        const device = document.querySelector("[data-phone-device-input]");
+        const browser = document.querySelector("[data-phone-browser-input]");
+        const notes = document.querySelector("[data-phone-notes-input]");
         const fileOpened = document.querySelector("[data-manual-file-opened]");
         const effectVisible = document.querySelector("[data-manual-effect-visible]");
+        device.value = "Pages test device";
+        browser.value = "Pages test browser";
+        notes.value = "Pages synthetic evidence check";
+        device.dispatchEvent(new Event("input", { bubbles: true }));
+        browser.dispatchEvent(new Event("input", { bubbles: true }));
+        notes.dispatchEvent(new Event("input", { bubbles: true }));
         fileOpened.checked = true;
         effectVisible.checked = true;
         fileOpened.dispatchEvent(new Event("change", { bubbles: true }));
@@ -290,6 +299,9 @@ async function waitForDemoReady(client, expectedAssets) {
       && state.frames > 0
       && state.hasManualFileControl
       && state.hasManualEffectControl
+      && state.hasPhoneDeviceInput
+      && state.hasPhoneBrowserInput
+      && state.hasPhoneNotesInput
     );
   }, 15_000, "stable Pages demo did not reach ready state");
 }
@@ -302,8 +314,12 @@ async function waitForSavePrepared(client) {
 }
 
 async function waitForManualEvidenceReport(client) {
+  let lastState = null;
+
   await waitFor(async () => {
     const state = await readAppState(client);
+    lastState = state;
+
     return (
       state.manualFile === "yes"
       && state.manualEffect === "yes"
@@ -311,9 +327,10 @@ async function waitForManualEvidenceReport(client) {
       && state.reportHasManualEffectYes
       && state.reportHasAcceptanceCandidateNo
       && state.reportHasDeviceEvidence
+      && state.reportHasEditableEvidence
       && state.acceptanceGate === "synthetic-or-local-check"
     );
-  }, 5_000, "stable Pages phone evidence report did not update");
+  }, 5_000, () => `stable Pages phone evidence report did not update: ${JSON.stringify(lastState)}`);
 }
 
 async function readAppState(client) {
@@ -344,11 +361,22 @@ async function readAppState(client) {
       bytes: Number(app?.dataset.lastSaveBytes ?? 0),
       manualFile: app?.dataset.manualSavedFileOpened ?? "",
       manualEffect: app?.dataset.manualSavedEffectVisible ?? "",
+      phoneDevice: app?.dataset.phoneDevice ?? "",
+      phoneBrowser: app?.dataset.phoneBrowser ?? "",
+      phoneNotes: app?.dataset.phoneNotes ?? "",
       hasManualFileControl: Boolean(document.querySelector("[data-manual-file-opened]")),
       hasManualEffectControl: Boolean(document.querySelector("[data-manual-effect-visible]")),
+      hasPhoneDeviceInput: Boolean(document.querySelector("[data-phone-device-input]")),
+      hasPhoneBrowserInput: Boolean(document.querySelector("[data-phone-browser-input]")),
+      hasPhoneNotesInput: Boolean(document.querySelector("[data-phone-notes-input]")),
       reportHasManualFileYes: phoneReport.includes("manualSavedFileOpened=yes"),
       reportHasManualEffectYes: phoneReport.includes("manualSavedEffectVisible=yes"),
       reportHasAcceptanceCandidateNo: phoneReport.includes("acceptanceCandidate=no"),
+      reportHasEditableEvidence: (
+        phoneReport.includes("device=Pages test device")
+        && phoneReport.includes("browser=Pages test browser")
+        && phoneReport.includes("notes=Pages synthetic evidence check")
+      ),
       reportHasDeviceEvidence: (
         phoneReport.includes("userAgent=")
         && phoneReport.includes("platform=")
@@ -358,6 +386,7 @@ async function readAppState(client) {
         && phoneReport.includes("language=")
         && phoneReport.includes("mobileCandidate=")
       ),
+      phoneReport,
       overflowCount: overflowing.length
     };
   })()`);
@@ -388,7 +417,7 @@ async function waitFor(predicate, timeoutMs, timeoutMessage) {
     await delay(250);
   }
 
-  fail(timeoutMessage);
+  fail(typeof timeoutMessage === "function" ? timeoutMessage() : timeoutMessage);
 }
 
 function delay(ms) {
@@ -404,7 +433,15 @@ function cleanup() {
   stopProcess(chromeProcess);
 
   if (userDataDir) {
-    rmSync(userDataDir, { force: true, recursive: true });
+    safeRemoveTempDir(userDataDir);
+  }
+}
+
+function safeRemoveTempDir(path) {
+  try {
+    rmSync(path, { force: true, maxRetries: 10, recursive: true, retryDelay: 150 });
+  } catch (error) {
+    console.log(`note - could not remove temporary directory ${path}: ${error.message}`);
   }
 }
 

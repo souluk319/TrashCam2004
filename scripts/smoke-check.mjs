@@ -121,6 +121,8 @@ assert(downloadCheckSource.includes("readUInt32BE(16)"), "download verification 
 assert(downloadCheckSource.includes("buffer.length !== expectedBytes"), "download verification compares file size with app bytes");
 assert(phoneReportCheckSource.includes("phone-pass-candidate"), "phone report verification requires phone pass candidate gate");
 assert(phoneReportCheckSource.includes('source") === "camera"'), "phone report verification requires camera source");
+assert(phoneReportCheckSource.includes('requireField("device"'), "phone report verification requires device field");
+assert(phoneReportCheckSource.includes('requireField("browser"'), "phone report verification requires browser field");
 assert(phoneReportCheckSource.includes("VALID_SAVE_KINDS"), "phone report verification requires shared or downloaded save");
 assert(phoneReportCheckSource.includes('manualSavedEffectVisible") === "yes"'), "phone report verification requires visible saved effect evidence");
 assert(phoneReportCheckSource.includes('url.searchParams.get("demo") !== "1"'), "phone report verification rejects demo reports");
@@ -199,6 +201,9 @@ assert(mainSource.includes('data-debug-key="manualSavedFileOpened"'), "debug pan
 assert(mainSource.includes('data-debug-key="manualSavedEffectVisible"'), "debug panel exposes manual saved-effect evidence");
 assert(mainSource.includes("data-manual-file-opened"), "debug panel has manual saved-file checkbox");
 assert(mainSource.includes("data-manual-effect-visible"), "debug panel has manual saved-effect checkbox");
+assert(mainSource.includes("data-phone-device-input"), "debug panel has phone device report input");
+assert(mainSource.includes("data-phone-browser-input"), "debug panel has phone browser report input");
+assert(mainSource.includes("data-phone-notes-input"), "debug panel has phone notes report input");
 assert(mainSource.includes("cameraError="), "debug report includes camera failure reason");
 assert(mainSource.includes("version="), "debug report includes app version");
 assert(mainSource.includes("presets="), "debug report includes preset count");
@@ -217,6 +222,10 @@ assert(mainSource.includes("mobileCandidate="), "debug and phone reports include
 assert(mainSource.includes("isLikelyMobileDevice"), "phone report computes likely mobile evidence");
 assert(mainSource.includes("manualSavedFileOpened="), "phone test report includes manual saved-file evidence");
 assert(mainSource.includes("manualSavedEffectVisible="), "phone test report includes manual saved-effect evidence");
+assert(mainSource.includes("phoneDevice"), "phone test report includes editable device evidence");
+assert(mainSource.includes("phoneBrowser"), "phone test report includes editable browser evidence");
+assert(mainSource.includes("phoneNotes"), "phone test report includes editable notes evidence");
+assert(mainSource.includes("sanitizeReportValue"), "phone test report sanitizes editable fields");
 assert(mainSource.includes("acceptanceCandidate="), "phone test report includes acceptance candidate field");
 assert(mainSource.includes("buildDebugReport"), "debug panel can build a copyable state report");
 assert(mainSource.includes("data-debug-report"), "debug panel exposes generated state report for safe checks");

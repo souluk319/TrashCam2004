@@ -163,7 +163,8 @@ Already verified locally:
 - phone evidence UI:
   - `?demo=1&debug=1&save=prepare` rendered from `dist` at 390px
   - saved-file and saved-effect checkboxes appeared in the debug panel
-  - checking them updated `data-phone-test-report`
+  - editable device/browser/notes fields appeared in the debug panel
+  - filling/checking them updated `data-phone-test-report`
   - `acceptanceCandidate=no` remained correct in synthetic source mode
   - no horizontal overflow or console warnings/errors
 - phone-test automatic device evidence:
@@ -172,7 +173,7 @@ Already verified locally:
 - phone-report verifier:
   - `npm run verify:phone-report` validates pasted `Copy phone test` output from a real phone
   - `npm run verify:phone-report:self-test` confirms the parser accepts a pass fixture and rejects demo/prepare-only reports
-  - pass requires `source=camera`, `camera=ready`, `save=shared` or `save=downloaded`, saved-file/effect evidence, and `acceptanceGate=phone-pass-candidate`
+  - pass requires filled device/browser fields, `source=camera`, `camera=ready`, `save=shared` or `save=downloaded`, saved-file/effect evidence, and `acceptanceGate=phone-pass-candidate`
 - stable Pages verification script:
   - `npm run verify:pages` builds with `/TrashCam2004/`
   - live GitHub Pages HTML must reference the same hashed JS/CSS as local `dist`
@@ -253,6 +254,7 @@ Pass checklist:
 - Preset buttons visibly change the effect.
 - `Save PNG` creates a PNG file that opens locally.
 - With `?debug=1`, `camera` becomes `ready`, `frames` increases, and `save` changes after tapping `Save PNG`.
+- Fill `device`, `browser`, and optional `notes` in the debug panel before copying the phone-test report.
 - After opening the saved file, check `file opened` and `effect visible`; on a real camera run this should move `acceptanceGate` to `phone-pass-candidate`.
 - If a debug run fails, tap `Copy state` and paste the copied report into the test notes.
 - After a debug run passes, tap `Copy phone test` and validate it with `pbpaste | npm run verify:phone-report`.

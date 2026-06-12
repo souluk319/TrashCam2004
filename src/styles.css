@@ -374,6 +374,39 @@ h1 {
   accent-color: #2bff7d;
 }
 
+.debug-report-fields {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.debug-report-fields label {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.debug-report-fields input,
+.debug-report-fields textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #3e3a27;
+  border-radius: 0;
+  padding: 7px 8px;
+  color: #f5efcf;
+  background: #17150f;
+  font: inherit;
+}
+
+.debug-report-fields textarea {
+  resize: vertical;
+}
+
+.debug-notes {
+  grid-column: 1 / -1;
+}
+
 .debug-copy-button {
   grid-column: 1 / -1;
   min-height: 34px;
@@ -485,6 +518,10 @@ h1 {
   }
 
   .debug-manual-checks {
+    grid-template-columns: 1fr;
+  }
+
+  .debug-report-fields {
     grid-template-columns: 1fr;
   }
 }

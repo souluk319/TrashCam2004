@@ -412,11 +412,19 @@ function cleanup() {
   stopProcess(previewProcess);
 
   if (userDataDir) {
-    rmSync(userDataDir, { force: true, maxRetries: 5, recursive: true, retryDelay: 100 });
+    safeRemoveTempDir(userDataDir);
   }
 
   if (downloadDir && existsSync(downloadDir)) {
-    rmSync(downloadDir, { force: true, maxRetries: 5, recursive: true, retryDelay: 100 });
+    safeRemoveTempDir(downloadDir);
+  }
+}
+
+function safeRemoveTempDir(path) {
+  try {
+    rmSync(path, { force: true, maxRetries: 10, recursive: true, retryDelay: 150 });
+  } catch (error) {
+    console.log(`note - could not remove temporary directory ${path}: ${error.message}`);
   }
 }
 

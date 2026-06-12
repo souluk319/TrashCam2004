@@ -360,7 +360,15 @@ function cleanup() {
   stopProcess(previewProcess);
 
   if (userDataDir) {
-    rmSync(userDataDir, { force: true, recursive: true });
+    safeRemoveTempDir(userDataDir);
+  }
+}
+
+function safeRemoveTempDir(path) {
+  try {
+    rmSync(path, { force: true, maxRetries: 10, recursive: true, retryDelay: 150 });
+  } catch (error) {
+    console.log(`note - could not remove temporary directory ${path}: ${error.message}`);
   }
 }
 

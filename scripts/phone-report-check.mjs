@@ -27,7 +27,7 @@ Usage:
   npm run verify:phone-report:self-test
 
 Pass requires a real phone report copied from ?debug=1 after:
-  camera permission -> moving preview -> PNG shared/downloaded -> saved file opened -> effect confirmed
+  device/browser filled -> camera permission -> moving preview -> PNG shared/downloaded -> saved file opened -> effect confirmed
 `);
 }
 
@@ -120,6 +120,8 @@ function validateReport(report) {
   validateNumber("bytes", get("bytes"), (value) => value > 0, "bytes is greater than 0", failures);
 
   requireField("userAgent", get("userAgent"), failures);
+  requireField("device", get("device"), failures);
+  requireField("browser", get("browser"), failures);
   requireField("platform", get("platform"), failures);
   requireField("orientation", get("orientation"), failures);
   requireField("language", get("language"), failures);
@@ -142,14 +144,6 @@ function validateReport(report) {
   requireValue(get("manualSavedFileOpened") === "yes", "manualSavedFileOpened=yes", failures);
   requireValue(get("manualSavedEffectVisible") === "yes", "manualSavedEffectVisible=yes", failures);
   requireValue(get("acceptanceCandidate") === "yes", "acceptanceCandidate=yes", failures);
-
-  if (!get("device")) {
-    warnings.push("device field is blank; add device model to the saved test note");
-  }
-
-  if (!get("browser")) {
-    warnings.push("browser field is blank; add browser name/version to the saved test note");
-  }
 
   if (!get("notes")) {
     warnings.push("notes field is blank; add anything unusual from the phone test if needed");

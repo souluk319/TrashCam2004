@@ -147,7 +147,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 stable HTTPS recheck: `https://souluk319.github.io/TrashCam2004/?demo=1&debug=1&save=prepare` loaded from GitHub Pages at 390px, reported `secure=true`, rendered demo frames, switched `Game` pack to `Pixel Art`/`Voxel`, prepared a Pixel Art PNG, had no horizontal overflow, and produced no console warnings/errors.
 - 2026-06-12 productization polish: capture review state added. After `Save PNG`, the app shows the saved PNG preview, filename, `Share again`, and `Back to camera`. `Share again` reuses the same saved PNG Blob instead of capturing a new frame.
 - 2026-06-12 capture review production recheck: `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` at 390px showed `captureReview=visible` after save, a Blob preview image, matching PNG filename text, `Share again` preserving the same prepared byte size, `Back to camera` returning to `captureReview=hidden`, no horizontal overflow, and no console warnings/errors. This is still synthetic-source verification, not a real phone camera/save test.
-- 2026-06-12 real-device diagnostics: `?debug=1` now exposes `acceptanceGate` and `Copy phone test`, a paste-ready report with device/browser blanks, current camera/save state, and manual fields for file-open/effect-visible confirmation.
+- 2026-06-12 real-device diagnostics: `?debug=1` now exposes `acceptanceGate` and `Copy phone test`, a paste-ready report with editable device/browser/notes fields, current camera/save state, and manual fields for file-open/effect-visible confirmation.
 - 2026-06-12 phone-test report recheck: `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` at 390px filled `data-phone-test-report`, showed `acceptanceGate=synthetic-or-local-check`, updated the report after `Save PNG` with `save=prepared` and `captureReview=visible`, had no horizontal overflow, and produced no console warnings/errors.
 - 2026-06-12 stable HTTPS latest recheck: `https://souluk319.github.io/TrashCam2004/?demo=1&debug=1&save=prepare` served `assets/index-DoCWuob4.js`, included `Copy phone test`, reported `secure=true`, `version=0.1.0-beta.1`, `acceptanceGate=synthetic-or-local-check`, prepared a PNG, opened capture review, had no horizontal overflow, and produced no console warnings/errors.
 - 2026-06-12 Pages deployment hardening: `public/.nojekyll` added and smoke now verifies that the marker is copied to `dist/.nojekyll`; the live Pages marker returned HTTP 200.
@@ -162,6 +162,8 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 stable Pages evidence deployment: `gh-pages` was updated to `9063556`, live Pages served `assets/index-DV-6-8CJ.js`, and `npm run verify:pages` passed with PNG prepare `694042` bytes, manual evidence report updates, no overflow, and `gate=synthetic-or-local-check`.
 - 2026-06-12 fallback download verification: `npm run verify:download` added and passed. Chrome headless creates a `trashcam-2004-...png` file in a temporary download folder, checks that the file byte count matches the app state, verifies the PNG signature, and confirms 640x480 dimensions. This proves desktop fallback file receipt for synthetic source, not phone/native share behavior.
 - 2026-06-12 phone report verifier: `npm run verify:phone-report` added for pasted real-device reports, with `npm run verify:phone-report:self-test` covering pass/fail fixtures. It rejects `demo=1`, `save=prepare`, non-camera source, missing saved-file/effect evidence, and anything short of `acceptanceGate=phone-pass-candidate`.
+- 2026-06-12 phone report metadata: `?debug=1` now includes editable `device`, `browser`, and `notes` inputs. `Copy phone test` copies those sanitized values, and `npm run verify:phone-report` now requires non-empty device/browser fields.
+- 2026-06-12 stable Pages metadata deployment: `gh-pages` was updated to `d8bb81e`, live Pages served `assets/index-C15NFgUv.js`, and `npm run verify:pages` passed with editable phone-report values, PNG prepare `694072` bytes, no overflow, and `gate=synthetic-or-local-check`.
 
 ## Local development
 
@@ -202,7 +204,7 @@ You can combine it with test modes:
 http://127.0.0.1:5174/?demo=1&debug=1
 ```
 
-The debug panel shows source, camera state, camera error reason, secure context, app version, preset count, source video size, share capability, real-device acceptance gate, frame count, active preset, and last save result. The copied reports include viewport size, device pixel ratio, user agent, platform, touch capability, physical screen size, orientation, browser language, and a likely-mobile hint. `Copy state` copies the current debug report for failure notes. `Copy phone test` copies a paste-ready phone test report with manual fields for device/browser, saved file open, and saved effect visibility. These controls are only visible when `debug=1` is present, and they do not replace real camera/phone verification.
+The debug panel shows source, camera state, camera error reason, secure context, app version, preset count, source video size, share capability, real-device acceptance gate, frame count, active preset, and last save result. The copied reports include viewport size, device pixel ratio, user agent, platform, touch capability, physical screen size, orientation, browser language, and a likely-mobile hint. `Copy state` copies the current debug report for failure notes. `Copy phone test` copies a paste-ready phone test report with editable device/browser/notes fields, saved file open, and saved effect visibility. These controls are only visible when `debug=1` is present, and they do not replace real camera/phone verification.
 After a successful save, the copied report also includes `captureReview=visible` while the frozen saved PNG panel is open.
 
 For local PNG preparation verification without downloading a file:
@@ -357,7 +359,7 @@ After a real phone test, open the app with:
 https://souluk319.github.io/TrashCam2004/?debug=1
 ```
 
-Then tap `Copy phone test` after the saved image has been opened and the `file opened` / `effect visible` checks are both on.
+Fill the `device`, `browser`, and optional `notes` fields. Then tap `Copy phone test` after the saved image has been opened and the `file opened` / `effect visible` checks are both on.
 
 Validate the copied report:
 
@@ -371,7 +373,7 @@ Parser self-test:
 npm run verify:phone-report:self-test
 ```
 
-The verifier only passes real-device acceptance evidence: HTTPS stable URL, no `demo=1`, `source=camera`, `camera=ready`, moving frames, `save=shared` or `save=downloaded`, opened file, visible effect, and `acceptanceGate=phone-pass-candidate`.
+The verifier only passes real-device acceptance evidence: HTTPS stable URL, no `demo=1`, filled device/browser fields, `source=camera`, `camera=ready`, moving frames, `save=shared` or `save=downloaded`, opened file, visible effect, and `acceptanceGate=phone-pass-candidate`.
 
 ## Stable Pages verification
 

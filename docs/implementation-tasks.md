@@ -80,7 +80,7 @@ Verified:
 - 2026-06-12 continuation: stable GitHub Pages URL verified with `?demo=1&debug=1&save=prepare` at 390px. Result: HTTP 200, `secure=true`, app version `0.1.0-beta.1`, preset count `12`, `Game` pack switched to `Pixel Art`/`Voxel`, Pixel Art PNG prepare succeeded, no horizontal overflow, no console warnings/errors.
 - 2026-06-12 continuation: productization capture review added. After `Save PNG`, the app shows a frozen saved PNG preview, filename, `Share again`, and `Back to camera`; `Share again` reuses the same saved PNG Blob.
 - 2026-06-12 continuation: capture review verified on production preview with `?demo=1&debug=1&save=prepare` at 390px. Result: `captureReview=visible` after save, Blob preview image, same PNG byte size after `Share again`, `captureReview=hidden` after `Back to camera`, no horizontal overflow, no console warnings/errors.
-- 2026-06-12 continuation: real-device diagnostics were expanded with `acceptanceGate` and `Copy phone test`. The phone-test report includes device/browser blanks, current camera/save state, and manual fields for file-open/effect-visible confirmation.
+- 2026-06-12 continuation: real-device diagnostics were expanded with `acceptanceGate` and `Copy phone test`. The phone-test report includes editable device/browser/notes fields, current camera/save state, and manual fields for file-open/effect-visible confirmation.
 - 2026-06-12 continuation: phone-test report verified on production preview with `?demo=1&debug=1&save=prepare` at 390px. Result: `data-phone-test-report` filled, `acceptanceGate=synthetic-or-local-check`, report updated after save with `save=prepared` and `captureReview=visible`, no horizontal overflow, no console warnings/errors.
 - 2026-06-12 continuation: `feat/dev0.1` latest build was deployed to the `gh-pages` branch, preserving `main` as the stable source checkpoint.
 - 2026-06-12 continuation: stable GitHub Pages latest build verified with `?demo=1&debug=1&save=prepare` at 390px. Result: served `assets/index-DoCWuob4.js`, included `Copy phone test`, reported `secure=true`, `version=0.1.0-beta.1`, `acceptanceGate=synthetic-or-local-check`, prepared a PNG, opened capture review, had no horizontal overflow, and no console warnings/errors.
@@ -97,6 +97,8 @@ Verified:
 - 2026-06-12 continuation: `gh-pages` updated to `9063556` and `npm run verify:pages` passed after the device-evidence report expansion. Result: live Pages served `assets/index-DV-6-8CJ.js`, PNG prepare reached `694042` bytes, phone evidence report updated, and gate remained correctly `synthetic-or-local-check`.
 - 2026-06-12 continuation: `npm run verify:download` added and verified. It opens production preview in Chrome, triggers fallback download, confirms the app reaches `save=downloaded`, and checks the actual downloaded file by filename, matching app-reported byte count, PNG signature, and 640x480 dimensions.
 - 2026-06-12 continuation: `npm run verify:phone-report` added for pasted `Copy phone test` output, plus `npm run verify:phone-report:self-test`. The self-test accepts a real-device pass fixture and rejects demo/prepare-only reports.
+- 2026-06-12 continuation: phone report metadata fields added. `?debug=1` now has editable device/browser/notes inputs, `Copy phone test` copies sanitized values, and `npm run verify:phone-report` requires device/browser to be filled.
+- 2026-06-12 continuation: `gh-pages` updated to `d8bb81e` and `npm run verify:pages` passed after the metadata fields. Result: live Pages served `assets/index-C15NFgUv.js`, editable phone-report values were included, PNG prepare reached `694072` bytes, and gate remained `synthetic-or-local-check`.
 
 Not yet verified:
 
@@ -170,6 +172,7 @@ Exit criteria:
 - [x] Include save/share capability, source video size, viewport, and device pixel ratio in debug diagnostics.
 - [x] Add `acceptanceGate` and `Copy phone test` report for real-device acceptance notes.
 - [x] Add debug-only saved-file and saved-effect evidence checkboxes for phone acceptance reports.
+- [x] Add editable device/browser/notes fields to phone acceptance reports.
 - [x] Add public beta metadata and compact Privacy dialog.
 
 Exit criteria:
@@ -321,6 +324,8 @@ Then verify:
 - [x] Production dist preview reaches fallback download branch on `http://127.0.0.1:4174/?demo=1` with `data-last-save-kind="downloaded"`, PNG byte size, PNG filename, and no console warnings/errors.
 - [x] `npm run verify:download` confirms the actual fallback-downloaded file on disk has the expected filename, byte size, PNG signature, and 640x480 dimensions.
 - [x] `npm run verify:phone-report:self-test` confirms the phone report parser accepts pass evidence and rejects demo/prepare-only reports.
+- [x] Phone report verifier requires filled device/browser fields before accepting real-device evidence.
+- [x] Stable GitHub Pages verification confirms editable phone-report values are copied into the live report.
 - [ ] Actual downloaded/shared PNG file from a real camera run is confirmed usable in a real browser/device.
 - [ ] Actual real-device `Copy phone test` report passes `npm run verify:phone-report`.
 - [x] Presets switch in `?demo=1`.

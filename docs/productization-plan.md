@@ -12,11 +12,11 @@ Open public link -> allow camera -> funny live preview -> switch presets -> save
 
 - Static Vite + TypeScript app is implemented.
 - Camera, canvas render loop, preset switching, PNG save/share fallback, capture review, `?demo=1`, `?debug=1`, and `?save=prepare` exist.
-- Public beta polish exists: Open Graph metadata, Privacy dialog, 12 presets, app version, preset count diagnostics, capture review, phone-test report copying, automatic device/browser evidence, and debug-only saved-file/effect evidence controls.
+- Public beta polish exists: Open Graph metadata, Privacy dialog, 12 presets, app version, preset count diagnostics, capture review, phone-test report copying, editable device/browser/notes fields, automatic device/browser evidence, and debug-only saved-file/effect evidence controls.
 - Local synthetic verification passes.
 - Local fake-camera verification passes: `npm run verify:fake-camera` uses Chrome fake media to prove the real `getUserMedia()` path reaches `source=camera`, `camera=ready`, PNG preparation, and capture review.
 - Local fallback-download verification passes: `npm run verify:download` proves the production preview can write a PNG file to disk and that the file matches app-reported bytes, PNG signature, and 640x480 dimensions.
-- Phone report verifier exists: `npm run verify:phone-report` validates pasted real-device evidence and `npm run verify:phone-report:self-test` proves the parser rejects demo/prepare-only reports.
+- Phone report verifier exists: `npm run verify:phone-report` validates pasted real-device evidence, requires filled device/browser fields, and `npm run verify:phone-report:self-test` proves the parser rejects demo/prepare-only reports.
 - Actual product risk is now real physical camera permission, native share/save behavior, and external phone behavior, not source code structure.
 
 ## Product success criteria
@@ -26,7 +26,7 @@ TrashCam becomes a public beta when all P0 items are true:
 - A stable HTTPS URL exists.
 - iPhone Safari opens the URL, requests camera permission, renders live preview, and saves or shares a usable PNG.
 - Android Chrome opens the URL, requests camera permission, renders live preview, and saves or shares a usable PNG.
-- `?debug=1` report can identify failures by version, preset count, browser/device evidence, touch/screen/orientation signals, video size, viewport, camera state, acceptance gate, save state, and saved-file usability evidence.
+- `?debug=1` report can identify failures by version, preset count, manually entered device/browser/notes, browser/device evidence, touch/screen/orientation signals, video size, viewport, camera state, acceptance gate, save state, and saved-file usability evidence.
 - Privacy copy is visible from the app and honestly states that camera frames stay in the browser.
 - The app still works with no backend, no account, no upload, and no database.
 
@@ -114,6 +114,7 @@ Verification:
 - Latest evidence UI was deployed to `gh-pages` commit `4a9e84e` and verified on the stable URL. Live Pages served `assets/index-DJDukQqd.js` / `assets/index-CgIRwTF0.css`, `.nojekyll` returned HTTP 200, and `?demo=1&debug=1&save=prepare` at 390px passed PNG prepare, report update, no-overflow, and no-console checks.
 - `npm run verify:pages` now automates the stable URL check: live hashed assets must match the current Pages build, `.nojekyll` must be reachable, demo PNG prepare and evidence report update must pass, and browser warnings/errors or horizontal overflow fail the check.
 - Latest `gh-pages` commit `6d36964` adds the base-path-safe favicon and passes `npm run verify:pages`: live assets match local Pages build, live `favicon.svg`/`.nojekyll` return HTTP 200, PNG prepare succeeds, and the evidence report updates without browser warnings/errors.
+- Latest phone-report metadata deployment is on `gh-pages` commit `d8bb81e`. `npm run verify:pages` passed with live `assets/index-C15NFgUv.js`, editable device/browser/notes values in the report, PNG prepare `694072` bytes, and `gate=synthetic-or-local-check`.
 - Phone-test reports now include automatic evidence fields: `userAgent`, `platform`, `maxTouchPoints`, physical `screen`, `orientation`, `language`, and `mobileCandidate`. Smoke, fake-camera, and stable Pages verification check these fields exist.
 - Latest `gh-pages` commit `9063556` deploys the automatic evidence report expansion and passes `npm run verify:pages`: live Pages serves `assets/index-DV-6-8CJ.js`, PNG prepare reaches `694042` bytes, evidence report updates, and the acceptance gate remains `synthetic-or-local-check`.
 
@@ -142,13 +143,14 @@ Actions:
 - Switch at least these presets: `PC Bang Cam 2004`, `Pixel Art Cam`, `Cyberpunk Cam`, `Sticker Booth Cam`.
 - Save PNG.
 - Open the saved file and confirm it contains the effected image.
+- Fill `device`, `browser`, and optional `notes` in the debug panel before copying the phone-test report.
 
 Exit criteria:
 
 - Debug report says `source=camera`, `camera=ready`, and `save=downloaded` or `save=shared`.
 - Saved PNG opens correctly.
 - After opening the saved file and confirming the effect, `acceptanceGate` reaches `phone-pass-candidate`.
-- The copied phone-test report passes `npm run verify:phone-report`.
+- The copied phone-test report includes filled device/browser fields and passes `npm run verify:phone-report`.
 
 ## P0 - Real phone acceptance
 
@@ -198,7 +200,7 @@ Pass:
 
 ### Failure logging
 
-If any phone check fails, open the same URL with `?debug=1`, tap `Copy phone test`, and record:
+If any phone check fails, open the same URL with `?debug=1`, fill device/browser/notes when possible, tap `Copy phone test`, and record:
 
 - Device and browser
 - Exact URL

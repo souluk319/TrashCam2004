@@ -135,6 +135,11 @@ app.innerHTML = `
         <label><input type="checkbox" data-manual-file-opened /> file opened</label>
         <label><input type="checkbox" data-manual-effect-visible /> effect visible</label>
       </div>
+      <div class="debug-report-fields" aria-label="Phone test report details">
+        <label><span>device</span><input type="text" data-phone-device-input autocomplete="off" /></label>
+        <label><span>browser</span><input type="text" data-phone-browser-input autocomplete="off" /></label>
+        <label class="debug-notes"><span>notes</span><textarea data-phone-notes-input rows="2"></textarea></label>
+      </div>
       <button class="debug-copy-button" type="button" data-copy-debug data-debug-report="">Copy state</button>
       <button class="debug-copy-button" type="button" data-copy-phone-test data-phone-test-report="">Copy phone test</button>
     </aside>
@@ -194,6 +199,18 @@ const manualEffectVisibleInput = requireNode(
   app.querySelector<HTMLInputElement>("[data-manual-effect-visible]"),
   "Manual effect-visible checkbox is missing."
 );
+const phoneDeviceInput = requireNode(
+  app.querySelector<HTMLInputElement>("[data-phone-device-input]"),
+  "Phone device input is missing."
+);
+const phoneBrowserInput = requireNode(
+  app.querySelector<HTMLInputElement>("[data-phone-browser-input]"),
+  "Phone browser input is missing."
+);
+const phoneNotesInput = requireNode(
+  app.querySelector<HTMLTextAreaElement>("[data-phone-notes-input]"),
+  "Phone notes input is missing."
+);
 const privacyOpenButton = requireNode(
   app.querySelector<HTMLButtonElement>("[data-privacy-open]"),
   "Privacy open button is missing."
@@ -250,6 +267,7 @@ setAppState("activePreset", activePreset.id);
 setAppState("presetCategory", activePreset.category);
 setAppState("captureReview", "hidden");
 resetManualEvidence();
+syncPhoneReportMetaState();
 syncPresetButtons();
 
 if (shouldSkipCameraForLocalCheck()) {
@@ -306,6 +324,9 @@ copyPhoneTestButton.addEventListener("click", () => {
 
 manualFileOpenedInput.addEventListener("change", syncManualEvidenceState);
 manualEffectVisibleInput.addEventListener("change", syncManualEvidenceState);
+phoneDeviceInput.addEventListener("input", syncPhoneReportMetaState);
+phoneBrowserInput.addEventListener("input", syncPhoneReportMetaState);
+phoneNotesInput.addEventListener("input", syncPhoneReportMetaState);
 
 privacyOpenButton.addEventListener("click", () => {
   if (typeof privacyDialog.showModal === "function") {
@@ -508,6 +529,12 @@ function resetManualEvidence(): void {
 function syncManualEvidenceState(): void {
   setAppState("manualSavedFileOpened", manualFileOpenedInput.checked ? "yes" : "no");
   setAppState("manualSavedEffectVisible", manualEffectVisibleInput.checked ? "yes" : "no");
+}
+
+function syncPhoneReportMetaState(): void {
+  setAppState("phoneDevice", sanitizeReportValue(phoneDeviceInput.value));
+  setAppState("phoneBrowser", sanitizeReportValue(phoneBrowserInput.value));
+  setAppState("phoneNotes", sanitizeReportValue(phoneNotesInput.value));
 }
 
 async function copyDebugState(): Promise<void> {
@@ -949,8 +976,8 @@ function buildPhoneTestReport(): string {
     "TrashCam 2004 phone test report",
     `time=${new Date().toISOString()}`,
     `url=${window.location.href}`,
-    `device=`,
-    `browser=`,
+    `device=${app.dataset.phoneDevice ?? ""}`,
+    `browser=${app.dataset.phoneBrowser ?? ""}`,
     `userAgent=${navigator.userAgent}`,
     `platform=${navigator.platform || "-"}`,
     `maxTouchPoints=${navigator.maxTouchPoints}`,
@@ -983,10 +1010,14 @@ function buildPhoneTestReport(): string {
     `manualSavedFileOpened=${app.dataset.manualSavedFileOpened ?? "no"}`,
     `manualSavedEffectVisible=${app.dataset.manualSavedEffectVisible ?? "no"}`,
     `acceptanceCandidate=${getAcceptanceGateStatus() === "phone-pass-candidate" ? "yes" : "no"}`,
-    `notes=`
+    `notes=${app.dataset.phoneNotes ?? ""}`
   ];
 
   return lines.join("\n");
+}
+
+function sanitizeReportValue(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
 }
 
 function getAcceptanceGateStatus(): string {
