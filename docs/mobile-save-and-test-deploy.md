@@ -160,6 +160,9 @@ Already verified locally:
   - checking them updated `data-phone-test-report`
   - `acceptanceCandidate=no` remained correct in synthetic source mode
   - no horizontal overflow or console warnings/errors
+- phone-test automatic device evidence:
+  - `Copy state` and `Copy phone test` include `userAgent`, `platform`, `maxTouchPoints`, physical `screen`, `orientation`, `language`, and `mobileCandidate`
+  - `npm run smoke`, `npm run verify:fake-camera`, and `npm run verify:pages` check these fields exist
 - stable Pages verification script:
   - `npm run verify:pages` builds with `/TrashCam2004/`
   - live GitHub Pages HTML must reference the same hashed JS/CSS as local `dist`
@@ -178,10 +181,10 @@ Not yet verified:
 Verified HTTPS URL:
 
 - `https://souluk319.github.io/TrashCam2004/`
-- Latest deployed bundle: `assets/index-DJDukQqd.js` and `assets/index-CgIRwTF0.css` from `gh-pages` commit `6d36964`.
+- Latest deployed bundle: `assets/index-DV-6-8CJ.js` and `assets/index-CgIRwTF0.css` from `gh-pages` commit `9063556`.
 - Synthetic check passed at `?demo=1&debug=1&save=prepare` with 390px viewport, `secure=true`, active render frames, evidence controls, report updates, and PNG prepare.
 - Live `favicon.svg` and `.nojekyll` returned HTTP 200.
-- `npm run verify:pages` passed against the stable URL with matching hashed assets, PNG prepare, evidence report updates, no overflow, and no browser warnings/errors.
+- `npm run verify:pages` passed against the stable URL with matching hashed assets, PNG prepare `694042` bytes, automatic device evidence fields, evidence report updates, no overflow, and no browser warnings/errors.
 
 Important honesty rule:
 
@@ -307,6 +310,7 @@ Record failures with:
 - `cameraError` from the `?debug=1` state report
 - `version` and `presets` from the copied report
 - `shareCapability`, `video`, `viewport`, and `devicePixelRatio` from the copied report
+- `userAgent`, `platform`, `maxTouchPoints`, `screen`, `orientation`, `language`, and `mobileCandidate` from the copied report
 - `manualSavedFileOpened`, `manualSavedEffectVisible`, and `acceptanceCandidate` from the copied report
 - copied `?debug=1` state report when available
 - whether the issue was camera permission, preview render, preset switch, save/share, or file usability

@@ -177,6 +177,13 @@ assert(mainSource.includes("shareCapability="), "debug report includes save/shar
 assert(mainSource.includes("acceptanceGate="), "debug report includes real-device acceptance gate");
 assert(mainSource.includes("captureReview="), "debug report includes capture review state");
 assert(mainSource.includes("video="), "debug report includes source video dimensions");
+assert(mainSource.includes("platform="), "debug and phone reports include browser platform evidence");
+assert(mainSource.includes("maxTouchPoints="), "debug and phone reports include touch capability evidence");
+assert(mainSource.includes("screen="), "debug and phone reports include physical screen size evidence");
+assert(mainSource.includes("orientation="), "debug and phone reports include screen orientation evidence");
+assert(mainSource.includes("language="), "debug and phone reports include browser language evidence");
+assert(mainSource.includes("mobileCandidate="), "debug and phone reports include mobile candidate evidence");
+assert(mainSource.includes("isLikelyMobileDevice"), "phone report computes likely mobile evidence");
 assert(mainSource.includes("manualSavedFileOpened="), "phone test report includes manual saved-file evidence");
 assert(mainSource.includes("manualSavedEffectVisible="), "phone test report includes manual saved-effect evidence");
 assert(mainSource.includes("acceptanceCandidate="), "phone test report includes acceptance candidate field");

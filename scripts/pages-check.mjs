@@ -310,6 +310,7 @@ async function waitForManualEvidenceReport(client) {
       && state.reportHasManualFileYes
       && state.reportHasManualEffectYes
       && state.reportHasAcceptanceCandidateNo
+      && state.reportHasDeviceEvidence
       && state.acceptanceGate === "synthetic-or-local-check"
     );
   }, 5_000, "stable Pages phone evidence report did not update");
@@ -348,6 +349,15 @@ async function readAppState(client) {
       reportHasManualFileYes: phoneReport.includes("manualSavedFileOpened=yes"),
       reportHasManualEffectYes: phoneReport.includes("manualSavedEffectVisible=yes"),
       reportHasAcceptanceCandidateNo: phoneReport.includes("acceptanceCandidate=no"),
+      reportHasDeviceEvidence: (
+        phoneReport.includes("userAgent=")
+        && phoneReport.includes("platform=")
+        && phoneReport.includes("maxTouchPoints=")
+        && phoneReport.includes("screen=")
+        && phoneReport.includes("orientation=")
+        && phoneReport.includes("language=")
+        && phoneReport.includes("mobileCandidate=")
+      ),
       overflowCount: overflowing.length
     };
   })()`);

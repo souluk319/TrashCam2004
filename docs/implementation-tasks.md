@@ -93,6 +93,8 @@ Verified:
 - 2026-06-12 continuation: `npm run verify:pages` added. It builds with `/TrashCam2004/`, compares the live Pages hashed assets with local `dist`, verifies `.nojekyll`, runs a headless stable-URL demo save/evidence flow, and fails on browser warnings/errors or horizontal overflow.
 - 2026-06-12 continuation: favicon added as `public/favicon.svg` and linked via `%BASE_URL%favicon.svg` to prevent missing favicon requests on GitHub Pages.
 - 2026-06-12 continuation: `gh-pages` updated to `6d36964` and `npm run verify:pages` passed. Result: live hashed assets matched local Pages build, live `favicon.svg`/`.nojekyll` returned HTTP 200, PNG prepare reached `693404` bytes, phone evidence report updated, and gate remained correctly `synthetic-or-local-check`.
+- 2026-06-12 continuation: phone-test report device evidence expanded. `Copy state` and `Copy phone test` now include `userAgent`, `platform`, `maxTouchPoints`, physical `screen`, `orientation`, `language`, and `mobileCandidate`; smoke, fake-camera, and Pages verification check the fields exist.
+- 2026-06-12 continuation: `gh-pages` updated to `9063556` and `npm run verify:pages` passed after the device-evidence report expansion. Result: live Pages served `assets/index-DV-6-8CJ.js`, PNG prepare reached `694042` bytes, phone evidence report updated, and gate remained correctly `synthetic-or-local-check`.
 
 Not yet verified:
 

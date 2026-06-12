@@ -91,6 +91,10 @@ async function main() {
         fail("phone test report did not include source=camera");
       }
 
+      if (!afterSave.phoneReportHasDeviceEvidence) {
+        fail("phone test report did not include automatic device/browser evidence");
+      }
+
       logOk(`fake camera PNG prepared: ${afterSave.bytes} bytes`);
       logOk("capture review opens after fake camera save");
     } finally {
@@ -300,7 +304,16 @@ async function readAppState(client) {
       acceptanceGate: app?.dataset.acceptanceGate ?? "",
       bytes: Number(app?.dataset.lastSaveBytes ?? 0),
       captureReview: app?.dataset.captureReview ?? "",
-      phoneReportHasCamera: phoneReport.includes("source=camera")
+      phoneReportHasCamera: phoneReport.includes("source=camera"),
+      phoneReportHasDeviceEvidence: (
+        phoneReport.includes("userAgent=")
+        && phoneReport.includes("platform=")
+        && phoneReport.includes("maxTouchPoints=")
+        && phoneReport.includes("screen=")
+        && phoneReport.includes("orientation=")
+        && phoneReport.includes("language=")
+        && phoneReport.includes("mobileCandidate=")
+      )
     };
   })()`);
 }

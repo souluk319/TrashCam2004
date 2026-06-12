@@ -874,6 +874,18 @@ function refreshVideoState(): void {
   setAppState("videoSize", `${video.videoWidth || 0}x${video.videoHeight || 0}`);
 }
 
+function getScreenSize(): string {
+  return `${screen.width}x${screen.height}`;
+}
+
+function getScreenOrientation(): string {
+  return screen.orientation?.type ?? (window.innerWidth >= window.innerHeight ? "landscape-legacy" : "portrait-legacy");
+}
+
+function isLikelyMobileDevice(): boolean {
+  return navigator.maxTouchPoints > 0 && Math.min(screen.width, screen.height) <= 1024;
+}
+
 function setDebugValue(name: string, value: string): void {
   const field = debugFields.get(name);
 
@@ -900,6 +912,12 @@ function buildDebugReport(): string {
     `time=${new Date().toISOString()}`,
     `url=${window.location.href}`,
     `userAgent=${navigator.userAgent}`,
+    `platform=${navigator.platform || "-"}`,
+    `maxTouchPoints=${navigator.maxTouchPoints}`,
+    `screen=${getScreenSize()}`,
+    `orientation=${getScreenOrientation()}`,
+    `language=${navigator.language || "-"}`,
+    `mobileCandidate=${isLikelyMobileDevice() ? "yes" : "no"}`,
     `source=${app.dataset.sourceMode ?? "-"}`,
     `camera=${app.dataset.cameraState ?? "-"}`,
     `cameraError=${app.dataset.cameraError ?? "-"}`,
@@ -933,6 +951,13 @@ function buildPhoneTestReport(): string {
     `url=${window.location.href}`,
     `device=`,
     `browser=`,
+    `userAgent=${navigator.userAgent}`,
+    `platform=${navigator.platform || "-"}`,
+    `maxTouchPoints=${navigator.maxTouchPoints}`,
+    `screen=${getScreenSize()}`,
+    `orientation=${getScreenOrientation()}`,
+    `language=${navigator.language || "-"}`,
+    `mobileCandidate=${isLikelyMobileDevice() ? "yes" : "no"}`,
     `acceptanceGate=${getAcceptanceGateStatus()}`,
     `source=${app.dataset.sourceMode ?? "-"}`,
     `camera=${app.dataset.cameraState ?? "-"}`,

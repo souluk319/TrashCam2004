@@ -156,6 +156,8 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 stable Pages verification script: `npm run verify:pages` added. It builds with the GitHub Pages base path, checks that live Pages serves the same hashed JS/CSS assets, verifies `.nojekyll`, runs a headless 390px demo save/evidence flow, and fails on browser warnings/errors or horizontal overflow.
 - 2026-06-12 favicon added through `%BASE_URL%favicon.svg` so GitHub Pages and local builds avoid the default missing favicon request.
 - 2026-06-12 stable Pages verification pass: `gh-pages` was updated to `6d36964`, live `favicon.svg` and `.nojekyll` returned HTTP 200, and `npm run verify:pages` passed with live `assets/index-DJDukQqd.js` / `assets/index-CgIRwTF0.css`, PNG prepare `693404` bytes, manual evidence report updates, and `gate=synthetic-or-local-check`.
+- 2026-06-12 phone-test evidence expansion: `Copy state` and `Copy phone test` now include automatic browser/device evidence: `userAgent`, `platform`, `maxTouchPoints`, physical `screen`, `orientation`, `language`, and `mobileCandidate`. Smoke, fake-camera, and stable Pages verification now check these fields exist.
+- 2026-06-12 stable Pages evidence deployment: `gh-pages` was updated to `9063556`, live Pages served `assets/index-DV-6-8CJ.js`, and `npm run verify:pages` passed with PNG prepare `694042` bytes, manual evidence report updates, no overflow, and `gate=synthetic-or-local-check`.
 
 ## Local development
 
@@ -196,7 +198,7 @@ You can combine it with test modes:
 http://127.0.0.1:5174/?demo=1&debug=1
 ```
 
-The debug panel shows source, camera state, camera error reason, secure context, app version, preset count, source video size, share capability, real-device acceptance gate, frame count, active preset, and last save result. The copied report also includes viewport size and device pixel ratio. `Copy state` copies the current debug report for failure notes. `Copy phone test` copies a paste-ready phone test report with manual fields for device/browser, saved file open, and saved effect visibility. These controls are only visible when `debug=1` is present, and they do not replace real camera/phone verification.
+The debug panel shows source, camera state, camera error reason, secure context, app version, preset count, source video size, share capability, real-device acceptance gate, frame count, active preset, and last save result. The copied reports include viewport size, device pixel ratio, user agent, platform, touch capability, physical screen size, orientation, browser language, and a likely-mobile hint. `Copy state` copies the current debug report for failure notes. `Copy phone test` copies a paste-ready phone test report with manual fields for device/browser, saved file open, and saved effect visibility. These controls are only visible when `debug=1` is present, and they do not replace real camera/phone verification.
 After a successful save, the copied report also includes `captureReview=visible` while the frozen saved PNG panel is open.
 
 For local PNG preparation verification without downloading a file:
