@@ -23,8 +23,34 @@ export type VoxelBlockSettings = {
   gridOpacity: number;
 };
 
+export type ReceiptPrinterSettings = {
+  dither: number;
+  bandOpacity: number;
+  footerLabel: string;
+};
+
+export type CctvEvidenceSettings = {
+  scanlineOpacity: number;
+  label: string;
+};
+
+export type SchoolIdSettings = {
+  flashOpacity: number;
+  label: string;
+  idNumber: string;
+};
+
 export type Preset = {
-  id: "pcbang" | "cyworld" | "hell" | "pixelart" | "cyberpunk" | "voxel";
+  id:
+    | "pcbang"
+    | "cyworld"
+    | "hell"
+    | "pixelart"
+    | "cyberpunk"
+    | "voxel"
+    | "receipt"
+    | "cctv"
+    | "schoolid";
   category: PresetCategory;
   name: string;
   shortName: string;
@@ -43,6 +69,9 @@ export type Preset = {
   pixelArt?: PixelArtSettings;
   cyberpunk?: CyberpunkSettings;
   voxelBlock?: VoxelBlockSettings;
+  receiptPrinter?: ReceiptPrinterSettings;
+  cctvEvidence?: CctvEvidenceSettings;
+  schoolId?: SchoolIdSettings;
 };
 
 export const PRESETS: Preset[] = [
@@ -151,6 +180,65 @@ export const PRESETS: Preset[] = [
     voxelBlock: {
       blockSize: 2,
       gridOpacity: 0.24
+    }
+  },
+  {
+    id: "receipt",
+    category: "trash",
+    name: "Receipt Printer Cam",
+    shortName: "Receipt",
+    slug: "receipt-printer-cam",
+    caption: "TOTAL DAMAGE: 2004 KRW.",
+    lowWidth: 112,
+    lowHeight: 84,
+    fps: 8,
+    noise: 0,
+    color: { r: 1, g: 1, b: 1 },
+    contrast: 72,
+    brightness: 8,
+    receiptPrinter: {
+      dither: 34,
+      bandOpacity: 0.16,
+      footerLabel: "TOTAL DAMAGE: 2004"
+    }
+  },
+  {
+    id: "cctv",
+    category: "trash",
+    name: "CCTV Evidence Cam",
+    shortName: "CCTV",
+    slug: "cctv-evidence-cam",
+    caption: "MOTION DETECTED. Explain yourself.",
+    lowWidth: 184,
+    lowHeight: 138,
+    fps: 6,
+    noise: 20,
+    color: { r: 0.78, g: 1.16, b: 0.84 },
+    contrast: 44,
+    brightness: -18,
+    cctvEvidence: {
+      scanlineOpacity: 0.24,
+      label: "MOTION DETECTED"
+    }
+  },
+  {
+    id: "schoolid",
+    category: "trash",
+    name: "School ID Cam",
+    shortName: "School ID",
+    slug: "school-id-cam",
+    caption: "Officially suspicious since 2004.",
+    lowWidth: 210,
+    lowHeight: 158,
+    fps: 10,
+    noise: 6,
+    color: { r: 0.92, g: 1.02, b: 1.16 },
+    contrast: 18,
+    brightness: 34,
+    schoolId: {
+      flashOpacity: 0.2,
+      label: "UNKNOWN",
+      idNumber: "2004-ERROR"
     }
   }
 ];

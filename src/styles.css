@@ -246,13 +246,13 @@ h1 {
   }
 
   .preset-group {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 4px;
   }
 
   .preset-button {
     padding-inline: 4px;
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .action-row {

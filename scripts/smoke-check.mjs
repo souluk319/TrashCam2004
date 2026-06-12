@@ -144,6 +144,9 @@ assert(presetSource.includes("Laptop Webcam Hell"), "Laptop Webcam Hell preset e
 assert(presetSource.includes("Pixel Art Cam"), "Pixel Art Cam preset exists");
 assert(presetSource.includes("Cyberpunk Cam"), "Cyberpunk Cam preset exists");
 assert(presetSource.includes("Voxel Block Cam"), "Voxel Block Cam preset exists");
+assert(presetSource.includes("Receipt Printer Cam"), "Receipt Printer Cam preset exists");
+assert(presetSource.includes("CCTV Evidence Cam"), "CCTV Evidence Cam preset exists");
+assert(presetSource.includes("School ID Cam"), "School ID Cam preset exists");
 assert(presetSource.includes('category: "future"'), "future preset category exists");
 assert(presetSource.includes('category: "game"'), "game preset category exists");
 assert(mainSource.includes("data-category"), "preset buttons expose preset category");
@@ -153,6 +156,11 @@ assert(effectsSource.includes("applyRgbSplit"), "RGB split effect exists");
 assert(effectsSource.includes("drawGlitchBars"), "glitch bars effect exists");
 assert(effectsSource.includes("applyBlockAverage"), "block average effect exists");
 assert(effectsSource.includes("drawCyberpunkHud"), "cyberpunk HUD effect exists");
+assert(effectsSource.includes("applyReceiptDither"), "receipt printer dither effect exists");
+assert(effectsSource.includes("applyGrayscaleTint"), "grayscale tint effect exists");
+assert(effectsSource.includes("drawReceiptPrinterOverlay"), "receipt printer overlay exists");
+assert(effectsSource.includes("drawCctvEvidenceHud"), "CCTV evidence HUD exists");
+assert(effectsSource.includes("drawSchoolIdOverlay"), "school ID overlay exists");
 
 if (failures.length > 0) {
   console.error(`\nSmoke check failed: ${failures.length} issue(s).`);

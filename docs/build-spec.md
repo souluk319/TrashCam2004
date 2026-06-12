@@ -240,6 +240,60 @@ Copy:
 
 - `Your face is now legally made of blocks.`
 
+### Receipt Printer Cam
+
+Purpose: make the saved image look like a thermal receipt printout of a bad face decision.
+
+Settings:
+
+- Offscreen resolution: `112x84`
+- FPS: `8`
+- High contrast
+- Black-and-white receipt dithering
+- Paper tint
+- Horizontal printer banding
+- Footer copy: `TOTAL DAMAGE: 2004`
+
+Copy:
+
+- `TOTAL DAMAGE: 2004 KRW.`
+
+### CCTV Evidence Cam
+
+Purpose: make the face feel like it was caught by a cheap security camera and cannot explain itself.
+
+Settings:
+
+- Offscreen resolution: `184x138`
+- FPS: `6`
+- Medium noise
+- Green grayscale tint
+- Strong scanlines
+- Corner brackets
+- REC marker and evidence label
+
+Copy:
+
+- `MOTION DETECTED. Explain yourself.`
+
+### School ID Cam
+
+Purpose: turn the preview into an overexposed, suspicious student-ID style portrait frame.
+
+Settings:
+
+- Offscreen resolution: `210x158`
+- FPS: `10`
+- Light noise
+- Slight blue cast
+- Flash wash
+- ID-card border and school label overlay
+- Bottom metadata strip
+
+Copy:
+
+- `Officially suspicious since 2004.`
+
 ## Effect functions
 
 Implement effects in a small, readable module.
@@ -269,6 +323,11 @@ Effect helpers:
 - `drawGlitchBars(ctx, width, height, count)`
 - `drawCyberpunkHud(ctx, label, width, height)`
 - `drawPixelGrid(ctx, width, height, blockWidth, blockHeight, opacity)`
+- `applyReceiptDither(imageData, amount)`
+- `applyGrayscaleTint(imageData, tint)`
+- `drawReceiptPrinterOverlay(ctx, footerLabel, width, height, bandOpacity)`
+- `drawCctvEvidenceHud(ctx, label, width, height)`
+- `drawSchoolIdOverlay(ctx, label, idNumber, width, height, flashOpacity)`
 - `clamp(value, min, max)`
 
 Avoid over-abstracting. The MVP should stay easy to edit.

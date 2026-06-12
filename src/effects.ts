@@ -120,6 +120,36 @@ export function applyDither(imageData: ImageData, amount: number): void {
   }
 }
 
+export function applyReceiptDither(imageData: ImageData, amount: number): void {
+  const data = imageData.data;
+
+  for (let y = 0; y < imageData.height; y += 1) {
+    for (let x = 0; x < imageData.width; x += 1) {
+      const index = (y * imageData.width + x) * 4;
+      const luminance = data[index] * 0.299 + data[index + 1] * 0.587 + data[index + 2] * 0.114;
+      const threshold = 142 + ((BAYER_4[y % 4][x % 4] / 15) - 0.5) * amount;
+      const ink = luminance < threshold ? 28 : 246;
+
+      data[index] = ink;
+      data[index + 1] = ink;
+      data[index + 2] = ink;
+    }
+  }
+}
+
+export function applyGrayscaleTint(imageData: ImageData, tint: PaletteColor): void {
+  const data = imageData.data;
+
+  for (let index = 0; index < data.length; index += 4) {
+    const luminance = data[index] * 0.299 + data[index + 1] * 0.587 + data[index + 2] * 0.114;
+    const level = luminance / 255;
+
+    data[index] = clamp(level * tint[0], 0, 255);
+    data[index + 1] = clamp(level * tint[1], 0, 255);
+    data[index + 2] = clamp(level * tint[2], 0, 255);
+  }
+}
+
 export function applyPaletteLimit(imageData: ImageData, palette: PaletteColor[] = PIXEL_ART_PALETTE): void {
   const data = imageData.data;
 
@@ -295,6 +325,155 @@ export function drawCyberpunkHud(
   ctx.fillRect(width - 154, height - 32, 140, 2);
   ctx.fillStyle = "rgba(49, 247, 255, 0.72)";
   ctx.fillRect(width - 154, height - 24, 96, 2);
+  ctx.restore();
+}
+
+export function drawReceiptPrinterOverlay(
+  ctx: CanvasRenderingContext2D,
+  footerLabel: string,
+  width: number,
+  height: number,
+  bandOpacity: number
+): void {
+  ctx.save();
+  ctx.globalCompositeOperation = "multiply";
+  ctx.fillStyle = "rgba(255, 244, 208, 0.34)";
+  ctx.fillRect(0, 0, width, height);
+  ctx.globalCompositeOperation = "source-over";
+
+  ctx.globalAlpha = bandOpacity;
+  ctx.fillStyle = "#050505";
+  for (let y = 0; y < height; y += 18) {
+    ctx.fillRect(0, y, width, 2);
+  }
+
+  ctx.globalAlpha = 0.5;
+  ctx.strokeStyle = "#050505";
+  ctx.setLineDash([8, 6]);
+  ctx.lineWidth = 2;
+  ctx.strokeRect(18.5, 18.5, width - 37, height - 37);
+  ctx.setLineDash([]);
+
+  ctx.globalAlpha = 0.78;
+  ctx.fillStyle = "#050505";
+  ctx.fillRect(38, height - 74, width - 76, 34);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = "#f8f0d1";
+  ctx.font = "18px 'Courier New', monospace";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(footerLabel, width / 2, height - 57);
+
+  ctx.globalAlpha = 0.74;
+  ctx.fillStyle = "#050505";
+  ctx.font = "14px 'Courier New', monospace";
+  ctx.fillText("NO REFUNDS // FACE QUALITY FINAL", width / 2, height - 28);
+  ctx.restore();
+}
+
+export function drawCctvEvidenceHud(
+  ctx: CanvasRenderingContext2D,
+  label: string,
+  width: number,
+  height: number
+): void {
+  const now = new Date();
+  const stamp = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0")
+  ].join("-");
+  const time = [
+    String(now.getHours()).padStart(2, "0"),
+    String(now.getMinutes()).padStart(2, "0"),
+    String(now.getSeconds()).padStart(2, "0")
+  ].join(":");
+
+  ctx.save();
+  ctx.font = "17px 'Courier New', monospace";
+  ctx.textBaseline = "top";
+  ctx.fillStyle = "rgba(0, 12, 4, 0.7)";
+  ctx.fillRect(14, 14, 250, 58);
+  ctx.fillStyle = "#b6ff9b";
+  ctx.fillText(`CAM 04 // ${label}`, 24, 24);
+  ctx.fillText(`${stamp} ${time}`, 24, 48);
+
+  ctx.fillStyle = "#ff2d2d";
+  ctx.beginPath();
+  ctx.arc(width - 104, 33, 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#dfffbd";
+  ctx.fillText("REC", width - 86, 24);
+
+  ctx.strokeStyle = "rgba(223, 255, 189, 0.86)";
+  ctx.lineWidth = 3;
+  const cornerSize = 48;
+  const margin = 18;
+  ctx.beginPath();
+  ctx.moveTo(margin, margin + cornerSize);
+  ctx.lineTo(margin, margin);
+  ctx.lineTo(margin + cornerSize, margin);
+  ctx.moveTo(width - margin - cornerSize, margin);
+  ctx.lineTo(width - margin, margin);
+  ctx.lineTo(width - margin, margin + cornerSize);
+  ctx.moveTo(margin, height - margin - cornerSize);
+  ctx.lineTo(margin, height - margin);
+  ctx.lineTo(margin + cornerSize, height - margin);
+  ctx.moveTo(width - margin - cornerSize, height - margin);
+  ctx.lineTo(width - margin, height - margin);
+  ctx.lineTo(width - margin, height - margin - cornerSize);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(0, 12, 4, 0.7)";
+  ctx.fillRect(width - 256, height - 50, 238, 30);
+  ctx.fillStyle = "#b6ff9b";
+  ctx.fillText("EVIDENCE_2004_UNHELPFUL", width - 246, height - 42);
+  ctx.restore();
+}
+
+export function drawSchoolIdOverlay(
+  ctx: CanvasRenderingContext2D,
+  label: string,
+  idNumber: string,
+  width: number,
+  height: number,
+  flashOpacity: number
+): void {
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  ctx.globalAlpha = flashOpacity;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, width, height);
+  ctx.globalCompositeOperation = "source-over";
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = "rgba(228, 240, 255, 0.18)";
+  ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = "rgba(25, 50, 94, 0.88)";
+  ctx.fillRect(0, 0, width, 54);
+  ctx.fillRect(0, height - 72, width, 72);
+
+  ctx.strokeStyle = "#f6fbff";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(16.5, 16.5, width - 33, height - 33);
+  ctx.strokeStyle = "rgba(246, 251, 255, 0.62)";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(34.5, 78.5, width - 69, height - 174);
+
+  ctx.fillStyle = "#f6fbff";
+  ctx.font = "22px 'Courier New', monospace";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("SCHOOL ID // 2004", width / 2, 28);
+
+  ctx.font = "18px 'Courier New', monospace";
+  ctx.textAlign = "left";
+  ctx.fillText(`NAME: ${label}`, 36, height - 48);
+  ctx.fillText(`ID: ${idNumber}`, 36, height - 24);
+
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#ffd56c";
+  ctx.fillText("STATUS: SUSPICIOUS", width - 36, height - 36);
   ctx.restore();
 }
 

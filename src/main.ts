@@ -6,13 +6,18 @@ import {
   applyColorCast,
   applyContrast,
   applyDither,
+  applyGrayscaleTint,
   applyNoise,
   applyPaletteLimit,
+  applyReceiptDither,
   applyRgbSplit,
+  drawCctvEvidenceHud,
   drawCyberpunkHud,
   drawGlitchBars,
   drawPixelGrid,
+  drawReceiptPrinterOverlay,
   drawScanlines,
+  drawSchoolIdOverlay,
   drawTimestamp
 } from "./effects";
 import { startDemoSource, type DemoSource } from "./demo-source";
@@ -318,7 +323,7 @@ function drawFrame(): void {
 
   drawVideoCover(lowCtx, video, preset.lowWidth, preset.lowHeight);
 
-  if (preset.pixelArt || preset.voxelBlock) {
+  if (preset.pixelArt || preset.voxelBlock || preset.receiptPrinter) {
     const lowImageData = lowCtx.getImageData(0, 0, preset.lowWidth, preset.lowHeight);
     applyPresetImageDataEffects(lowImageData, preset);
 
@@ -330,6 +335,10 @@ function drawFrame(): void {
     if (preset.voxelBlock) {
       applyBlockAverage(lowImageData, preset.voxelBlock.blockSize);
       applyPaletteLimit(lowImageData, VOXEL_BLOCK_PALETTE);
+    }
+
+    if (preset.receiptPrinter) {
+      applyReceiptDither(lowImageData, preset.receiptPrinter.dither);
     }
 
     lowCtx.putImageData(lowImageData, 0, 0);
@@ -374,11 +383,26 @@ function drawFrame(): void {
     return;
   }
 
+  if (preset.receiptPrinter) {
+    drawReceiptPrinterOverlay(
+      previewCtx,
+      preset.receiptPrinter.footerLabel,
+      CANVAS_WIDTH,
+      CANVAS_HEIGHT,
+      preset.receiptPrinter.bandOpacity
+    );
+    return;
+  }
+
   const imageData = previewCtx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   applyPresetImageDataEffects(imageData, preset);
 
   if (preset.cyberpunk) {
     applyRgbSplit(imageData, preset.cyberpunk.rgbSplit);
+  }
+
+  if (preset.cctvEvidence) {
+    applyGrayscaleTint(imageData, [164, 255, 128]);
   }
 
   previewCtx.putImageData(imageData, 0, 0);
@@ -387,6 +411,24 @@ function drawFrame(): void {
     drawGlitchBars(previewCtx, CANVAS_WIDTH, CANVAS_HEIGHT, preset.cyberpunk.glitchBars);
     drawScanlines(previewCtx, CANVAS_WIDTH, CANVAS_HEIGHT, preset.cyberpunk.scanlineOpacity);
     drawCyberpunkHud(previewCtx, preset.cyberpunk.hudLabel, CANVAS_WIDTH, CANVAS_HEIGHT);
+    return;
+  }
+
+  if (preset.cctvEvidence) {
+    drawScanlines(previewCtx, CANVAS_WIDTH, CANVAS_HEIGHT, preset.cctvEvidence.scanlineOpacity);
+    drawCctvEvidenceHud(previewCtx, preset.cctvEvidence.label, CANVAS_WIDTH, CANVAS_HEIGHT);
+    return;
+  }
+
+  if (preset.schoolId) {
+    drawSchoolIdOverlay(
+      previewCtx,
+      preset.schoolId.label,
+      preset.schoolId.idNumber,
+      CANVAS_WIDTH,
+      CANVAS_HEIGHT,
+      preset.schoolId.flashOpacity
+    );
     return;
   }
 

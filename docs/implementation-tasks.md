@@ -68,6 +68,9 @@ Verified:
 - 2026-06-12 continuation: `Cyberpunk Cam` added as the first future-style preset. It uses `category: "future"`, RGB split, glitch bars, scanlines, and `SIGNAL BREACH` HUD copy.
 - 2026-06-12 continuation: `Voxel Block Cam` added as a generic block-world game preset. It uses `category: "game"`, block averaging, a limited block palette, and grid lines without Minecraft names, logos, or textures.
 - 2026-06-12 continuation: `Cyberpunk Cam` and `Voxel Block Cam` verified on production preview with `?demo=1&debug=1&save=prepare` at 390px. Result: active presets `cyberpunk`/`voxel`, categories `future`/`game`, PNG prepared for both, no horizontal overflow, no console warnings/errors.
+- 2026-06-12 continuation: `Receipt Printer Cam`, `CCTV Evidence Cam`, and `School ID Cam` added as extra trash-style presets. They use receipt dithering, green CCTV tint/HUD, and ID-card frame overlays.
+- 2026-06-12 continuation: `Receipt Printer Cam`, `CCTV Evidence Cam`, and `School ID Cam` verified on production preview with `?demo=1&debug=1&save=prepare` at 390px. Result: active presets `receipt`/`cctv`/`schoolid`, `category=trash`, PNG prepared for all three, no horizontal overflow, no console warnings/errors.
+- 2026-06-12 continuation: Cloudflare Quick Tunnel smoke rechecked at `https://assurance-med-legs-models.trycloudflare.com/?demo=1&debug=1&save=prepare`; response was HTTP 200 `text/html`.
 
 Not yet verified:
 
@@ -187,12 +190,18 @@ Exit criteria:
 - [x] Implement Pixel Art Cam as the first game-style preset expansion.
 - [x] Implement Cyberpunk Cam as the first future-style preset expansion.
 - [x] Implement Voxel Block Cam as a generic block-world preset expansion.
+- [x] Implement Receipt Printer Cam as an extra trash-style preset expansion.
+- [x] Implement CCTV Evidence Cam as an extra trash-style preset expansion.
+- [x] Implement School ID Cam as an extra trash-style preset expansion.
 - [x] Implement noise effect.
 - [x] Implement color cast effect.
 - [x] Implement contrast/brightness tweaks.
 - [x] Implement palette limit and ordered dither effects for Pixel Art Cam.
 - [x] Implement RGB split, glitch bars, and HUD overlay for Cyberpunk Cam.
 - [x] Implement block averaging and limited block palette for Voxel Block Cam.
+- [x] Implement receipt dithering and receipt print overlay for Receipt Printer Cam.
+- [x] Implement grayscale tint, scanlines, and evidence HUD for CCTV Evidence Cam.
+- [x] Implement flash wash and ID-card overlay for School ID Cam.
 - [x] Implement scanlines for PC Bang preset.
 - [x] Implement jitter for Laptop Webcam Hell.
 - [x] Add short per-preset status/caption copy.
@@ -258,6 +267,7 @@ Then verify:
 - [x] Production dist preview succeeds on `http://127.0.0.1:4174/?demo=1&save=prepare`.
 - [x] Production dist preview succeeds on `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare`.
 - [x] Production dist preview rechecked after save fallback hardening with `?demo=1&debug=1&save=prepare`.
+- [x] Production dist preview rechecked after Receipt/CCTV/School ID preset expansion with `?demo=1&debug=1&save=prepare` at 390px.
 - [x] Production dist preview rechecked after camera startup hardening with `?demo=1&debug=1&save=prepare`.
 - [x] Production dist preview rechecked after debug diagnostics expansion with `?demo=1&debug=1&save=prepare`.
 - [x] Production dist preview reaches fallback download branch on `http://127.0.0.1:4174/?demo=1` with `data-last-save-kind="downloaded"`, PNG byte size, PNG filename, and no console warnings/errors.
