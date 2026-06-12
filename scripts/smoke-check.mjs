@@ -46,6 +46,7 @@ function headerValue(key) {
 
 const packageJson = readJson("package.json");
 const vercelJson = readJson("vercel.json");
+const indexSource = readText("index.html");
 const distIndex = fileExists("dist/index.html") ? readText("dist/index.html") : "";
 const mainSource = readText("src/main.ts");
 const cameraSource = readText("src/camera.ts");
@@ -90,6 +91,9 @@ assert(fileExists("src/presets.ts"), "src/presets.ts exists");
 assert(fileExists("src/save.ts"), "src/save.ts exists");
 assert(fileExists("src/demo-source.ts"), "src/demo-source.ts exists");
 assert(fileExists("scripts/readiness-check.mjs"), "readiness check script exists");
+assert(indexSource.includes('name="description"'), "index has public beta description meta");
+assert(indexSource.includes('property="og:title"'), "index has Open Graph title");
+assert(indexSource.includes('property="og:description"'), "index has Open Graph description");
 
 assert(fileExists("dist/index.html"), "dist/index.html exists after build");
 assert(directoryExists("dist/assets"), "dist/assets exists after build");
@@ -125,6 +129,8 @@ assert(mainSource.includes("video="), "debug report includes source video dimens
 assert(mainSource.includes("buildDebugReport"), "debug panel can build a copyable state report");
 assert(mainSource.includes("data-debug-report"), "debug panel exposes generated state report for safe checks");
 assert(mainSource.includes("navigator.clipboard"), "debug panel can copy state to clipboard");
+assert(mainSource.includes("data-privacy-open"), "app exposes privacy dialog trigger");
+assert(mainSource.includes("does not upload photos or video"), "privacy dialog explains local camera handling");
 
 assert(saveSource.includes("canvas.toBlob"), "save path converts canvas to PNG blob");
 assert(saveSource.includes("getSaveCapability"), "save path exposes share capability diagnostics");
@@ -147,6 +153,9 @@ assert(presetSource.includes("Voxel Block Cam"), "Voxel Block Cam preset exists"
 assert(presetSource.includes("Receipt Printer Cam"), "Receipt Printer Cam preset exists");
 assert(presetSource.includes("CCTV Evidence Cam"), "CCTV Evidence Cam preset exists");
 assert(presetSource.includes("School ID Cam"), "School ID Cam preset exists");
+assert(presetSource.includes("ASCII Terminal Cam"), "ASCII Terminal Cam preset exists");
+assert(presetSource.includes("Deep Fried Meme Cam"), "Deep Fried Meme Cam preset exists");
+assert(presetSource.includes("Sticker Booth Cam"), "Sticker Booth Cam preset exists");
 assert(presetSource.includes('category: "future"'), "future preset category exists");
 assert(presetSource.includes('category: "game"'), "game preset category exists");
 assert(mainSource.includes("data-category"), "preset buttons expose preset category");
@@ -161,6 +170,11 @@ assert(effectsSource.includes("applyGrayscaleTint"), "grayscale tint effect exis
 assert(effectsSource.includes("drawReceiptPrinterOverlay"), "receipt printer overlay exists");
 assert(effectsSource.includes("drawCctvEvidenceHud"), "CCTV evidence HUD exists");
 assert(effectsSource.includes("drawSchoolIdOverlay"), "school ID overlay exists");
+assert(effectsSource.includes("applyAsciiPosterize"), "ASCII posterize effect exists");
+assert(effectsSource.includes("drawAsciiTerminalOverlay"), "ASCII terminal overlay exists");
+assert(effectsSource.includes("applyDeepFry"), "deep fried effect exists");
+assert(effectsSource.includes("drawDeepFriedOverlay"), "deep fried overlay exists");
+assert(effectsSource.includes("drawStickerBoothOverlay"), "sticker booth overlay exists");
 
 if (failures.length > 0) {
   console.error(`\nSmoke check failed: ${failures.length} issue(s).`);

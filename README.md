@@ -131,6 +131,9 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 preset expansion: `Receipt Printer Cam`, `CCTV Evidence Cam`, and `School ID Cam` added as extra trash-style modes. They use receipt dithering, CCTV tint/HUD, and ID-card frame overlays.
 - 2026-06-12 production preset recheck: `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` at 390px switched to `receipt`, `cctv`, and `schoolid`, prepared PNG filenames for all three modes, had no horizontal overflow, and produced no console warnings/errors. This is still synthetic-source verification, not a real phone camera test.
 - 2026-06-12 Cloudflare Quick Tunnel smoke recheck: `https://assurance-med-legs-models.trycloudflare.com/?demo=1&debug=1&save=prepare` responded with HTTP 200 `text/html`.
+- 2026-06-12 public beta polish: added Open Graph/description metadata and a small Privacy dialog that states camera frames stay in the browser and are not uploaded.
+- 2026-06-12 preset expansion: `ASCII Terminal Cam`, `Deep Fried Meme Cam`, and `Sticker Booth Cam` added. They use ASCII terminal rendering, deep-fried meme color damage, and sticker photo-booth overlays.
+- 2026-06-12 production preset recheck: `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` at 390px showed 12 preset buttons, opened the Privacy dialog, switched to `ascii`, `deepfried`, and `stickerbooth`, prepared PNG filenames for all three modes, had no horizontal overflow, and produced no console warnings/errors. This is still synthetic-source verification, not a real phone camera test.
 
 ## Local development
 
@@ -252,15 +255,17 @@ This runs the production build and checks:
 - app supports `?debug=1` for visible real-device diagnostics
 - debug panel can copy a state report for phone-test failure notes
 - debug report includes share capability, video size, viewport, and device pixel ratio for phone-test triage
-- the three baseline presets, Pixel Art Cam, Cyberpunk Cam, Voxel Block Cam, Receipt Printer Cam, CCTV Evidence Cam, and School ID Cam exist
+- the three baseline presets, Pixel Art Cam, Cyberpunk Cam, Voxel Block Cam, Receipt Printer Cam, CCTV Evidence Cam, School ID Cam, ASCII Terminal Cam, Deep Fried Meme Cam, and Sticker Booth Cam exist
 - Pixel Art Cam has a game preset category
 - Cyberpunk Cam has a future preset category
+- public beta metadata and Privacy dialog copy exist
 - Pixel Art palette limiting and dithering helpers exist
 - Cyberpunk RGB split, glitch bar, and HUD helpers exist
 - Voxel block averaging helper exists
 - Receipt printer dithering and overlay helpers exist
 - CCTV grayscale tint and HUD helpers exist
 - School ID overlay helper exists
+- ASCII terminal, deep fried, and sticker booth helpers exist
 
 This does not prove real camera permission, actual downloaded/shared file usability, HTTPS deployment, or phone support.
 

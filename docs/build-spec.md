@@ -294,6 +294,57 @@ Copy:
 
 - `Officially suspicious since 2004.`
 
+### ASCII Terminal Cam
+
+Purpose: make the saved image look like the user's face was rendered by a broken command-line terminal.
+
+Settings:
+
+- Offscreen resolution: `128x96`
+- FPS: `7`
+- Green terminal tint
+- High contrast
+- ASCII glyph rendering over the visible canvas
+- HUD copy: `FACE.EXE`
+
+Copy:
+
+- `Your face has entered command-line custody.`
+
+### Deep Fried Meme Cam
+
+Purpose: push the photo into over-compressed meme damage without adding external assets.
+
+Settings:
+
+- Offscreen resolution: `176x132`
+- FPS: `8`
+- Strong contrast
+- Heavy saturation
+- Posterized colors
+- Channel offset and compression band overlay
+
+Copy:
+
+- `JPEG has left the chat.`
+
+### Sticker Booth Cam
+
+Purpose: make the saved image feel like a cheap mall photo-booth sticker sheet.
+
+Settings:
+
+- Offscreen resolution: `210x158`
+- FPS: `10`
+- Warm pink cast
+- Light noise
+- Photo-booth frame
+- Sticker bursts and date stamp
+
+Copy:
+
+- `Mall photo booth energy. Zero dignity.`
+
 ## Effect functions
 
 Implement effects in a small, readable module.
@@ -328,9 +379,23 @@ Effect helpers:
 - `drawReceiptPrinterOverlay(ctx, footerLabel, width, height, bandOpacity)`
 - `drawCctvEvidenceHud(ctx, label, width, height)`
 - `drawSchoolIdOverlay(ctx, label, idNumber, width, height, flashOpacity)`
+- `applyAsciiPosterize(imageData)`
+- `drawAsciiTerminalOverlay(ctx, label, width, height, cellSize)`
+- `applyDeepFry(imageData, intensity)`
+- `drawDeepFriedOverlay(ctx, label, width, height)`
+- `drawStickerBoothOverlay(ctx, label, width, height, opacity)`
 - `clamp(value, min, max)`
 
 Avoid over-abstracting. The MVP should stay easy to edit.
+
+## Public beta polish
+
+Keep the first screen as the camera tool, but add minimum public-sharing polish:
+
+- `index.html` should include description and Open Graph title/description metadata.
+- The app should expose a compact Privacy dialog.
+- Privacy copy should state that camera frames stay in the browser and TrashCam does not upload photos or video.
+- Do not add analytics, accounts, uploads, or a landing page in this pass.
 
 ## Save/share behavior
 

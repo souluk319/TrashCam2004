@@ -40,6 +40,21 @@ export type SchoolIdSettings = {
   idNumber: string;
 };
 
+export type AsciiTerminalSettings = {
+  cellSize: number;
+  label: string;
+};
+
+export type DeepFriedSettings = {
+  intensity: number;
+  label: string;
+};
+
+export type StickerBoothSettings = {
+  label: string;
+  stickerOpacity: number;
+};
+
 export type Preset = {
   id:
     | "pcbang"
@@ -50,7 +65,10 @@ export type Preset = {
     | "voxel"
     | "receipt"
     | "cctv"
-    | "schoolid";
+    | "schoolid"
+    | "ascii"
+    | "deepfried"
+    | "stickerbooth";
   category: PresetCategory;
   name: string;
   shortName: string;
@@ -72,6 +90,9 @@ export type Preset = {
   receiptPrinter?: ReceiptPrinterSettings;
   cctvEvidence?: CctvEvidenceSettings;
   schoolId?: SchoolIdSettings;
+  asciiTerminal?: AsciiTerminalSettings;
+  deepFried?: DeepFriedSettings;
+  stickerBooth?: StickerBoothSettings;
 };
 
 export const PRESETS: Preset[] = [
@@ -239,6 +260,63 @@ export const PRESETS: Preset[] = [
       flashOpacity: 0.2,
       label: "UNKNOWN",
       idNumber: "2004-ERROR"
+    }
+  },
+  {
+    id: "ascii",
+    category: "future",
+    name: "ASCII Terminal Cam",
+    shortName: "ASCII",
+    slug: "ascii-terminal-cam",
+    caption: "Your face has entered command-line custody.",
+    lowWidth: 128,
+    lowHeight: 96,
+    fps: 7,
+    noise: 4,
+    color: { r: 0.72, g: 1.42, b: 0.74 },
+    contrast: 54,
+    brightness: -22,
+    asciiTerminal: {
+      cellSize: 12,
+      label: "FACE.EXE"
+    }
+  },
+  {
+    id: "deepfried",
+    category: "trash",
+    name: "Deep Fried Meme Cam",
+    shortName: "Deep Fry",
+    slug: "deep-fried-meme-cam",
+    caption: "JPEG has left the chat.",
+    lowWidth: 176,
+    lowHeight: 132,
+    fps: 8,
+    noise: 26,
+    color: { r: 1.34, g: 1.1, b: 0.68 },
+    contrast: 68,
+    brightness: 18,
+    deepFried: {
+      intensity: 0.84,
+      label: "JPEG DAMAGE"
+    }
+  },
+  {
+    id: "stickerbooth",
+    category: "trash",
+    name: "Sticker Booth Cam",
+    shortName: "Sticker",
+    slug: "sticker-booth-cam",
+    caption: "Mall photo booth energy. Zero dignity.",
+    lowWidth: 210,
+    lowHeight: 158,
+    fps: 10,
+    noise: 7,
+    color: { r: 1.12, g: 0.96, b: 1.08 },
+    contrast: 22,
+    brightness: 24,
+    stickerBooth: {
+      label: "BEST FRIENDS 2004",
+      stickerOpacity: 0.9
     }
   }
 ];

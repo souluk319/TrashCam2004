@@ -64,6 +64,14 @@ button:disabled {
   padding: 2px 2px 0;
 }
 
+.title-row {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
 h1 {
   margin: 0;
   color: #d7ff66;
@@ -72,6 +80,16 @@ h1 {
   letter-spacing: 0;
   text-transform: uppercase;
   text-shadow: 2px 2px 0 #6c1f2c;
+}
+
+.privacy-button {
+  min-height: 32px;
+  padding: 0 10px;
+  border-color: #6a6440;
+  background: #17150f;
+  color: #c9c29a;
+  font-size: 11px;
+  text-transform: uppercase;
 }
 
 .status {
@@ -238,6 +256,51 @@ h1 {
   background: #171d13;
   font-size: 11px;
   text-transform: uppercase;
+}
+
+.privacy-dialog {
+  width: min(320px, calc(100% - 32px));
+  border: 1px solid #d7ff66;
+  border-radius: 6px;
+  padding: 0;
+  color: #f5efcf;
+  background: #11100c;
+  box-shadow: 0 12px 0 #070706;
+}
+
+.privacy-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.68);
+}
+
+.privacy-dialog-body {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.privacy-dialog h2,
+.privacy-dialog p {
+  margin: 0;
+}
+
+.privacy-dialog h2 {
+  color: #d7ff66;
+  font-size: 18px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.privacy-dialog p {
+  color: #f5efcf;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.privacy-dialog button {
+  min-height: 40px;
+  border-color: #2bff7d;
+  color: #2bff7d;
+  background: #171d13;
 }
 
 @media (max-width: 430px) {

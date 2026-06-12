@@ -6,6 +6,8 @@ import {
   applyColorCast,
   applyContrast,
   applyDither,
+  applyAsciiPosterize,
+  applyDeepFry,
   applyGrayscaleTint,
   applyNoise,
   applyPaletteLimit,
@@ -13,11 +15,14 @@ import {
   applyRgbSplit,
   drawCctvEvidenceHud,
   drawCyberpunkHud,
+  drawAsciiTerminalOverlay,
+  drawDeepFriedOverlay,
   drawGlitchBars,
   drawPixelGrid,
   drawReceiptPrinterOverlay,
   drawScanlines,
   drawSchoolIdOverlay,
+  drawStickerBoothOverlay,
   drawTimestamp
 } from "./effects";
 import { startDemoSource, type DemoSource } from "./demo-source";
@@ -34,7 +39,10 @@ const rootParams = new URLSearchParams(window.location.search);
 app.innerHTML = `
   <main class="app-shell">
     <header class="top-bar">
-      <h1>TrashCam 2004</h1>
+      <div class="title-row">
+        <h1>TrashCam 2004</h1>
+        <button class="privacy-button" type="button" data-privacy-open>Privacy</button>
+      </div>
       <p class="status" data-status>카메라 여는 중...</p>
     </header>
 
@@ -85,6 +93,14 @@ app.innerHTML = `
       <div class="debug-wide"><span>status</span><output data-debug-key="statusMessage">-</output></div>
       <button class="debug-copy-button" type="button" data-copy-debug data-debug-report="">Copy state</button>
     </aside>
+
+    <dialog class="privacy-dialog" data-privacy-dialog>
+      <div class="privacy-dialog-body">
+        <h2>Privacy</h2>
+        <p>Camera frames stay in this browser. TrashCam does not upload photos or video.</p>
+        <button type="button" data-privacy-close>OK</button>
+      </div>
+    </dialog>
   </main>
 `;
 
@@ -100,6 +116,18 @@ const retryButton = requireNode(app.querySelector<HTMLButtonElement>("[data-retr
 const copyDebugButton = requireNode(
   app.querySelector<HTMLButtonElement>("[data-copy-debug]"),
   "Copy debug button is missing."
+);
+const privacyOpenButton = requireNode(
+  app.querySelector<HTMLButtonElement>("[data-privacy-open]"),
+  "Privacy open button is missing."
+);
+const privacyDialog = requireNode(
+  app.querySelector<HTMLDialogElement>("[data-privacy-dialog]"),
+  "Privacy dialog is missing."
+);
+const privacyCloseButton = requireNode(
+  app.querySelector<HTMLButtonElement>("[data-privacy-close]"),
+  "Privacy close button is missing."
 );
 const presetButtons = Array.from(app.querySelectorAll<HTMLButtonElement>("[data-preset]"));
 const debugFields = new Map<string, HTMLOutputElement>();
@@ -170,6 +198,24 @@ saveButton.addEventListener("click", () => {
 
 copyDebugButton.addEventListener("click", () => {
   void copyDebugState();
+});
+
+privacyOpenButton.addEventListener("click", () => {
+  if (typeof privacyDialog.showModal === "function") {
+    privacyDialog.showModal();
+    return;
+  }
+
+  privacyDialog.setAttribute("open", "true");
+});
+
+privacyCloseButton.addEventListener("click", () => {
+  if (typeof privacyDialog.close === "function") {
+    privacyDialog.close();
+    return;
+  }
+
+  privacyDialog.removeAttribute("open");
 });
 
 window.addEventListener("beforeunload", () => {
@@ -405,6 +451,14 @@ function drawFrame(): void {
     applyGrayscaleTint(imageData, [164, 255, 128]);
   }
 
+  if (preset.asciiTerminal) {
+    applyAsciiPosterize(imageData);
+  }
+
+  if (preset.deepFried) {
+    applyDeepFry(imageData, preset.deepFried.intensity);
+  }
+
   previewCtx.putImageData(imageData, 0, 0);
 
   if (preset.cyberpunk) {
@@ -428,6 +482,33 @@ function drawFrame(): void {
       CANVAS_WIDTH,
       CANVAS_HEIGHT,
       preset.schoolId.flashOpacity
+    );
+    return;
+  }
+
+  if (preset.asciiTerminal) {
+    drawAsciiTerminalOverlay(
+      previewCtx,
+      preset.asciiTerminal.label,
+      CANVAS_WIDTH,
+      CANVAS_HEIGHT,
+      preset.asciiTerminal.cellSize
+    );
+    return;
+  }
+
+  if (preset.deepFried) {
+    drawDeepFriedOverlay(previewCtx, preset.deepFried.label, CANVAS_WIDTH, CANVAS_HEIGHT);
+    return;
+  }
+
+  if (preset.stickerBooth) {
+    drawStickerBoothOverlay(
+      previewCtx,
+      preset.stickerBooth.label,
+      CANVAS_WIDTH,
+      CANVAS_HEIGHT,
+      preset.stickerBooth.stickerOpacity
     );
     return;
   }

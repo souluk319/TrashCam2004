@@ -150,6 +150,47 @@ export function applyGrayscaleTint(imageData: ImageData, tint: PaletteColor): vo
   }
 }
 
+export function applyAsciiPosterize(imageData: ImageData): void {
+  const data = imageData.data;
+
+  for (let index = 0; index < data.length; index += 4) {
+    const luminance = data[index] * 0.299 + data[index + 1] * 0.587 + data[index + 2] * 0.114;
+    const level = Math.round(luminance / 42) * 42;
+
+    data[index] = clamp(level * 0.18, 0, 255);
+    data[index + 1] = clamp(level * 1.15, 0, 255);
+    data[index + 2] = clamp(level * 0.24, 0, 255);
+  }
+}
+
+export function applyDeepFry(imageData: ImageData, intensity: number): void {
+  const data = imageData.data;
+  const amount = clamp(intensity, 0, 1);
+  const source = new Uint8ClampedArray(data);
+
+  for (let y = 0; y < imageData.height; y += 1) {
+    for (let x = 0; x < imageData.width; x += 1) {
+      const index = (y * imageData.width + x) * 4;
+      const redX = clamp(x - 3, 0, imageData.width - 1);
+      const blueX = clamp(x + 3, 0, imageData.width - 1);
+      const redIndex = (y * imageData.width + redX) * 4;
+      const blueIndex = (y * imageData.width + blueX) * 4;
+      const red = source[redIndex];
+      const green = source[index + 1];
+      const blue = source[blueIndex + 2];
+      const gray = red * 0.299 + green * 0.587 + blue * 0.114;
+      const noise = (Math.random() * 2 - 1) * 18 * amount;
+      const saturation = 1 + amount * 2.9;
+      const contrast = 1 + amount * 1.4;
+      const posterStep = 32;
+
+      data[index] = Math.round(clamp((gray + (red - gray) * saturation - 128) * contrast + 128 + noise, 0, 255) / posterStep) * posterStep;
+      data[index + 1] = Math.round(clamp((gray + (green - gray) * saturation - 128) * contrast + 128 + noise, 0, 255) / posterStep) * posterStep;
+      data[index + 2] = Math.round(clamp((gray + (blue - gray) * saturation - 128) * contrast + 128 + noise, 0, 255) / posterStep) * posterStep;
+    }
+  }
+}
+
 export function applyPaletteLimit(imageData: ImageData, palette: PaletteColor[] = PIXEL_ART_PALETTE): void {
   const data = imageData.data;
 
@@ -474,6 +515,155 @@ export function drawSchoolIdOverlay(
   ctx.textAlign = "right";
   ctx.fillStyle = "#ffd56c";
   ctx.fillText("STATUS: SUSPICIOUS", width - 36, height - 36);
+  ctx.restore();
+}
+
+export function drawAsciiTerminalOverlay(
+  ctx: CanvasRenderingContext2D,
+  label: string,
+  width: number,
+  height: number,
+  cellSize: number
+): void {
+  const source = ctx.getImageData(0, 0, width, height);
+  const chars = " .:-=+*#%@";
+  const cell = Math.max(8, Math.floor(cellSize));
+
+  ctx.save();
+  ctx.fillStyle = "#020602";
+  ctx.fillRect(0, 0, width, height);
+  ctx.font = `${cell}px 'Courier New', monospace`;
+  ctx.textBaseline = "top";
+
+  for (let y = 0; y < height; y += cell) {
+    for (let x = 0; x < width; x += cell) {
+      const sampleX = Math.min(width - 1, x + Math.floor(cell / 2));
+      const sampleY = Math.min(height - 1, y + Math.floor(cell / 2));
+      const index = (sampleY * width + sampleX) * 4;
+      const luminance =
+        source.data[index] * 0.299 + source.data[index + 1] * 0.587 + source.data[index + 2] * 0.114;
+      const charIndex = Math.min(chars.length - 1, Math.floor((luminance / 255) * chars.length));
+      const alpha = clamp(0.28 + luminance / 255, 0.34, 1);
+
+      ctx.fillStyle = `rgba(96, 255, 118, ${alpha})`;
+      ctx.fillText(chars[charIndex], x, y);
+    }
+  }
+
+  ctx.fillStyle = "rgba(0, 0, 0, 0.72)";
+  ctx.fillRect(12, 12, 246, 52);
+  ctx.strokeStyle = "#60ff76";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(12.5, 12.5, 246, 52);
+  ctx.fillStyle = "#60ff76";
+  ctx.font = "16px 'Courier New', monospace";
+  ctx.fillText(`> RUN ${label}`, 22, 22);
+  ctx.fillText("STATUS: BEAUTY_NOT_FOUND", 22, 44);
+  ctx.restore();
+}
+
+export function drawDeepFriedOverlay(
+  ctx: CanvasRenderingContext2D,
+  label: string,
+  width: number,
+  height: number
+): void {
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = "#ffdf2b";
+  ctx.fillRect(0, 0, width, height);
+  ctx.globalCompositeOperation = "source-over";
+
+  ctx.globalAlpha = 0.24;
+  ctx.fillStyle = "#ffffff";
+  for (let y = 0; y < height; y += 20) {
+    ctx.fillRect(0, y, width, 2);
+  }
+
+  ctx.globalAlpha = 0.86;
+  ctx.fillStyle = "rgba(30, 0, 0, 0.76)";
+  ctx.fillRect(16, height - 58, 240, 38);
+  ctx.fillStyle = "#ffef62";
+  ctx.font = "18px 'Courier New', monospace";
+  ctx.textBaseline = "middle";
+  ctx.fillText(label, 28, height - 39);
+  ctx.restore();
+}
+
+export function drawStickerBoothOverlay(
+  ctx: CanvasRenderingContext2D,
+  label: string,
+  width: number,
+  height: number,
+  opacity: number
+): void {
+  const alpha = clamp(opacity, 0, 1);
+  const now = new Date();
+  const date = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, "0")}.${String(now.getDate()).padStart(2, "0")}`;
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = "#fff3a7";
+  ctx.lineWidth = 10;
+  ctx.strokeRect(18, 18, width - 36, height - 36);
+  ctx.strokeStyle = "#ff7ac8";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(32, 32, width - 64, height - 64);
+
+  ctx.fillStyle = "rgba(255, 122, 200, 0.88)";
+  ctx.fillRect(36, height - 78, width - 72, 44);
+  ctx.fillStyle = "#fff8d6";
+  ctx.font = "20px 'Courier New', monospace";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(label, width / 2, height - 56);
+
+  ctx.font = "16px 'Courier New', monospace";
+  ctx.fillStyle = "#ffef62";
+  ctx.fillText(date, width / 2, height - 28);
+
+  drawStickerBurst(ctx, 78, 76, "WOW");
+  drawStickerBurst(ctx, width - 86, 92, "BFF");
+  drawStickerBurst(ctx, width - 92, height - 138, "2004");
+
+  ctx.fillStyle = "#fff8d6";
+  ctx.font = "24px 'Courier New', monospace";
+  ctx.fillText("*", 126, height - 128);
+  ctx.fillText("+", width - 136, 62);
+  ctx.fillText("*", 56, height - 122);
+  ctx.restore();
+}
+
+function drawStickerBurst(ctx: CanvasRenderingContext2D, x: number, y: number, text: string): void {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.fillStyle = "#ffef62";
+  ctx.strokeStyle = "#6c1f2c";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+
+  for (let index = 0; index < 12; index += 1) {
+    const radius = index % 2 === 0 ? 40 : 28;
+    const angle = (index / 12) * Math.PI * 2;
+    const pointX = Math.cos(angle) * radius;
+    const pointY = Math.sin(angle) * radius;
+
+    if (index === 0) {
+      ctx.moveTo(pointX, pointY);
+    } else {
+      ctx.lineTo(pointX, pointY);
+    }
+  }
+
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "#6c1f2c";
+  ctx.font = "14px 'Courier New', monospace";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, 0, 0);
   ctx.restore();
 }
 
