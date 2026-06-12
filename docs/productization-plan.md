@@ -11,7 +11,7 @@ Open public link -> allow camera -> funny live preview -> switch presets -> save
 ## Current state
 
 - Static Vite + TypeScript app is implemented.
-- Camera, canvas render loop, preset switching, PNG save/share fallback, `?demo=1`, `?debug=1`, and `?save=prepare` exist.
+- Camera, canvas render loop, preset switching, PNG save/share fallback, capture review, `?demo=1`, `?debug=1`, and `?save=prepare` exist.
 - Public beta polish exists: Open Graph metadata, Privacy dialog, 12 presets, app version, and preset count diagnostics.
 - Local synthetic verification passes.
 - Actual product risk is still external-device behavior, not source code structure.
@@ -201,19 +201,28 @@ Verification:
 
 ### 2. Capture review state
 
+Status: implemented.
+
 Problem:
 
 - After save/share, the user has no in-app moment to enjoy the result.
 
-Recommended fix:
+Implemented fix:
 
 - After tapping Save, briefly show a frozen capture preview state with `Share again` and `Back to camera`.
-- Keep live camera running only if performance stays fine.
+- Keep the live camera/render loop running while the frozen saved PNG is shown.
+- Reuse the exact saved PNG Blob for `Share again` instead of capturing a new frame.
+- Expose `captureReview` in `?debug=1` and the copied debug report.
 
 Exit criteria:
 
 - User can see what was saved.
 - Save/share errors remain recoverable.
+
+Verification:
+
+- `npm run smoke` passes and checks the capture review source contracts.
+- Production preview at `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` with a 390px viewport showed demo render ready, `Save PNG` -> `captureReview=visible`, object URL image preview, filename display, `Share again` reusing the same prepared PNG byte size, `Back to camera` -> `captureReview=hidden`, no horizontal overflow, and no console warnings/errors.
 
 ### 3. Shareable brand polish
 
@@ -253,10 +262,10 @@ Decision rule:
 
 ## Recommended next action
 
-Deploy from GitHub to Vercel first. No more mode expansion before this gate.
+Run the real-device acceptance loop on the stable GitHub Pages URL before adding more modes.
 
 The next implementation loop should be:
 
 ```text
-Vercel deploy -> desktop camera check -> iPhone test -> Android test -> fix only real failures
+desktop camera check -> iPhone test -> Android test -> fix only real failures
 ```

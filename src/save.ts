@@ -1,10 +1,10 @@
 import type { Preset } from "./presets";
 
 export type SaveResult =
-  | { kind: "shared"; message: string; filename: string; bytes: number }
-  | { kind: "downloaded"; message: string; filename: string; bytes: number }
-  | { kind: "prepared"; message: string; filename: string; bytes: number }
-  | { kind: "cancelled"; message: string; filename: string; bytes: number };
+  | { kind: "shared"; message: string; filename: string; bytes: number; blob: Blob }
+  | { kind: "downloaded"; message: string; filename: string; bytes: number; blob: Blob }
+  | { kind: "prepared"; message: string; filename: string; bytes: number; blob: Blob }
+  | { kind: "cancelled"; message: string; filename: string; bytes: number; blob: Blob };
 
 export type SaveOptions = {
   prepareOnly?: boolean;
@@ -42,30 +42,40 @@ export async function saveCanvas(canvas: HTMLCanvasElement, preset: Preset, opti
   const blob = await canvasToBlob(canvas);
   const filename = `trashcam-2004-${preset.slug}-${formatTimestamp(new Date())}.png`;
 
+  return deliverBlob(blob, filename, preset.caption, options);
+}
+
+export async function deliverBlob(
+  blob: Blob,
+  filename: string,
+  text: string,
+  options: SaveOptions = {}
+): Promise<SaveResult> {
   if (options.prepareOnly) {
     return {
       kind: "prepared",
       message: "PNG prepared. Delivery skipped for local verification.",
       filename,
-      bytes: blob.size
+      bytes: blob.size,
+      blob
     };
   }
 
-  const shareData = tryCreateShareData(blob, filename, preset.caption);
+  const shareData = tryCreateShareData(blob, filename, text);
 
   if (canShareFiles(shareData)) {
     try {
       await navigator.share(shareData);
-      return { kind: "shared", message: "공유 메뉴에서 이미지 저장을 선택해줘.", filename, bytes: blob.size };
+      return { kind: "shared", message: "공유 메뉴에서 이미지 저장을 선택해줘.", filename, bytes: blob.size, blob };
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
-        return { kind: "cancelled", message: "공유가 취소됐다.", filename, bytes: blob.size };
+        return { kind: "cancelled", message: "공유가 취소됐다.", filename, bytes: blob.size, blob };
       }
     }
   }
 
   downloadBlob(blob, filename);
-  return { kind: "downloaded", message: "Saved. Unfortunately.", filename, bytes: blob.size };
+  return { kind: "downloaded", message: "Saved. Unfortunately.", filename, bytes: blob.size, blob };
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {

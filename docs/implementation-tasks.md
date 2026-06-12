@@ -78,6 +78,8 @@ Verified:
 - 2026-06-12 continuation: pack-tab navigation was verified through the temporary HTTPS tunnel with `?demo=1&debug=1&save=prepare` at 390px. Result: `Trash` pack showed 8 visible presets, `Future` pack switched to `Cyberpunk`/`ASCII`, `Cyberpunk` PNG prepare succeeded, no horizontal overflow, no console warnings/errors.
 - 2026-06-12 continuation: GitHub Pages deployment pipeline added and Pages site enabled. `npm run build:pages` builds with `/TrashCam2004/` Vite base path, `dist` is published through the `gh-pages` branch, and the stable URL is `https://souluk319.github.io/TrashCam2004/`.
 - 2026-06-12 continuation: stable GitHub Pages URL verified with `?demo=1&debug=1&save=prepare` at 390px. Result: HTTP 200, `secure=true`, app version `0.1.0-beta.1`, preset count `12`, `Game` pack switched to `Pixel Art`/`Voxel`, Pixel Art PNG prepare succeeded, no horizontal overflow, no console warnings/errors.
+- 2026-06-12 continuation: productization capture review added. After `Save PNG`, the app shows a frozen saved PNG preview, filename, `Share again`, and `Back to camera`; `Share again` reuses the same saved PNG Blob.
+- 2026-06-12 continuation: capture review verified on production preview with `?demo=1&debug=1&save=prepare` at 390px. Result: `captureReview=visible` after save, Blob preview image, same PNG byte size after `Share again`, `captureReview=hidden` after `Back to camera`, no horizontal overflow, no console warnings/errors.
 
 Not yet verified:
 
@@ -239,6 +241,8 @@ Exit criteria:
 - [x] Disable save button while saving.
 - [x] Show success/failure status text.
 - [x] Add `?save=prepare` path for non-downloading PNG preparation smoke checks.
+- [x] Show a frozen capture review after save with the saved PNG, filename, `Share again`, and `Back to camera`.
+- [x] Reuse the same saved PNG Blob for `Share again`.
 
 Exit criteria:
 

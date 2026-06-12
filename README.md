@@ -108,6 +108,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
   - `data-last-save-kind`
   - `data-last-save-bytes`
   - `data-last-save-name`
+  - `data-capture-review`
 - Real camera permission, actual downloaded/shared PNG file usability, HTTPS deploy, and phone tests still need manual/external verification.
 - 2026-06-12 local browser recheck: `?demo=1&save=prepare` on a 390px viewport at `http://127.0.0.1:5174/` rendered frames, had no horizontal overflow, and prepared a PNG Blob/File with no console warnings or errors.
 - Camera startup now checks `window.isSecureContext` before requesting camera access. On non-HTTPS/non-localhost pages, the UI shows explicit HTTPS guidance instead of a vague unsupported-camera error.
@@ -139,6 +140,8 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 pack-tab verification: temporary HTTPS tunnel + `?demo=1&debug=1&save=prepare` at 390px showed the `Trash` pack filtering to 8 visible presets, `Future` switching to `Cyberpunk`/`ASCII`, `Cyberpunk` PNG prepare succeeding, no horizontal overflow, and no console warnings/errors.
 - 2026-06-12 GitHub Pages pipeline: added a Pages build script, enabled the Pages site, and prepared `gh-pages` branch deployment for stable HTTPS at `https://souluk319.github.io/TrashCam2004/`.
 - 2026-06-12 stable HTTPS recheck: `https://souluk319.github.io/TrashCam2004/?demo=1&debug=1&save=prepare` loaded from GitHub Pages at 390px, reported `secure=true`, rendered demo frames, switched `Game` pack to `Pixel Art`/`Voxel`, prepared a Pixel Art PNG, had no horizontal overflow, and produced no console warnings/errors.
+- 2026-06-12 productization polish: capture review state added. After `Save PNG`, the app shows the saved PNG preview, filename, `Share again`, and `Back to camera`. `Share again` reuses the same saved PNG Blob instead of capturing a new frame.
+- 2026-06-12 capture review production recheck: `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` at 390px showed `captureReview=visible` after save, a Blob preview image, matching PNG filename text, `Share again` preserving the same prepared byte size, `Back to camera` returning to `captureReview=hidden`, no horizontal overflow, and no console warnings/errors. This is still synthetic-source verification, not a real phone camera/save test.
 
 ## Local development
 
@@ -180,6 +183,7 @@ http://127.0.0.1:5174/?demo=1&debug=1
 ```
 
 The debug panel shows source, camera state, camera error reason, secure context, app version, preset count, source video size, share capability, frame count, active preset, and last save result. The copied report also includes viewport size and device pixel ratio. `Copy state` copies the current debug report for failure notes. It is only visible when `debug=1` is present, and it does not replace real camera/phone verification.
+After a successful save, the copied report also includes `captureReview=visible` while the frozen saved PNG panel is open.
 
 For local PNG preparation verification without downloading a file:
 
@@ -191,6 +195,7 @@ Tap `Save PNG`, then check:
 
 ```text
 #app[data-last-save-kind="prepared"]
+#app[data-capture-review="visible"] after save
 data-last-save-bytes is greater than 0
 data-last-save-name ends with .png
 ```

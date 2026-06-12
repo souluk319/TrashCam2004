@@ -27,7 +27,7 @@ import {
 } from "./effects";
 import { startDemoSource, type DemoSource } from "./demo-source";
 import { DEFAULT_PRESET, PRESETS, getPresetById, type Preset, type PresetCategory } from "./presets";
-import { getSaveCapability, saveCanvas } from "./save";
+import { deliverBlob, getSaveCapability, saveCanvas, type SaveResult } from "./save";
 import "./styles.css";
 
 const CANVAS_WIDTH = 640;
@@ -57,6 +57,18 @@ app.innerHTML = `
       <video class="camera-source" data-video muted autoplay playsinline></video>
       <div class="boot-card" data-boot-card>
         <span>NO SIGNAL</span>
+      </div>
+    </section>
+
+    <section class="capture-review" data-capture-panel hidden aria-label="Saved capture">
+      <img class="capture-review-image" data-capture-image alt="Saved TrashCam capture" />
+      <div class="capture-review-copy">
+        <strong>Last capture</strong>
+        <span data-capture-file>-</span>
+      </div>
+      <div class="capture-review-actions">
+        <button class="capture-share-button" type="button" data-share-again>Share again</button>
+        <button class="capture-back-button" type="button" data-back-camera>Back to camera</button>
       </div>
     </section>
 
@@ -110,6 +122,7 @@ app.innerHTML = `
       <div><span>preset</span><output data-debug-key="activePreset">-</output></div>
       <div><span>category</span><output data-debug-key="presetCategory">-</output></div>
       <div><span>save</span><output data-debug-key="lastSaveKind">-</output></div>
+      <div><span>capture</span><output data-debug-key="captureReview">-</output></div>
       <div><span>share</span><output data-debug-key="shareCapability">-</output></div>
       <div><span>bytes</span><output data-debug-key="lastSaveBytes">-</output></div>
       <div><span>video</span><output data-debug-key="videoSize">-</output></div>
@@ -137,6 +150,26 @@ const statusLine = requireNode(app.querySelector<HTMLParagraphElement>("[data-st
 const bootCard = requireNode(app.querySelector<HTMLDivElement>("[data-boot-card]"), "Boot card is missing.");
 const saveButton = requireNode(app.querySelector<HTMLButtonElement>("[data-save]"), "Save button is missing.");
 const retryButton = requireNode(app.querySelector<HTMLButtonElement>("[data-retry]"), "Retry button is missing.");
+const captureReview = requireNode(
+  app.querySelector<HTMLElement>("[data-capture-panel]"),
+  "Capture review is missing."
+);
+const captureImage = requireNode(
+  app.querySelector<HTMLImageElement>("[data-capture-image]"),
+  "Capture review image is missing."
+);
+const captureFile = requireNode(
+  app.querySelector<HTMLSpanElement>("[data-capture-file]"),
+  "Capture review filename is missing."
+);
+const shareAgainButton = requireNode(
+  app.querySelector<HTMLButtonElement>("[data-share-again]"),
+  "Share again button is missing."
+);
+const backCameraButton = requireNode(
+  app.querySelector<HTMLButtonElement>("[data-back-camera]"),
+  "Back to camera button is missing."
+);
 const copyDebugButton = requireNode(
   app.querySelector<HTMLButtonElement>("[data-copy-debug]"),
   "Copy debug button is missing."
@@ -178,6 +211,10 @@ let lastRenderedAt = 0;
 let renderedFrames = 0;
 let isRendering = false;
 let isSaving = false;
+let lastCaptureBlob: Blob | null = null;
+let lastCaptureFilename = "";
+let lastCapturePreset: Preset = DEFAULT_PRESET;
+let lastCaptureUrl: string | null = null;
 
 setCanvasPlaceholder();
 setAppState("sourceMode", "camera");
@@ -191,6 +228,7 @@ setAppState("videoSize", "0x0");
 setAppState("renderedFrames", "0");
 setAppState("activePreset", activePreset.id);
 setAppState("presetCategory", activePreset.category);
+setAppState("captureReview", "hidden");
 syncPresetButtons();
 
 if (shouldSkipCameraForLocalCheck()) {
@@ -229,6 +267,14 @@ saveButton.addEventListener("click", () => {
   void saveCurrentFrame();
 });
 
+shareAgainButton.addEventListener("click", () => {
+  void shareLastCapture();
+});
+
+backCameraButton.addEventListener("click", () => {
+  hideCaptureReview();
+});
+
 copyDebugButton.addEventListener("click", () => {
   void copyDebugState();
 });
@@ -255,6 +301,7 @@ window.addEventListener("beforeunload", () => {
   stopRenderLoop();
   stopDemoSource();
   stopStream(activeStream);
+  revokeCaptureUrl();
 });
 
 async function bootCamera(): Promise<void> {
@@ -267,6 +314,7 @@ async function bootCamera(): Promise<void> {
   retryButton.hidden = true;
   saveButton.disabled = true;
   bootCard.hidden = false;
+  hideCaptureReview();
   stopRenderLoop();
   stopDemoSource();
   stopStream(activeStream);
@@ -296,6 +344,7 @@ async function bootDemoSource(): Promise<void> {
   retryButton.hidden = false;
   saveButton.disabled = true;
   bootCard.hidden = false;
+  hideCaptureReview();
   stopRenderLoop();
   stopDemoSource();
   stopStream(activeStream);
@@ -328,13 +377,13 @@ async function saveCurrentFrame(): Promise<void> {
 
   isSaving = true;
   saveButton.disabled = true;
+  setCaptureActionsDisabled(true);
   setStatus("PNG 만드는 중...");
 
   try {
     const result = await saveCanvas(previewCanvas, activePreset, { prepareOnly: shouldPrepareSaveOnly() });
-    setAppState("lastSaveKind", result.kind);
-    setAppState("lastSaveBytes", String(result.bytes));
-    setAppState("lastSaveName", result.filename);
+    storeSaveResult(result);
+    showCaptureReview(result, activePreset);
     setStatus(result.message);
   } catch {
     setAppState("lastSaveKind", "failed");
@@ -342,7 +391,83 @@ async function saveCurrentFrame(): Promise<void> {
   } finally {
     isSaving = false;
     saveButton.disabled = activeStream === null;
+    setCaptureActionsDisabled(false);
   }
+}
+
+async function shareLastCapture(): Promise<void> {
+  if (isSaving || !lastCaptureBlob) {
+    return;
+  }
+
+  isSaving = true;
+  saveButton.disabled = true;
+  setCaptureActionsDisabled(true);
+  setStatus("PNG 다시 보내는 중...");
+
+  try {
+    const result = await deliverBlob(
+      lastCaptureBlob,
+      lastCaptureFilename,
+      lastCapturePreset.caption,
+      { prepareOnly: shouldPrepareSaveOnly() }
+    );
+    storeSaveResult(result);
+    showCaptureReview(result, lastCapturePreset);
+    setStatus(result.message);
+  } catch {
+    setAppState("lastSaveKind", "failed");
+    setStatus("재공유 실패. 그래도 카메라는 살아있다.");
+  } finally {
+    isSaving = false;
+    saveButton.disabled = activeStream === null;
+    setCaptureActionsDisabled(false);
+  }
+}
+
+function storeSaveResult(result: SaveResult): void {
+  setAppState("lastSaveKind", result.kind);
+  setAppState("lastSaveBytes", String(result.bytes));
+  setAppState("lastSaveName", result.filename);
+}
+
+function showCaptureReview(result: SaveResult, preset: Preset): void {
+  lastCaptureBlob = result.blob;
+  lastCaptureFilename = result.filename;
+  lastCapturePreset = preset;
+  revokeCaptureUrl();
+  lastCaptureUrl = URL.createObjectURL(result.blob);
+
+  captureImage.src = lastCaptureUrl;
+  captureImage.alt = `${preset.shortName} saved TrashCam capture`;
+  captureFile.textContent = result.filename;
+  captureReview.hidden = false;
+  setAppState("captureReview", "visible");
+  setCaptureActionsDisabled(false);
+}
+
+function hideCaptureReview(): void {
+  captureReview.hidden = true;
+  captureImage.removeAttribute("src");
+  captureFile.textContent = "-";
+  lastCaptureBlob = null;
+  lastCaptureFilename = "";
+  lastCapturePreset = DEFAULT_PRESET;
+  revokeCaptureUrl();
+  setAppState("captureReview", "hidden");
+  setCaptureActionsDisabled(false);
+}
+
+function revokeCaptureUrl(): void {
+  if (lastCaptureUrl) {
+    URL.revokeObjectURL(lastCaptureUrl);
+    lastCaptureUrl = null;
+  }
+}
+
+function setCaptureActionsDisabled(disabled: boolean): void {
+  shareAgainButton.disabled = disabled || !lastCaptureBlob;
+  backCameraButton.disabled = disabled;
 }
 
 async function copyDebugState(): Promise<void> {
@@ -735,6 +860,7 @@ function buildDebugReport(): string {
     `category=${app.dataset.presetCategory ?? "-"}`,
     `shareCapability=${app.dataset.shareCapability ?? "-"}`,
     `save=${app.dataset.lastSaveKind ?? "-"}`,
+    `captureReview=${app.dataset.captureReview ?? "-"}`,
     `bytes=${app.dataset.lastSaveBytes ?? "-"}`,
     `file=${app.dataset.lastSaveName ?? "-"}`,
     `status=${statusLine.textContent ?? "-"}`

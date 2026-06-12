@@ -129,6 +129,7 @@ assert(mainSource.includes('data-debug-key="cameraError"'), "debug panel exposes
 assert(mainSource.includes('data-debug-key="appVersion"'), "debug panel exposes app version");
 assert(mainSource.includes('data-debug-key="presetCount"'), "debug panel exposes preset count");
 assert(mainSource.includes('data-debug-key="shareCapability"'), "debug panel exposes save/share capability");
+assert(mainSource.includes('data-debug-key="captureReview"'), "debug panel exposes capture review state");
 assert(mainSource.includes('data-debug-key="videoSize"'), "debug panel exposes source video dimensions");
 assert(mainSource.includes("cameraError="), "debug report includes camera failure reason");
 assert(mainSource.includes("version="), "debug report includes app version");
@@ -136,6 +137,7 @@ assert(mainSource.includes("presets="), "debug report includes preset count");
 assert(mainSource.includes("viewport="), "debug report includes viewport size");
 assert(mainSource.includes("devicePixelRatio="), "debug report includes device pixel ratio");
 assert(mainSource.includes("shareCapability="), "debug report includes save/share capability");
+assert(mainSource.includes("captureReview="), "debug report includes capture review state");
 assert(mainSource.includes("video="), "debug report includes source video dimensions");
 assert(mainSource.includes("buildDebugReport"), "debug panel can build a copyable state report");
 assert(mainSource.includes("data-debug-report"), "debug panel exposes generated state report for safe checks");
@@ -145,8 +147,15 @@ assert(mainSource.includes("does not upload photos or video"), "privacy dialog e
 assert(mainSource.includes("data-preset-pack"), "app exposes preset pack tabs");
 assert(mainSource.includes("activePresetCategory"), "preset pack state is tracked");
 assert(mainSource.includes("button.hidden = button.dataset.category !== activePresetCategory"), "preset buttons filter by active pack");
+assert(mainSource.includes("data-capture-panel"), "app exposes capture review panel");
+assert(mainSource.includes("data-capture-image"), "capture review renders the saved PNG");
+assert(mainSource.includes("data-share-again"), "capture review can share the same saved PNG again");
+assert(mainSource.includes("data-back-camera"), "capture review can return to the live camera");
+assert(mainSource.includes("lastCaptureBlob"), "app stores the last capture blob for reuse");
+assert(mainSource.includes("URL.revokeObjectURL"), "app revokes capture object URLs");
 
 assert(saveSource.includes("canvas.toBlob"), "save path converts canvas to PNG blob");
+assert(saveSource.includes("deliverBlob"), "save path can deliver an existing PNG blob");
 assert(saveSource.includes("getSaveCapability"), "save path exposes share capability diagnostics");
 assert(saveSource.includes("tryCreateShareData"), "save path guards File creation before sharing");
 assert(saveSource.includes('typeof File !== "function"'), "save path falls back when File is unavailable");
