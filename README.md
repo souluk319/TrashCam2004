@@ -83,7 +83,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 ## Current build status
 
 - Vite TypeScript app exists.
-- Camera startup, canvas render loop, three presets, and PNG save/share path are implemented.
+- Camera startup, canvas render loop, baseline plus expanded presets, and PNG save/share path are implemented.
 - `npm install` succeeds.
 - `npm run build` succeeds.
 - `npm run smoke` succeeds.
@@ -126,6 +126,8 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 readiness recheck: `npm run readiness` passed smoke and local checks, reported Node `v22.22.1`, npm `10.9.4`, and correctly flagged missing Vercel CLI plus remaining external verification gates as approval-needed.
 - 2026-06-12 preset expansion: `Pixel Art Cam` added as the first game-style preset. It uses a public-safe name, a limited toy-game palette, ordered dithering, and block grid lines. No Minecraft name, logo, or texture is used.
 - 2026-06-12 Pixel Art production recheck: `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` at 390px switched to `pixelart`, reported `category=game`, prepared `trashcam-2004-pixel-art-cam-...png`, had no horizontal overflow, and produced no console warnings/errors. This is still synthetic-source verification, not a real phone camera test.
+- 2026-06-12 preset expansion: `Cyberpunk Cam` and `Voxel Block Cam` added. Cyberpunk uses RGB split, glitch bars, scanlines, and `SIGNAL BREACH` HUD copy. Voxel uses block averaging, a generic limited block palette, and grid lines without Minecraft names, logos, or textures.
+- 2026-06-12 production preset recheck: `?demo=1&debug=1&save=prepare` at 390px switched to `cyberpunk` and `voxel`, prepared PNG filenames for both modes, had no horizontal overflow, and produced no console warnings/errors. This is still synthetic-source verification, not a real phone camera test.
 
 ## Local development
 
@@ -247,9 +249,12 @@ This runs the production build and checks:
 - app supports `?debug=1` for visible real-device diagnostics
 - debug panel can copy a state report for phone-test failure notes
 - debug report includes share capability, video size, viewport, and device pixel ratio for phone-test triage
-- the three baseline presets and Pixel Art Cam exist
+- the three baseline presets, Pixel Art Cam, Cyberpunk Cam, and Voxel Block Cam exist
 - Pixel Art Cam has a game preset category
+- Cyberpunk Cam has a future preset category
 - Pixel Art palette limiting and dithering helpers exist
+- Cyberpunk RGB split, glitch bar, and HUD helpers exist
+- Voxel block averaging helper exists
 
 This does not prove real camera permission, actual downloaded/shared file usability, HTTPS deployment, or phone support.
 

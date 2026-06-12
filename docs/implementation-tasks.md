@@ -65,6 +65,9 @@ Verified:
 - 2026-06-12 continuation: `npm run readiness` verified. Result: smoke passed, project root/dist/Node/npm checks passed, Vercel CLI reported as approval-needed/missing, and external camera/download/deployment/phone gates remained explicitly listed.
 - 2026-06-12 continuation: `Pixel Art Cam` added as the first game-style preset. It uses `category: "game"`, a public-safe name, limited palette mapping, ordered dithering, and block grid lines.
 - 2026-06-12 continuation: `Pixel Art Cam` verified on production preview with `?demo=1&debug=1&save=prepare` at 390px. Result: active preset `pixelart`, `category=game`, PNG prepared with `trashcam-2004-pixel-art-cam-...png`, no horizontal overflow, no console warnings/errors.
+- 2026-06-12 continuation: `Cyberpunk Cam` added as the first future-style preset. It uses `category: "future"`, RGB split, glitch bars, scanlines, and `SIGNAL BREACH` HUD copy.
+- 2026-06-12 continuation: `Voxel Block Cam` added as a generic block-world game preset. It uses `category: "game"`, block averaging, a limited block palette, and grid lines without Minecraft names, logos, or textures.
+- 2026-06-12 continuation: `Cyberpunk Cam` and `Voxel Block Cam` verified on production preview with `?demo=1&debug=1&save=prepare` at 390px. Result: active presets `cyberpunk`/`voxel`, categories `future`/`game`, PNG prepared for both, no horizontal overflow, no console warnings/errors.
 
 Not yet verified:
 
@@ -182,10 +185,14 @@ Exit criteria:
 - [x] Implement Cyworld Selfie Cam.
 - [x] Implement Laptop Webcam Hell.
 - [x] Implement Pixel Art Cam as the first game-style preset expansion.
+- [x] Implement Cyberpunk Cam as the first future-style preset expansion.
+- [x] Implement Voxel Block Cam as a generic block-world preset expansion.
 - [x] Implement noise effect.
 - [x] Implement color cast effect.
 - [x] Implement contrast/brightness tweaks.
 - [x] Implement palette limit and ordered dither effects for Pixel Art Cam.
+- [x] Implement RGB split, glitch bars, and HUD overlay for Cyberpunk Cam.
+- [x] Implement block averaging and limited block palette for Voxel Block Cam.
 - [x] Implement scanlines for PC Bang preset.
 - [x] Implement jitter for Laptop Webcam Hell.
 - [x] Add short per-preset status/caption copy.
@@ -194,7 +201,7 @@ Exit criteria:
 Exit criteria:
 
 - Default preset looks bad in under 3 seconds.
-- All three presets are visually distinct.
+- All presets are visually distinct.
 - Preset switching does not restart the camera.
 
 ## Phase 6 - Save/share
@@ -257,6 +264,7 @@ Then verify:
 - [ ] Actual downloaded/shared PNG file is confirmed usable in a real browser/device.
 - [x] Presets switch in `?demo=1`.
 - [x] Pixel Art Cam switches in `?demo=1` and prepares a PNG in `?save=prepare`.
+- [x] Cyberpunk Cam and Voxel Block Cam switch in `?demo=1` and prepare PNGs in `?save=prepare`.
 - [x] Synthetic render frame counter advances in `?demo=1`.
 - [x] `?debug=1` verified visually on mobile-size viewport with synthetic source and PNG prepare mode.
 - [x] `Copy state` report generation verified on production preview without changing the user's real clipboard during automation.

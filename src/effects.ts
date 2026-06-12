@@ -1,6 +1,6 @@
 import type { ColorMultipliers } from "./presets";
 
-type PaletteColor = readonly [number, number, number];
+export type PaletteColor = readonly [number, number, number];
 
 const PIXEL_ART_PALETTE: PaletteColor[] = [
   [16, 16, 22],
@@ -27,6 +27,25 @@ const PIXEL_ART_PALETTE: PaletteColor[] = [
   [250, 248, 218],
   [235, 156, 184],
   [166, 92, 142]
+];
+
+export const VOXEL_BLOCK_PALETTE: PaletteColor[] = [
+  [28, 34, 24],
+  [48, 62, 38],
+  [76, 94, 54],
+  [112, 134, 72],
+  [154, 168, 84],
+  [202, 192, 108],
+  [90, 66, 42],
+  [132, 90, 54],
+  [178, 122, 70],
+  [220, 166, 98],
+  [78, 92, 116],
+  [112, 138, 158],
+  [166, 190, 194],
+  [222, 226, 204],
+  [150, 86, 76],
+  [212, 124, 102]
 ];
 
 const BAYER_4 = [
@@ -126,6 +145,72 @@ export function applyPaletteLimit(imageData: ImageData, palette: PaletteColor[] 
   }
 }
 
+export function applyBlockAverage(imageData: ImageData, blockSize: number): void {
+  const size = Math.max(1, Math.floor(blockSize));
+
+  if (size <= 1) {
+    return;
+  }
+
+  const data = imageData.data;
+
+  for (let blockY = 0; blockY < imageData.height; blockY += size) {
+    for (let blockX = 0; blockX < imageData.width; blockX += size) {
+      let red = 0;
+      let green = 0;
+      let blue = 0;
+      let alpha = 0;
+      let count = 0;
+
+      for (let y = blockY; y < Math.min(blockY + size, imageData.height); y += 1) {
+        for (let x = blockX; x < Math.min(blockX + size, imageData.width); x += 1) {
+          const index = (y * imageData.width + x) * 4;
+          red += data[index];
+          green += data[index + 1];
+          blue += data[index + 2];
+          alpha += data[index + 3];
+          count += 1;
+        }
+      }
+
+      const averagedRed = Math.round(red / count);
+      const averagedGreen = Math.round(green / count);
+      const averagedBlue = Math.round(blue / count);
+      const averagedAlpha = Math.round(alpha / count);
+
+      for (let y = blockY; y < Math.min(blockY + size, imageData.height); y += 1) {
+        for (let x = blockX; x < Math.min(blockX + size, imageData.width); x += 1) {
+          const index = (y * imageData.width + x) * 4;
+          data[index] = averagedRed;
+          data[index + 1] = averagedGreen;
+          data[index + 2] = averagedBlue;
+          data[index + 3] = averagedAlpha;
+        }
+      }
+    }
+  }
+}
+
+export function applyRgbSplit(imageData: ImageData, amount: number): void {
+  const offset = Math.max(1, Math.floor(amount));
+  const data = imageData.data;
+  const source = new Uint8ClampedArray(data);
+
+  for (let y = 0; y < imageData.height; y += 1) {
+    for (let x = 0; x < imageData.width; x += 1) {
+      const index = (y * imageData.width + x) * 4;
+      const redX = clamp(x - offset, 0, imageData.width - 1);
+      const blueX = clamp(x + offset, 0, imageData.width - 1);
+      const redIndex = (y * imageData.width + redX) * 4;
+      const blueIndex = (y * imageData.width + blueX) * 4;
+
+      data[index] = source[redIndex];
+      data[index + 1] = source[index + 1];
+      data[index + 2] = source[blueIndex + 2];
+    }
+  }
+}
+
 export function drawPixelGrid(
   ctx: CanvasRenderingContext2D,
   width: number,
@@ -155,6 +240,61 @@ export function drawPixelGrid(
   }
 
   ctx.stroke();
+  ctx.restore();
+}
+
+export function drawGlitchBars(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  count: number
+): void {
+  ctx.save();
+
+  for (let index = 0; index < count; index += 1) {
+    const barHeight = 4 + Math.floor(Math.random() * 18);
+    const y = Math.floor(Math.random() * Math.max(1, height - barHeight));
+    const shift = Math.floor((Math.random() * 2 - 1) * 42);
+
+    ctx.globalAlpha = 0.72;
+    ctx.drawImage(ctx.canvas, 0, y, width, barHeight, shift, y, width, barHeight);
+
+    if (index % 2 === 0) {
+      ctx.globalAlpha = 0.18;
+      ctx.fillStyle = shift > 0 ? "#ff2b6d" : "#31f7ff";
+      ctx.fillRect(Math.max(0, shift), y, width, Math.max(1, Math.floor(barHeight / 3)));
+    }
+  }
+
+  ctx.restore();
+}
+
+export function drawCyberpunkHud(
+  ctx: CanvasRenderingContext2D,
+  label: string,
+  width: number,
+  height: number
+): void {
+  const now = new Date();
+  const seconds = String(now.getSeconds()).padStart(2, "0");
+
+  ctx.save();
+  ctx.font = "16px 'Courier New', monospace";
+  ctx.textBaseline = "top";
+  ctx.fillStyle = "rgba(3, 7, 12, 0.72)";
+  ctx.fillRect(14, 14, 210, 56);
+  ctx.strokeStyle = "#31f7ff";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(14.5, 14.5, 210, 56);
+  ctx.fillStyle = "#ff2b6d";
+  ctx.fillText(label, 24, 24);
+  ctx.fillStyle = "#31f7ff";
+  ctx.fillText(`CAM_04 // ${seconds} FPS?`, 24, 48);
+
+  ctx.fillStyle = "rgba(255, 43, 109, 0.72)";
+  ctx.fillRect(width - 154, height - 32, 140, 2);
+  ctx.fillStyle = "rgba(49, 247, 255, 0.72)";
+  ctx.fillRect(width - 154, height - 24, 96, 2);
   ctx.restore();
 }
 

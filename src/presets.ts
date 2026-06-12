@@ -11,8 +11,20 @@ export type PixelArtSettings = {
   gridOpacity: number;
 };
 
+export type CyberpunkSettings = {
+  rgbSplit: number;
+  glitchBars: number;
+  scanlineOpacity: number;
+  hudLabel: string;
+};
+
+export type VoxelBlockSettings = {
+  blockSize: number;
+  gridOpacity: number;
+};
+
 export type Preset = {
-  id: "pcbang" | "cyworld" | "hell" | "pixelart";
+  id: "pcbang" | "cyworld" | "hell" | "pixelart" | "cyberpunk" | "voxel";
   category: PresetCategory;
   name: string;
   shortName: string;
@@ -29,6 +41,8 @@ export type Preset = {
   timestamp?: boolean;
   jitter?: number;
   pixelArt?: PixelArtSettings;
+  cyberpunk?: CyberpunkSettings;
+  voxelBlock?: VoxelBlockSettings;
 };
 
 export const PRESETS: Preset[] = [
@@ -97,6 +111,46 @@ export const PRESETS: Preset[] = [
     pixelArt: {
       dither: 18,
       gridOpacity: 0.16
+    }
+  },
+  {
+    id: "cyberpunk",
+    category: "future",
+    name: "Cyberpunk Cam",
+    shortName: "Cyberpunk",
+    slug: "cyberpunk-cam",
+    caption: "SIGNAL BREACH. Face integrity optional.",
+    lowWidth: 176,
+    lowHeight: 132,
+    fps: 11,
+    noise: 16,
+    color: { r: 1.2, g: 0.92, b: 1.32 },
+    contrast: 58,
+    brightness: -8,
+    cyberpunk: {
+      rgbSplit: 5,
+      glitchBars: 7,
+      scanlineOpacity: 0.18,
+      hudLabel: "SIGNAL BREACH"
+    }
+  },
+  {
+    id: "voxel",
+    category: "game",
+    name: "Voxel Block Cam",
+    shortName: "Voxel",
+    slug: "voxel-block-cam",
+    caption: "Your face is now legally made of blocks.",
+    lowWidth: 96,
+    lowHeight: 72,
+    fps: 8,
+    noise: 2,
+    color: { r: 1.04, g: 1.08, b: 0.88 },
+    contrast: 24,
+    brightness: 6,
+    voxelBlock: {
+      blockSize: 2,
+      gridOpacity: 0.24
     }
   }
 ];

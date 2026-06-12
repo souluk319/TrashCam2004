@@ -1,11 +1,16 @@
 import { CameraError, startCamera, stopStream } from "./camera";
 import {
+  VOXEL_BLOCK_PALETTE,
+  applyBlockAverage,
   applyBrightness,
   applyColorCast,
   applyContrast,
   applyDither,
   applyNoise,
   applyPaletteLimit,
+  applyRgbSplit,
+  drawCyberpunkHud,
+  drawGlitchBars,
   drawPixelGrid,
   drawScanlines,
   drawTimestamp
@@ -66,6 +71,7 @@ app.innerHTML = `
       <div><span>secure</span><output data-debug-key="secureContext">-</output></div>
       <div><span>frames</span><output data-debug-key="renderedFrames">0</output></div>
       <div><span>preset</span><output data-debug-key="activePreset">-</output></div>
+      <div><span>category</span><output data-debug-key="presetCategory">-</output></div>
       <div><span>save</span><output data-debug-key="lastSaveKind">-</output></div>
       <div><span>share</span><output data-debug-key="shareCapability">-</output></div>
       <div><span>bytes</span><output data-debug-key="lastSaveBytes">-</output></div>
@@ -312,11 +318,20 @@ function drawFrame(): void {
 
   drawVideoCover(lowCtx, video, preset.lowWidth, preset.lowHeight);
 
-  if (preset.pixelArt) {
+  if (preset.pixelArt || preset.voxelBlock) {
     const lowImageData = lowCtx.getImageData(0, 0, preset.lowWidth, preset.lowHeight);
     applyPresetImageDataEffects(lowImageData, preset);
-    applyDither(lowImageData, preset.pixelArt.dither);
-    applyPaletteLimit(lowImageData);
+
+    if (preset.pixelArt) {
+      applyDither(lowImageData, preset.pixelArt.dither);
+      applyPaletteLimit(lowImageData);
+    }
+
+    if (preset.voxelBlock) {
+      applyBlockAverage(lowImageData, preset.voxelBlock.blockSize);
+      applyPaletteLimit(lowImageData, VOXEL_BLOCK_PALETTE);
+    }
+
     lowCtx.putImageData(lowImageData, 0, 0);
   }
 
@@ -347,9 +362,33 @@ function drawFrame(): void {
     return;
   }
 
+  if (preset.voxelBlock) {
+    drawPixelGrid(
+      previewCtx,
+      CANVAS_WIDTH,
+      CANVAS_HEIGHT,
+      (CANVAS_WIDTH / preset.lowWidth) * preset.voxelBlock.blockSize,
+      (CANVAS_HEIGHT / preset.lowHeight) * preset.voxelBlock.blockSize,
+      preset.voxelBlock.gridOpacity
+    );
+    return;
+  }
+
   const imageData = previewCtx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   applyPresetImageDataEffects(imageData, preset);
+
+  if (preset.cyberpunk) {
+    applyRgbSplit(imageData, preset.cyberpunk.rgbSplit);
+  }
+
   previewCtx.putImageData(imageData, 0, 0);
+
+  if (preset.cyberpunk) {
+    drawGlitchBars(previewCtx, CANVAS_WIDTH, CANVAS_HEIGHT, preset.cyberpunk.glitchBars);
+    drawScanlines(previewCtx, CANVAS_WIDTH, CANVAS_HEIGHT, preset.cyberpunk.scanlineOpacity);
+    drawCyberpunkHud(previewCtx, preset.cyberpunk.hudLabel, CANVAS_WIDTH, CANVAS_HEIGHT);
+    return;
+  }
 
   if (preset.id === "cyworld") {
     drawCyworldWash(previewCtx);
@@ -521,6 +560,7 @@ function buildDebugReport(): string {
     `video=${app.dataset.videoSize ?? "-"}`,
     `frames=${app.dataset.renderedFrames ?? "-"}`,
     `preset=${app.dataset.activePreset ?? "-"}`,
+    `category=${app.dataset.presetCategory ?? "-"}`,
     `shareCapability=${app.dataset.shareCapability ?? "-"}`,
     `save=${app.dataset.lastSaveKind ?? "-"}`,
     `bytes=${app.dataset.lastSaveBytes ?? "-"}`,

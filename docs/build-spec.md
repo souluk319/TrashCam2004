@@ -197,6 +197,49 @@ Copy:
 
 - `Profile picture unlocked. Somehow worse.`
 
+### Cyberpunk Cam
+
+Purpose: future/game-style expansion with a neon hacked-camera mood. It should feel stylishly broken while the face remains ridiculous.
+
+Settings:
+
+- Offscreen resolution: `176x132`
+- FPS: `11`
+- Medium noise
+- Strong contrast
+- Purple/red/cyan color cast
+- RGB channel split
+- Horizontal glitch bars
+- Scanlines
+- HUD copy: `SIGNAL BREACH`
+
+Copy:
+
+- `SIGNAL BREACH. Face integrity optional.`
+
+### Voxel Block Cam
+
+Purpose: generic block-world camera mode. It should make the face look like block chunks without using Minecraft names, logos, or textures.
+
+Public naming guardrail:
+
+- Use `Voxel Block Cam` in the app.
+- Do not use Minecraft names, logos, textures, or direct branding.
+- Keep it as generic voxel/block-world visual language.
+
+Settings:
+
+- Offscreen resolution: `96x72`
+- FPS: `8`
+- Low noise
+- Block averaging
+- Limited block palette
+- Stronger block grid/edge lines
+
+Copy:
+
+- `Your face is now legally made of blocks.`
+
 ## Effect functions
 
 Implement effects in a small, readable module.
@@ -221,6 +264,10 @@ Effect helpers:
 - `drawTimestamp(ctx, presetName)`
 - `applyPaletteLimit(imageData)`
 - `applyDither(imageData, amount)`
+- `applyBlockAverage(imageData, blockSize)`
+- `applyRgbSplit(imageData, amount)`
+- `drawGlitchBars(ctx, width, height, count)`
+- `drawCyberpunkHud(ctx, label, width, height)`
 - `drawPixelGrid(ctx, width, height, blockWidth, blockHeight, opacity)`
 - `clamp(value, min, max)`
 

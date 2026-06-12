@@ -142,10 +142,17 @@ assert(presetSource.includes("PC Bang Cam 2004"), "PC Bang preset exists");
 assert(presetSource.includes("Cyworld Selfie Cam"), "Cyworld preset exists");
 assert(presetSource.includes("Laptop Webcam Hell"), "Laptop Webcam Hell preset exists");
 assert(presetSource.includes("Pixel Art Cam"), "Pixel Art Cam preset exists");
+assert(presetSource.includes("Cyberpunk Cam"), "Cyberpunk Cam preset exists");
+assert(presetSource.includes("Voxel Block Cam"), "Voxel Block Cam preset exists");
+assert(presetSource.includes('category: "future"'), "future preset category exists");
 assert(presetSource.includes('category: "game"'), "game preset category exists");
 assert(mainSource.includes("data-category"), "preset buttons expose preset category");
 assert(effectsSource.includes("applyPaletteLimit"), "palette limit effect exists");
 assert(effectsSource.includes("applyDither"), "dither effect exists");
+assert(effectsSource.includes("applyRgbSplit"), "RGB split effect exists");
+assert(effectsSource.includes("drawGlitchBars"), "glitch bars effect exists");
+assert(effectsSource.includes("applyBlockAverage"), "block average effect exists");
+assert(effectsSource.includes("drawCyberpunkHud"), "cyberpunk HUD effect exists");
 
 if (failures.length > 0) {
   console.error(`\nSmoke check failed: ${failures.length} issue(s).`);
