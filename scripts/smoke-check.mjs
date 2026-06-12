@@ -119,9 +119,13 @@ assert(mainSource.includes('setAppState("renderedFrames"'), "app exposes render 
 assert(mainSource.includes("shouldShowDebugPanel"), "app has opt-in debug panel mode");
 assert(mainSource.includes('data-debug-key="cameraState"'), "debug panel exposes camera state");
 assert(mainSource.includes('data-debug-key="cameraError"'), "debug panel exposes camera failure reason");
+assert(mainSource.includes('data-debug-key="appVersion"'), "debug panel exposes app version");
+assert(mainSource.includes('data-debug-key="presetCount"'), "debug panel exposes preset count");
 assert(mainSource.includes('data-debug-key="shareCapability"'), "debug panel exposes save/share capability");
 assert(mainSource.includes('data-debug-key="videoSize"'), "debug panel exposes source video dimensions");
 assert(mainSource.includes("cameraError="), "debug report includes camera failure reason");
+assert(mainSource.includes("version="), "debug report includes app version");
+assert(mainSource.includes("presets="), "debug report includes preset count");
 assert(mainSource.includes("viewport="), "debug report includes viewport size");
 assert(mainSource.includes("devicePixelRatio="), "debug report includes device pixel ratio");
 assert(mainSource.includes("shareCapability="), "debug report includes save/share capability");

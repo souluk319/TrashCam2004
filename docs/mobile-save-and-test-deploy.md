@@ -28,7 +28,7 @@ HTTP에서는 폰 카메라가 안 열린다. HTTPS 링크로 다시 열어줘.
 
 After camera permission succeeds, video startup is also bounded. If metadata or playback does not start, the app should stop any acquired camera tracks, expose a `cameraError` value in `?debug=1`, and show retry instead of spinning forever.
 
-The debug report also records viewport size, device pixel ratio, and source video dimensions so a phone failure can be separated into layout, camera stream, and render issues faster.
+The debug report also records app version, preset count, viewport size, device pixel ratio, and source video dimensions so a phone failure can be separated into build version, layout, camera stream, and render issues faster.
 
 ### Saving
 
@@ -129,6 +129,7 @@ Already verified locally:
   - acquired camera tracks are stopped if startup fails after permission
   - debug report includes `cameraError`
 - debug diagnostics expansion:
+  - report includes app version and preset count for public beta failure tracking
   - report includes `shareCapability`, `video`, `viewport`, and `devicePixelRatio`
   - visible panel includes save/share capability and source video dimensions
 - production preview after debug diagnostics expansion:
@@ -264,6 +265,7 @@ Record failures with:
 - exact URL
 - exact visible error/status text
 - `cameraError` from the `?debug=1` state report
+- `version` and `presets` from the copied report
 - `shareCapability`, `video`, `viewport`, and `devicePixelRatio` from the copied report
 - copied `?debug=1` state report when available
 - whether the issue was camera permission, preview render, preset switch, save/share, or file usability

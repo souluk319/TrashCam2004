@@ -32,6 +32,7 @@ import "./styles.css";
 
 const CANVAS_WIDTH = 640;
 const CANVAS_HEIGHT = 480;
+const APP_VERSION = "0.1.0-beta.1";
 
 const app = requireNode(document.querySelector<HTMLDivElement>("#app"), "App root not found.");
 const rootParams = new URLSearchParams(window.location.search);
@@ -82,6 +83,8 @@ app.innerHTML = `
       <div><span>camera</span><output data-debug-key="cameraState">-</output></div>
       <div><span>error</span><output data-debug-key="cameraError">-</output></div>
       <div><span>secure</span><output data-debug-key="secureContext">-</output></div>
+      <div><span>version</span><output data-debug-key="appVersion">-</output></div>
+      <div><span>presets</span><output data-debug-key="presetCount">-</output></div>
       <div><span>frames</span><output data-debug-key="renderedFrames">0</output></div>
       <div><span>preset</span><output data-debug-key="activePreset">-</output></div>
       <div><span>category</span><output data-debug-key="presetCategory">-</output></div>
@@ -158,6 +161,8 @@ setAppState("sourceMode", "camera");
 setAppState("cameraState", "booting");
 setAppState("cameraError", "none");
 setAppState("secureContext", String(window.isSecureContext));
+setAppState("appVersion", APP_VERSION);
+setAppState("presetCount", String(PRESETS.length));
 setAppState("shareCapability", getSaveCapability());
 setAppState("videoSize", "0x0");
 setAppState("renderedFrames", "0");
@@ -678,6 +683,8 @@ function buildDebugReport(): string {
     `camera=${app.dataset.cameraState ?? "-"}`,
     `cameraError=${app.dataset.cameraError ?? "-"}`,
     `secure=${app.dataset.secureContext ?? "-"}`,
+    `version=${app.dataset.appVersion ?? "-"}`,
+    `presets=${app.dataset.presetCount ?? "-"}`,
     `viewport=${window.innerWidth}x${window.innerHeight}`,
     `devicePixelRatio=${window.devicePixelRatio}`,
     `video=${app.dataset.videoSize ?? "-"}`,

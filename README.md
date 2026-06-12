@@ -134,6 +134,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 public beta polish: added Open Graph/description metadata and a small Privacy dialog that states camera frames stay in the browser and are not uploaded.
 - 2026-06-12 preset expansion: `ASCII Terminal Cam`, `Deep Fried Meme Cam`, and `Sticker Booth Cam` added. They use ASCII terminal rendering, deep-fried meme color damage, and sticker photo-booth overlays.
 - 2026-06-12 production preset recheck: `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` at 390px showed 12 preset buttons, opened the Privacy dialog, switched to `ascii`, `deepfried`, and `stickerbooth`, prepared PNG filenames for all three modes, had no horizontal overflow, and produced no console warnings/errors. This is still synthetic-source verification, not a real phone camera test.
+- 2026-06-12 public beta diagnostics: `?debug=1` now exposes app version and preset count in both the visible panel and copied state report.
 
 ## Local development
 
@@ -174,7 +175,7 @@ You can combine it with test modes:
 http://127.0.0.1:5174/?demo=1&debug=1
 ```
 
-The debug panel shows source, camera state, camera error reason, secure context, source video size, share capability, frame count, active preset, and last save result. The copied report also includes viewport size and device pixel ratio. `Copy state` copies the current debug report for failure notes. It is only visible when `debug=1` is present, and it does not replace real camera/phone verification.
+The debug panel shows source, camera state, camera error reason, secure context, app version, preset count, source video size, share capability, frame count, active preset, and last save result. The copied report also includes viewport size and device pixel ratio. `Copy state` copies the current debug report for failure notes. It is only visible when `debug=1` is present, and it does not replace real camera/phone verification.
 
 For local PNG preparation verification without downloading a file:
 
@@ -254,7 +255,7 @@ This runs the production build and checks:
 - save code supports `?save=prepare` for non-downloading local PNG preparation checks
 - app supports `?debug=1` for visible real-device diagnostics
 - debug panel can copy a state report for phone-test failure notes
-- debug report includes share capability, video size, viewport, and device pixel ratio for phone-test triage
+- debug report includes app version, preset count, share capability, video size, viewport, and device pixel ratio for phone-test triage
 - the three baseline presets, Pixel Art Cam, Cyberpunk Cam, Voxel Block Cam, Receipt Printer Cam, CCTV Evidence Cam, School ID Cam, ASCII Terminal Cam, Deep Fried Meme Cam, and Sticker Booth Cam exist
 - Pixel Art Cam has a game preset category
 - Cyberpunk Cam has a future preset category
