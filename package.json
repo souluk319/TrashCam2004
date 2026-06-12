@@ -12,6 +12,7 @@
     "preview:local": "vite preview --host 127.0.0.1 --port 4174 --strictPort",
     "smoke": "npm run build && node scripts/smoke-check.mjs",
     "verify:fake-camera": "npm run build && node scripts/fake-camera-check.mjs",
+    "verify:download": "npm run build && node scripts/download-check.mjs",
     "verify:pages": "npm run build:pages && node scripts/pages-check.mjs",
     "readiness": "npm run smoke && node scripts/readiness-check.mjs"
   },

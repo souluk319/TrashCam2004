@@ -15,7 +15,8 @@ Open public link -> allow camera -> funny live preview -> switch presets -> save
 - Public beta polish exists: Open Graph metadata, Privacy dialog, 12 presets, app version, preset count diagnostics, capture review, phone-test report copying, automatic device/browser evidence, and debug-only saved-file/effect evidence controls.
 - Local synthetic verification passes.
 - Local fake-camera verification passes: `npm run verify:fake-camera` uses Chrome fake media to prove the real `getUserMedia()` path reaches `source=camera`, `camera=ready`, PNG preparation, and capture review.
-- Actual product risk is still external-device behavior, not source code structure.
+- Local fallback-download verification passes: `npm run verify:download` proves the production preview can write a PNG file to disk and that the file matches app-reported bytes, PNG signature, and 640x480 dimensions.
+- Actual product risk is now real physical camera permission, native share/save behavior, and external phone behavior, not source code structure.
 
 ## Product success criteria
 
@@ -55,6 +56,7 @@ Actions:
 npm run build
 npm run smoke
 npm run verify:fake-camera
+npm run verify:download
 npm run verify:pages
 npm run readiness
 ```
@@ -64,6 +66,7 @@ Exit criteria:
 - Build passes.
 - Smoke passes.
 - Fake-camera verification passes.
+- Fallback-download file verification passes.
 - Stable Pages verification passes after the Pages deployment is updated.
 - Readiness only reports known external gates.
 
@@ -124,7 +127,8 @@ Owner: 성욱
 Automated preflight:
 
 - `npm run verify:fake-camera` now covers the browser `getUserMedia()` path without accepting a real permission prompt.
-- This reduces code-path risk before manual testing, but it does not prove a physical webcam permission prompt, actual file download, or phone behavior.
+- `npm run verify:download` now covers desktop fallback file receipt without touching the user's real Downloads folder.
+- These reduce code-path risk before manual testing, but they do not prove a physical webcam permission prompt, actual-camera image content, native share sheet behavior, or phone behavior.
 
 Actions:
 

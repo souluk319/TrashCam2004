@@ -101,7 +101,7 @@ Already verified locally:
   - Node `v22.22.1`
   - npm `10.9.4`
   - Vercel CLI missing/approval-needed
-  - external camera/download/deployment/phone gates still listed
+  - external camera/deployment/phone gates still listed
 - `?camera=off` UI path without camera permission
 - `?demo=1` synthetic hidden-video to canvas render path
 - `?demo=1&save=prepare` PNG Blob/File preparation path
@@ -110,6 +110,12 @@ Already verified locally:
   - `data-last-save-kind="downloaded"`
   - PNG byte size greater than 0
   - generated `.png` filename
+- fallback download file verification:
+  - `npm run verify:download` opens production preview in Chrome
+  - `Save PNG` writes the fallback file into a temporary download folder
+  - downloaded filename matches the app state
+  - downloaded byte count matches `data-last-save-bytes`
+  - downloaded file has a PNG signature and 640x480 dimensions
 - `?demo=1&debug=1&save=prepare` at 390px:
   - visible debug panel
   - `camera=ready`
@@ -175,7 +181,8 @@ Already verified locally:
 Not yet verified:
 
 - Real desktop camera permission and live stream
-- Real downloaded/shared PNG file usability
+- Real desktop downloaded PNG using an actual camera frame
+- Native share sheet and phone Photos/Files save usability
 - Real iPhone Safari or Android Chrome full loop
 
 Verified HTTPS URL:
@@ -197,6 +204,7 @@ Run these before any HTTPS deployment attempt:
 ```bash
 npm run smoke
 npm run verify:fake-camera
+npm run verify:download
 npm run readiness
 ```
 

@@ -95,12 +95,13 @@ Verified:
 - 2026-06-12 continuation: `gh-pages` updated to `6d36964` and `npm run verify:pages` passed. Result: live hashed assets matched local Pages build, live `favicon.svg`/`.nojekyll` returned HTTP 200, PNG prepare reached `693404` bytes, phone evidence report updated, and gate remained correctly `synthetic-or-local-check`.
 - 2026-06-12 continuation: phone-test report device evidence expanded. `Copy state` and `Copy phone test` now include `userAgent`, `platform`, `maxTouchPoints`, physical `screen`, `orientation`, `language`, and `mobileCandidate`; smoke, fake-camera, and Pages verification check the fields exist.
 - 2026-06-12 continuation: `gh-pages` updated to `9063556` and `npm run verify:pages` passed after the device-evidence report expansion. Result: live Pages served `assets/index-DV-6-8CJ.js`, PNG prepare reached `694042` bytes, phone evidence report updated, and gate remained correctly `synthetic-or-local-check`.
+- 2026-06-12 continuation: `npm run verify:download` added and verified. It opens production preview in Chrome, triggers fallback download, confirms the app reaches `save=downloaded`, and checks the actual downloaded file by filename, matching app-reported byte count, PNG signature, and 640x480 dimensions.
 
 Not yet verified:
 
 - Physical desktop browser camera permission and live camera stream.
 - Desktop PNG save using an actual camera frame.
-- Actual downloaded/shared PNG file receipt and usability on a real browser/device.
+- Native share sheet and phone Photos/Files save usability.
 - Real iPhone Safari / Android Chrome test.
 - Vercel CLI is not installed in this shell, so deployment was not attempted.
 - GitHub Pages stable HTTPS deployment is verified with synthetic source only; it does not prove real phone camera/save behavior.
@@ -132,6 +133,7 @@ Exit criteria:
   - `preview:local`
   - `smoke`
   - `verify:fake-camera`
+  - `verify:download`
   - `verify:pages`
   - `readiness`
 - [x] Create `src/` structure:
@@ -266,7 +268,7 @@ Exit criteria:
 
 Exit criteria:
 
-- Desktop Chrome downloads PNG.
+- [x] Desktop Chrome fallback downloads PNG in automated synthetic-source verification.
 - Saved PNG includes the degraded effect, not the raw camera image.
 - Save failure does not crash the app.
 
@@ -300,7 +302,7 @@ Then verify:
 - [x] `npm run readiness` reports local readiness and external approval gates.
 - [x] No obvious console runtime errors during `?camera=off` and `?demo=1` local use.
 - [ ] Desktop camera starts.
-- [ ] PNG saves.
+- [x] PNG fallback download saves a valid PNG file in automated synthetic-source verification.
 - [x] PNG Blob/File preparation succeeds in `?demo=1&save=prepare`.
 - [x] `?demo=1&save=prepare` succeeds on the stable local URL `http://127.0.0.1:5174/`.
 - [x] Production dist preview succeeds on `http://127.0.0.1:4174/?demo=1&save=prepare`.
@@ -313,7 +315,8 @@ Then verify:
 - [x] Production dist preview rechecked after camera startup hardening with `?demo=1&debug=1&save=prepare`.
 - [x] Production dist preview rechecked after debug diagnostics expansion with `?demo=1&debug=1&save=prepare`.
 - [x] Production dist preview reaches fallback download branch on `http://127.0.0.1:4174/?demo=1` with `data-last-save-kind="downloaded"`, PNG byte size, PNG filename, and no console warnings/errors.
-- [ ] Actual downloaded/shared PNG file is confirmed usable in a real browser/device.
+- [x] `npm run verify:download` confirms the actual fallback-downloaded file on disk has the expected filename, byte size, PNG signature, and 640x480 dimensions.
+- [ ] Actual downloaded/shared PNG file from a real camera run is confirmed usable in a real browser/device.
 - [x] Presets switch in `?demo=1`.
 - [x] Pixel Art Cam switches in `?demo=1` and prepares a PNG in `?save=prepare`.
 - [x] Cyberpunk Cam and Voxel Block Cam switch in `?demo=1` and prepare PNGs in `?save=prepare`.

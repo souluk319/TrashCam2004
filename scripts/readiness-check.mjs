@@ -75,6 +75,12 @@ if (packageJson.scripts?.["verify:pages"] === "npm run build:pages && node scrip
   block("stable Pages verification script missing or changed");
 }
 
+if (packageJson.scripts?.["verify:download"] === "npm run build && node scripts/download-check.mjs") {
+  pass("fallback download verification script is available");
+} else {
+  block("fallback download verification script missing or changed");
+}
+
 if (existsSync(join(root, "dist", "index.html"))) {
   pass("dist exists from latest smoke/build run");
 } else {
@@ -104,7 +110,7 @@ warn("vercel CLI is not installed or not on PATH; GitHub Pages is the configured
 }
 
 warn("desktop real-camera permission test still requires explicit approval before accepting the prompt");
-warn("actual PNG download/share usability still requires a real browser/device check");
+warn("native share sheet and phone photo/file save usability still require real-device checks");
 warn("stable HTTPS deployment is configured through GitHub Pages; real-device camera/save verification remains");
 warn("goal completion requires at least one real phone to complete camera preview and PNG save/share");
 

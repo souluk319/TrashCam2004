@@ -57,6 +57,9 @@ const viteConfigSource = readText("vite.config.ts");
 const fakeCameraSource = fileExists("scripts/fake-camera-check.mjs")
   ? readText("scripts/fake-camera-check.mjs")
   : "";
+const downloadCheckSource = fileExists("scripts/download-check.mjs")
+  ? readText("scripts/download-check.mjs")
+  : "";
 const pagesCheckSource = fileExists("scripts/pages-check.mjs")
   ? readText("scripts/pages-check.mjs")
   : "";
@@ -81,6 +84,10 @@ assert(
   "package.json has fake camera verification script",
 );
 assert(
+  packageJson.scripts?.["verify:download"] === "npm run build && node scripts/download-check.mjs",
+  "package.json has fallback download verification script",
+);
+assert(
   packageJson.scripts?.["verify:pages"] === "npm run build:pages && node scripts/pages-check.mjs",
   "package.json has stable Pages verification script",
 );
@@ -96,6 +103,11 @@ assert(fakeCameraSource.includes('camera === "ready"'), "fake camera verificatio
 assert(fakeCameraSource.includes('phoneReport.includes("source=camera")'), "fake camera verification checks phone test report camera source");
 assert(fakeCameraSource.includes('captureReview === "visible"'), "fake camera verification checks capture review after save");
 assert(fakeCameraSource.includes("cleanup();"), "fake camera verification cleans up browser processes");
+assert(downloadCheckSource.includes("Browser.setDownloadBehavior"), "download verification allows a controlled Chrome download folder");
+assert(downloadCheckSource.includes('state.save === "downloaded"'), "download verification requires fallback downloaded state");
+assert(downloadCheckSource.includes("PNG_SIGNATURE"), "download verification checks PNG file signature");
+assert(downloadCheckSource.includes("readUInt32BE(16)"), "download verification checks PNG dimensions");
+assert(downloadCheckSource.includes("buffer.length !== expectedBytes"), "download verification compares file size with app bytes");
 assert(pagesCheckSource.includes("https://souluk319.github.io/TrashCam2004/"), "stable Pages verification targets GitHub Pages URL");
 assert(pagesCheckSource.includes("getExpectedDistAssets"), "stable Pages verification compares live assets with local Pages build");
 assert(pagesCheckSource.includes("data-manual-file-opened"), "stable Pages verification checks manual saved-file control");
@@ -126,6 +138,7 @@ assert(fileExists("src/save.ts"), "src/save.ts exists");
 assert(fileExists("src/demo-source.ts"), "src/demo-source.ts exists");
 assert(fileExists("scripts/readiness-check.mjs"), "readiness check script exists");
 assert(fileExists("scripts/fake-camera-check.mjs"), "fake camera verification script exists");
+assert(fileExists("scripts/download-check.mjs"), "fallback download verification script exists");
 assert(fileExists("scripts/pages-check.mjs"), "stable Pages verification script exists");
 assert(fileExists("public/favicon.svg"), "public favicon exists");
 assert(indexSource.includes('name="description"'), "index has public beta description meta");

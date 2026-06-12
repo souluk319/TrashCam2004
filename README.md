@@ -88,6 +88,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - `npm run build` succeeds.
 - `npm run smoke` succeeds.
 - `npm run verify:fake-camera` succeeds. It launches Chrome with a fake media device and verifies the real `getUserMedia()` code path reaches `source=camera`, `camera=ready`, PNG preparation, and capture review.
+- `npm run verify:download` succeeds. It launches Chrome against the production preview, triggers fallback download, and verifies the saved PNG file on disk by filename, byte size, PNG signature, and 640x480 dimensions.
 - `npm run verify:pages` exists to compare the current Pages build against the live GitHub Pages URL and run a headless demo/evidence check.
 - `npm run readiness` succeeds as a no-side-effect deployment status report, while noting that Vercel CLI and real device tests still require approval.
 - `npm run dev:local` reserves `http://127.0.0.1:5174/` for this project so another Vite app on 5173 does not get mistaken for TrashCam.
@@ -112,7 +113,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
   - `data-last-save-name`
   - `data-capture-review`
   - `data-acceptance-gate`
-- Physical camera permission, actual downloaded/shared PNG file usability, and phone tests still need manual/external verification.
+- Physical camera permission, native share sheet, phone Photos/Files save usability, and phone tests still need manual/external verification.
 - 2026-06-12 local browser recheck: `?demo=1&save=prepare` on a 390px viewport at `http://127.0.0.1:5174/` rendered frames, had no horizontal overflow, and prepared a PNG Blob/File with no console warnings or errors.
 - Camera startup now checks `window.isSecureContext` before requesting camera access. On non-HTTPS/non-localhost pages, the UI shows explicit HTTPS guidance instead of a vague unsupported-camera error.
 - Camera startup now has a bounded metadata/playback wait. If video startup fails after permission, acquired tracks are stopped, retry is shown, and `?debug=1` exposes `cameraError`.
@@ -158,6 +159,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 stable Pages verification pass: `gh-pages` was updated to `6d36964`, live `favicon.svg` and `.nojekyll` returned HTTP 200, and `npm run verify:pages` passed with live `assets/index-DJDukQqd.js` / `assets/index-CgIRwTF0.css`, PNG prepare `693404` bytes, manual evidence report updates, and `gate=synthetic-or-local-check`.
 - 2026-06-12 phone-test evidence expansion: `Copy state` and `Copy phone test` now include automatic browser/device evidence: `userAgent`, `platform`, `maxTouchPoints`, physical `screen`, `orientation`, `language`, and `mobileCandidate`. Smoke, fake-camera, and stable Pages verification now check these fields exist.
 - 2026-06-12 stable Pages evidence deployment: `gh-pages` was updated to `9063556`, live Pages served `assets/index-DV-6-8CJ.js`, and `npm run verify:pages` passed with PNG prepare `694042` bytes, manual evidence report updates, no overflow, and `gate=synthetic-or-local-check`.
+- 2026-06-12 fallback download verification: `npm run verify:download` added and passed. Chrome headless creates a `trashcam-2004-...png` file in a temporary download folder, checks that the file byte count matches the app state, verifies the PNG signature, and confirms 640x480 dimensions. This proves desktop fallback file receipt for synthetic source, not phone/native share behavior.
 
 ## Local development
 
@@ -266,7 +268,7 @@ data-last-save-bytes is greater than 0
 data-last-save-name ends with .png
 ```
 
-This proves the app reached the fallback download branch. It still does not prove the browser or phone saved a usable file to disk/photos.
+This proves the app reached the fallback download branch. For automated file-receipt verification, run `npm run verify:download`.
 
 ## Local smoke check
 
@@ -286,6 +288,7 @@ This runs the production build and checks:
 - save code uses `canvas.toBlob()`, Web Share API, and download fallback
 - save code guards mobile share capability checks so fallback download remains available
 - save code supports `?save=prepare` for non-downloading local PNG preparation checks
+- fallback download verification script exists and checks downloaded PNG filename, byte size, signature, and dimensions
 - app supports `?debug=1` for visible real-device diagnostics
 - debug panel can copy a state report for phone-test failure notes
 - debug report includes app version, preset count, share capability, video size, viewport, and device pixel ratio for phone-test triage
@@ -304,7 +307,7 @@ This runs the production build and checks:
 - ASCII terminal, deep fried, and sticker booth helpers exist
 - stable Pages verification script exists and checks live hashed assets, evidence controls, PNG prepare, no-overflow, and browser warnings/errors
 
-This does not prove real camera permission, actual downloaded/shared file usability, or phone support.
+This does not prove real camera permission, native share sheet behavior, or phone support.
 
 ## Fake camera verification
 
@@ -324,6 +327,24 @@ It proves:
 - the phone-test report includes `source=camera`
 
 It does not prove a physical webcam, native download/share receipt, iPhone Safari, or Android Chrome behavior.
+
+## Fallback download verification
+
+```bash
+npm run verify:download
+```
+
+This builds the app, opens the production preview in Chrome, taps `Save PNG`, allows download into a temporary folder, and verifies the actual downloaded file.
+
+It proves:
+
+- fallback download reaches `data-last-save-kind="downloaded"`
+- the file lands on disk with the app-generated `.png` filename
+- downloaded bytes match `data-last-save-bytes`
+- the file has a PNG signature
+- the PNG dimensions are 640x480
+
+It does not prove a physical camera frame, native share sheet behavior, iPhone Safari, or Android Chrome behavior.
 
 ## Stable Pages verification
 
