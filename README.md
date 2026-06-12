@@ -145,6 +145,8 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 capture review production recheck: `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` at 390px showed `captureReview=visible` after save, a Blob preview image, matching PNG filename text, `Share again` preserving the same prepared byte size, `Back to camera` returning to `captureReview=hidden`, no horizontal overflow, and no console warnings/errors. This is still synthetic-source verification, not a real phone camera/save test.
 - 2026-06-12 real-device diagnostics: `?debug=1` now exposes `acceptanceGate` and `Copy phone test`, a paste-ready report with device/browser blanks, current camera/save state, and manual fields for file-open/effect-visible confirmation.
 - 2026-06-12 phone-test report recheck: `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` at 390px filled `data-phone-test-report`, showed `acceptanceGate=synthetic-or-local-check`, updated the report after `Save PNG` with `save=prepared` and `captureReview=visible`, had no horizontal overflow, and produced no console warnings/errors.
+- 2026-06-12 stable HTTPS latest recheck: `https://souluk319.github.io/TrashCam2004/?demo=1&debug=1&save=prepare` served `assets/index-DoCWuob4.js`, included `Copy phone test`, reported `secure=true`, `version=0.1.0-beta.1`, `acceptanceGate=synthetic-or-local-check`, prepared a PNG, opened capture review, had no horizontal overflow, and produced no console warnings/errors.
+- 2026-06-12 Pages deployment hardening: `public/.nojekyll` added and smoke now verifies that the marker is copied to `dist/.nojekyll`; the live Pages marker returned HTTP 200.
 
 ## Local development
 

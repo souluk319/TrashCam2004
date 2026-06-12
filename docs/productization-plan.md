@@ -88,6 +88,7 @@ Fallback path:
 - Pages uses `npm run build:pages` so Vite assets resolve under `/TrashCam2004/`.
 - Pages publishes from the `gh-pages` branch because the current GitHub token cannot push workflow files without `workflow` scope.
 - Stable URL: `https://souluk319.github.io/TrashCam2004/`.
+- `public/.nojekyll` is included so GitHub Pages serves the static assets without Jekyll processing.
 - Cloudflare Pages can also work with the normal build command and output directory.
 - Cloudflare Quick Tunnel is only for temporary testing, not a stable product URL.
 
@@ -95,6 +96,8 @@ Verification:
 
 - GitHub Pages returned HTTP 200 at `https://souluk319.github.io/TrashCam2004/?debug=1`.
 - Browser verification passed at `?demo=1&debug=1&save=prepare` with 390px viewport: `secure=true`, version `0.1.0-beta.1`, preset count `12`, demo render frames advancing, `Game` pack switching to `Pixel Art`/`Voxel`, Pixel Art PNG prepare, no horizontal overflow, and no console warnings/errors.
+- Latest `feat/dev0.1` diagnostics were deployed to `gh-pages` and verified on the stable URL: `assets/index-DoCWuob4.js`, `Copy phone test`, `acceptanceGate=synthetic-or-local-check`, capture review after PNG prepare, no horizontal overflow, no console warnings/errors.
+- Live `.nojekyll` marker returned HTTP 200.
 
 Exit criteria:
 

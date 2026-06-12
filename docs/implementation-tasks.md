@@ -82,6 +82,9 @@ Verified:
 - 2026-06-12 continuation: capture review verified on production preview with `?demo=1&debug=1&save=prepare` at 390px. Result: `captureReview=visible` after save, Blob preview image, same PNG byte size after `Share again`, `captureReview=hidden` after `Back to camera`, no horizontal overflow, no console warnings/errors.
 - 2026-06-12 continuation: real-device diagnostics were expanded with `acceptanceGate` and `Copy phone test`. The phone-test report includes device/browser blanks, current camera/save state, and manual fields for file-open/effect-visible confirmation.
 - 2026-06-12 continuation: phone-test report verified on production preview with `?demo=1&debug=1&save=prepare` at 390px. Result: `data-phone-test-report` filled, `acceptanceGate=synthetic-or-local-check`, report updated after save with `save=prepared` and `captureReview=visible`, no horizontal overflow, no console warnings/errors.
+- 2026-06-12 continuation: `feat/dev0.1` latest build was deployed to the `gh-pages` branch, preserving `main` as the stable source checkpoint.
+- 2026-06-12 continuation: stable GitHub Pages latest build verified with `?demo=1&debug=1&save=prepare` at 390px. Result: served `assets/index-DoCWuob4.js`, included `Copy phone test`, reported `secure=true`, `version=0.1.0-beta.1`, `acceptanceGate=synthetic-or-local-check`, prepared a PNG, opened capture review, had no horizontal overflow, and no console warnings/errors.
+- 2026-06-12 continuation: `public/.nojekyll` added and smoke now verifies `dist/.nojekyll`; live Pages marker returned HTTP 200.
 
 Not yet verified:
 
