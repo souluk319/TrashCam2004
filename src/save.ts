@@ -39,10 +39,20 @@ export function getSaveCapability(): string {
 }
 
 export async function saveCanvas(canvas: HTMLCanvasElement, preset: Preset, options: SaveOptions = {}): Promise<SaveResult> {
-  const blob = await canvasToBlob(canvas);
   const filename = `trashcam-2004-${preset.slug}-${formatTimestamp(new Date())}.png`;
 
-  return deliverBlob(blob, filename, preset.caption, options);
+  return saveNamedCanvas(canvas, filename, preset.caption, options);
+}
+
+export async function saveNamedCanvas(
+  canvas: HTMLCanvasElement,
+  filename: string,
+  text: string,
+  options: SaveOptions = {}
+): Promise<SaveResult> {
+  const blob = await canvasToBlob(canvas);
+
+  return deliverBlob(blob, filename, text, options);
 }
 
 export async function deliverBlob(

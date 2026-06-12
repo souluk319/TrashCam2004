@@ -26,8 +26,17 @@ import {
   drawTimestamp
 } from "./effects";
 import { startDemoSource, type DemoSource } from "./demo-source";
+import {
+  BOOTH_CUT_COUNT,
+  BOOTH_FRAME_TEMPLATES,
+  CaptureSession,
+  PhotoStripComposer,
+  formatBoothFilename,
+  getFrameTemplateById,
+  type FrameTemplate
+} from "./photo-strip";
 import { DEFAULT_PRESET, PRESETS, getPresetById, type Preset, type PresetCategory } from "./presets";
-import { deliverBlob, getSaveCapability, saveCanvas, type SaveResult } from "./save";
+import { deliverBlob, getSaveCapability, saveCanvas, saveNamedCanvas, type SaveResult } from "./save";
 import "./styles.css";
 
 const CANVAS_WIDTH = 640;
@@ -38,6 +47,8 @@ const PRESET_PACKS: Array<{ category: PresetCategory; label: string }> = [
   { category: "future", label: "Future" },
   { category: "game", label: "Game" }
 ];
+type CaptureMode = "single" | "booth";
+type BoothState = "idle" | "countdown" | "capturing" | "ready" | "saving";
 
 const app = requireNode(document.querySelector<HTMLDivElement>("#app"), "App root not found.");
 const rootParams = new URLSearchParams(window.location.search);
@@ -55,6 +66,10 @@ app.innerHTML = `
     <section class="preview-wrap" aria-label="TrashCam preview">
       <canvas class="preview" data-preview width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"></canvas>
       <video class="camera-source" data-video muted autoplay playsinline></video>
+      <div class="booth-countdown" data-booth-countdown hidden aria-live="polite">
+        <strong data-booth-countdown-value>3</strong>
+        <span data-booth-countdown-label>Cut 1/${BOOTH_CUT_COUNT}</span>
+      </div>
       <div class="boot-card" data-boot-card>
         <span>NO SIGNAL</span>
       </div>
@@ -72,7 +87,40 @@ app.innerHTML = `
       </div>
     </section>
 
+    <section class="booth-panel" data-booth-panel hidden aria-label="4-Cut Booth">
+      <div class="booth-progress">
+        <strong data-booth-progress>0/${BOOTH_CUT_COUNT}</strong>
+        <span data-booth-hint>Ready</span>
+      </div>
+      <div class="booth-thumbs" aria-label="4-Cut Booth captured frames">
+        ${Array.from({ length: BOOTH_CUT_COUNT }, (_, index) => `
+          <div class="booth-thumb" data-booth-thumb-slot="${index}">
+            <canvas data-booth-thumb="${index}" width="160" height="120"></canvas>
+            <span>${index + 1}</span>
+          </div>
+        `).join("")}
+      </div>
+      <div class="booth-frame-row" role="group" aria-label="4-Cut Booth frame">
+        ${BOOTH_FRAME_TEMPLATES.map((template) => `
+          <button
+            class="booth-frame-button"
+            type="button"
+            data-booth-frame="${template.id}"
+            aria-pressed="${template.id === BOOTH_FRAME_TEMPLATES[0].id}"
+          >
+            ${template.label}
+          </button>
+        `).join("")}
+        <button class="booth-reset-button" type="button" data-booth-reset hidden>Retake</button>
+      </div>
+    </section>
+
     <footer class="control-bar">
+      <div class="mode-tabs" role="tablist" aria-label="Capture mode">
+        <button class="mode-button" type="button" role="tab" data-capture-mode="single" aria-selected="true">Single Shot</button>
+        <button class="mode-button" type="button" role="tab" data-capture-mode="booth" aria-selected="false">4-Cut Booth</button>
+      </div>
+
       <div class="preset-pack-tabs" role="tablist" aria-label="Preset pack">
         ${PRESET_PACKS.map(
           (pack) => `
@@ -118,6 +166,10 @@ app.innerHTML = `
       <div><span>secure</span><output data-debug-key="secureContext">-</output></div>
       <div><span>version</span><output data-debug-key="appVersion">-</output></div>
       <div><span>presets</span><output data-debug-key="presetCount">-</output></div>
+      <div><span>mode</span><output data-debug-key="captureMode">-</output></div>
+      <div><span>booth</span><output data-debug-key="boothState">-</output></div>
+      <div><span>cuts</span><output data-debug-key="boothCuts">0</output></div>
+      <div><span>frame</span><output data-debug-key="boothFrame">-</output></div>
       <div><span>frames</span><output data-debug-key="renderedFrames">0</output></div>
       <div><span>preset</span><output data-debug-key="activePreset">-</output></div>
       <div><span>category</span><output data-debug-key="presetCategory">-</output></div>
@@ -163,6 +215,18 @@ const statusLine = requireNode(app.querySelector<HTMLParagraphElement>("[data-st
 const bootCard = requireNode(app.querySelector<HTMLDivElement>("[data-boot-card]"), "Boot card is missing.");
 const saveButton = requireNode(app.querySelector<HTMLButtonElement>("[data-save]"), "Save button is missing.");
 const retryButton = requireNode(app.querySelector<HTMLButtonElement>("[data-retry]"), "Retry button is missing.");
+const boothCountdown = requireNode(
+  app.querySelector<HTMLDivElement>("[data-booth-countdown]"),
+  "Booth countdown overlay is missing."
+);
+const boothCountdownValue = requireNode(
+  app.querySelector<HTMLElement>("[data-booth-countdown-value]"),
+  "Booth countdown value is missing."
+);
+const boothCountdownLabel = requireNode(
+  app.querySelector<HTMLElement>("[data-booth-countdown-label]"),
+  "Booth countdown label is missing."
+);
 const captureReview = requireNode(
   app.querySelector<HTMLElement>("[data-capture-panel]"),
   "Capture review is missing."
@@ -182,6 +246,22 @@ const shareAgainButton = requireNode(
 const backCameraButton = requireNode(
   app.querySelector<HTMLButtonElement>("[data-back-camera]"),
   "Back to camera button is missing."
+);
+const boothPanel = requireNode(
+  app.querySelector<HTMLElement>("[data-booth-panel]"),
+  "Booth panel is missing."
+);
+const boothProgress = requireNode(
+  app.querySelector<HTMLElement>("[data-booth-progress]"),
+  "Booth progress is missing."
+);
+const boothHint = requireNode(
+  app.querySelector<HTMLElement>("[data-booth-hint]"),
+  "Booth hint is missing."
+);
+const boothResetButton = requireNode(
+  app.querySelector<HTMLButtonElement>("[data-booth-reset]"),
+  "Booth reset button is missing."
 );
 const copyDebugButton = requireNode(
   app.querySelector<HTMLButtonElement>("[data-copy-debug]"),
@@ -223,8 +303,11 @@ const privacyCloseButton = requireNode(
   app.querySelector<HTMLButtonElement>("[data-privacy-close]"),
   "Privacy close button is missing."
 );
+const modeButtons = Array.from(app.querySelectorAll<HTMLButtonElement>("[data-capture-mode]"));
 const presetPackButtons = Array.from(app.querySelectorAll<HTMLButtonElement>("[data-preset-pack]"));
 const presetButtons = Array.from(app.querySelectorAll<HTMLButtonElement>("[data-preset]"));
+const boothFrameButtons = Array.from(app.querySelectorAll<HTMLButtonElement>("[data-booth-frame]"));
+const boothThumbCanvases = Array.from(app.querySelectorAll<HTMLCanvasElement>("[data-booth-thumb]"));
 const debugFields = new Map<string, HTMLOutputElement>();
 
 app.querySelectorAll<HTMLOutputElement>("[data-debug-key]").forEach((field) => {
@@ -238,7 +321,13 @@ app.querySelectorAll<HTMLOutputElement>("[data-debug-key]").forEach((field) => {
 const previewCtx = requireContext(previewCanvas.getContext("2d", { willReadFrequently: true }));
 const lowCanvas = document.createElement("canvas");
 const lowCtx = requireContext(lowCanvas.getContext("2d", { willReadFrequently: true }));
+const captureSession = new CaptureSession(CANVAS_WIDTH, CANVAS_HEIGHT);
+const photoStripComposer = new PhotoStripComposer();
 
+let captureMode: CaptureMode = "single";
+let boothState: BoothState = "idle";
+let selectedBoothFrame: FrameTemplate = BOOTH_FRAME_TEMPLATES[0];
+let boothRunId = 0;
 let activePreset = DEFAULT_PRESET;
 let activePresetCategory: PresetCategory = DEFAULT_PRESET.category;
 let activeStream: MediaStream | null = null;
@@ -251,6 +340,7 @@ let isSaving = false;
 let lastCaptureBlob: Blob | null = null;
 let lastCaptureFilename = "";
 let lastCapturePreset: Preset = DEFAULT_PRESET;
+let lastCaptureText = DEFAULT_PRESET.caption;
 let lastCaptureUrl: string | null = null;
 
 setCanvasPlaceholder();
@@ -263,11 +353,17 @@ setAppState("presetCount", String(PRESETS.length));
 setAppState("shareCapability", getSaveCapability());
 setAppState("videoSize", "0x0");
 setAppState("renderedFrames", "0");
+setAppState("captureMode", captureMode);
+setAppState("boothState", boothState);
+setAppState("boothCuts", "0");
+setAppState("boothFrame", selectedBoothFrame.id);
 setAppState("activePreset", activePreset.id);
 setAppState("presetCategory", activePreset.category);
 setAppState("captureReview", "hidden");
 resetManualEvidence();
 syncPhoneReportMetaState();
+syncCaptureModeUi();
+syncBoothUi();
 syncPresetButtons();
 
 if (shouldSkipCameraForLocalCheck()) {
@@ -282,6 +378,23 @@ if (shouldSkipCameraForLocalCheck()) {
 } else {
   void bootCamera();
 }
+
+modeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    selectCaptureMode(button.dataset.captureMode as CaptureMode);
+  });
+});
+
+boothFrameButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    selectBoothFrame(button.dataset.boothFrame ?? selectedBoothFrame.id);
+  });
+});
+
+boothResetButton.addEventListener("click", () => {
+  resetBoothSession();
+  setStatus("4-Cut Booth reset.");
+});
 
 presetButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -303,6 +416,11 @@ retryButton.addEventListener("click", () => {
 });
 
 saveButton.addEventListener("click", () => {
+  if (captureMode === "booth") {
+    void handleBoothPrimaryAction();
+    return;
+  }
+
   void saveCurrentFrame();
 });
 
@@ -361,9 +479,10 @@ async function bootCamera(): Promise<void> {
   renderedFrames = 0;
   setStatus("카메라 여는 중...");
   retryButton.hidden = true;
-  saveButton.disabled = true;
+  syncPrimaryActionState();
   bootCard.hidden = false;
   hideCaptureReview();
+  resetBoothSession();
   stopRenderLoop();
   stopDemoSource();
   stopStream(activeStream);
@@ -375,9 +494,9 @@ async function bootCamera(): Promise<void> {
     setAppState("cameraError", "none");
     refreshVideoState();
     bootCard.hidden = true;
-    saveButton.disabled = false;
-    setStatus(activePreset.caption);
+    setStatus(captureMode === "booth" ? "4-Cut Booth ready." : activePreset.caption);
     startRenderLoop();
+    syncPrimaryActionState();
   } catch (error) {
     handleCameraFailure(error);
   }
@@ -391,9 +510,10 @@ async function bootDemoSource(): Promise<void> {
   renderedFrames = 0;
   setStatus("synthetic camera 검증 중...");
   retryButton.hidden = false;
-  saveButton.disabled = true;
+  syncPrimaryActionState();
   bootCard.hidden = false;
   hideCaptureReview();
+  resetBoothSession();
   stopRenderLoop();
   stopDemoSource();
   stopStream(activeStream);
@@ -406,15 +526,16 @@ async function bootDemoSource(): Promise<void> {
     setAppState("cameraError", "none");
     refreshVideoState();
     bootCard.hidden = true;
-    saveButton.disabled = false;
-    setStatus("Synthetic source. 실제 카메라 검증은 아님.");
+    setStatus(captureMode === "booth" ? "Synthetic 4-Cut Booth ready." : "Synthetic source. 실제 카메라 검증은 아님.");
     startRenderLoop();
+    syncPrimaryActionState();
   } catch {
     setAppState("cameraState", "failed");
     setAppState("cameraError", "demo-source");
     setStatus("Synthetic source를 못 열었다.");
     retryButton.hidden = false;
     bootCard.hidden = false;
+    syncPrimaryActionState();
     setCanvasPlaceholder();
   }
 }
@@ -439,7 +560,7 @@ async function saveCurrentFrame(): Promise<void> {
     setStatus("저장 실패. 브라우저가 또 예민하게 군다.");
   } finally {
     isSaving = false;
-    saveButton.disabled = activeStream === null;
+    syncPrimaryActionState();
     setCaptureActionsDisabled(false);
   }
 }
@@ -458,7 +579,7 @@ async function shareLastCapture(): Promise<void> {
     const result = await deliverBlob(
       lastCaptureBlob,
       lastCaptureFilename,
-      lastCapturePreset.caption,
+      lastCaptureText,
       { prepareOnly: shouldPrepareSaveOnly() }
     );
     storeSaveResult(result);
@@ -469,7 +590,101 @@ async function shareLastCapture(): Promise<void> {
     setStatus("재공유 실패. 그래도 카메라는 살아있다.");
   } finally {
     isSaving = false;
-    saveButton.disabled = activeStream === null;
+    syncPrimaryActionState();
+    setCaptureActionsDisabled(false);
+  }
+}
+
+async function handleBoothPrimaryAction(): Promise<void> {
+  if (captureSession.complete) {
+    await saveBoothStrip();
+    return;
+  }
+
+  await runBoothCaptureSequence();
+}
+
+async function runBoothCaptureSequence(): Promise<void> {
+  if (isSaving || boothState === "countdown" || boothState === "capturing" || activeStream === null) {
+    return;
+  }
+
+  const runId = boothRunId + 1;
+  boothRunId = runId;
+  captureSession.reset();
+  clearBoothThumbnails();
+  hideCaptureReview();
+  setBoothState("countdown");
+
+  for (let cutIndex = 0; cutIndex < BOOTH_CUT_COUNT; cutIndex += 1) {
+    const cutNumber = cutIndex + 1;
+    const countdownSeconds = getBoothCountdownSeconds();
+
+    for (let second = countdownSeconds; second >= 1; second -= 1) {
+      if (runId !== boothRunId || captureMode !== "booth") {
+        return;
+      }
+
+      showBoothCountdown(second, cutNumber);
+      setStatus(`4-Cut Booth ${cutNumber}/${BOOTH_CUT_COUNT} - ${second}`);
+      await delay(getBoothCountdownDelayMs());
+    }
+
+    if (runId !== boothRunId || captureMode !== "booth") {
+      return;
+    }
+
+    setBoothState("capturing");
+    const frame = captureSession.addFrame(previewCanvas);
+    drawBoothThumbnail(frame, cutIndex);
+    updateBoothProgress(`Captured ${cutNumber}/${BOOTH_CUT_COUNT}`);
+    setAppState("boothCuts", String(captureSession.count));
+
+    if (cutNumber < BOOTH_CUT_COUNT) {
+      setBoothState("countdown");
+      await delay(getBoothBetweenShotsDelayMs());
+    }
+  }
+
+  hideBoothCountdown();
+  setBoothState("ready");
+  updateBoothProgress("Pick frame, save strip");
+  setStatus("4-Cut Booth ready.");
+}
+
+async function saveBoothStrip(): Promise<void> {
+  if (isSaving || !captureSession.complete) {
+    return;
+  }
+
+  isSaving = true;
+  setBoothState("saving");
+  syncPrimaryActionState();
+  setCaptureActionsDisabled(true);
+  setStatus("Photo strip 만드는 중...");
+
+  try {
+    const stripCanvas = photoStripComposer.compose(captureSession.getFrames(), selectedBoothFrame);
+    const filename = formatBoothFilename(selectedBoothFrame);
+    const result = await saveNamedCanvas(
+      stripCanvas,
+      filename,
+      "4-Cut Booth from TrashCam 2004.",
+      { prepareOnly: shouldPrepareSaveOnly() }
+    );
+
+    storeSaveResult(result);
+    showCaptureReview(result, activePreset, "4-Cut Booth saved TrashCam strip", "4-Cut Booth from TrashCam 2004.");
+    setBoothState("ready");
+    updateBoothProgress("Saved strip");
+    setStatus(result.message);
+  } catch {
+    setAppState("lastSaveKind", "failed");
+    setBoothState("ready");
+    setStatus("스트립 저장 실패. 다시 Save Strip.");
+  } finally {
+    isSaving = false;
+    syncPrimaryActionState();
     setCaptureActionsDisabled(false);
   }
 }
@@ -481,15 +696,21 @@ function storeSaveResult(result: SaveResult): void {
   setAppState("lastSaveName", result.filename);
 }
 
-function showCaptureReview(result: SaveResult, preset: Preset): void {
+function showCaptureReview(
+  result: SaveResult,
+  preset: Preset,
+  altText = `${preset.shortName} saved TrashCam capture`,
+  shareText = preset.caption
+): void {
   lastCaptureBlob = result.blob;
   lastCaptureFilename = result.filename;
   lastCapturePreset = preset;
+  lastCaptureText = shareText;
   revokeCaptureUrl();
   lastCaptureUrl = URL.createObjectURL(result.blob);
 
   captureImage.src = lastCaptureUrl;
-  captureImage.alt = `${preset.shortName} saved TrashCam capture`;
+  captureImage.alt = altText;
   captureFile.textContent = result.filename;
   captureReview.hidden = false;
   setAppState("captureReview", "visible");
@@ -503,6 +724,7 @@ function hideCaptureReview(): void {
   lastCaptureBlob = null;
   lastCaptureFilename = "";
   lastCapturePreset = DEFAULT_PRESET;
+  lastCaptureText = DEFAULT_PRESET.caption;
   revokeCaptureUrl();
   setAppState("captureReview", "hidden");
   setCaptureActionsDisabled(false);
@@ -518,6 +740,150 @@ function revokeCaptureUrl(): void {
 function setCaptureActionsDisabled(disabled: boolean): void {
   shareAgainButton.disabled = disabled || !lastCaptureBlob;
   backCameraButton.disabled = disabled;
+}
+
+function selectCaptureMode(mode: CaptureMode): void {
+  if (mode === captureMode) {
+    return;
+  }
+
+  captureMode = mode;
+  setAppState("captureMode", captureMode);
+  hideBoothCountdown();
+
+  if (mode === "single") {
+    resetBoothSession();
+    setStatus(activePreset.caption);
+  } else {
+    hideCaptureReview();
+    resetBoothSession();
+    setStatus("4-Cut Booth ready.");
+  }
+
+  syncCaptureModeUi();
+  syncPrimaryActionState();
+}
+
+function selectBoothFrame(frameId: string): void {
+  selectedBoothFrame = getFrameTemplateById(frameId);
+  setAppState("boothFrame", selectedBoothFrame.id);
+  syncBoothFrameButtons();
+
+  if (captureMode === "booth" && captureSession.complete) {
+    setStatus(`${selectedBoothFrame.label} frame selected.`);
+  }
+}
+
+function resetBoothSession(): void {
+  boothRunId += 1;
+  captureSession.reset();
+  clearBoothThumbnails();
+  hideBoothCountdown();
+  setBoothState("idle");
+  updateBoothProgress("Ready");
+  setAppState("boothCuts", "0");
+  syncPrimaryActionState();
+}
+
+function setBoothState(nextState: BoothState): void {
+  boothState = nextState;
+  setAppState("boothState", boothState);
+  syncBoothUi();
+  syncPrimaryActionState();
+}
+
+function syncCaptureModeUi(): void {
+  modeButtons.forEach((button) => {
+    button.setAttribute("aria-selected", String(button.dataset.captureMode === captureMode));
+  });
+
+  boothPanel.hidden = captureMode !== "booth";
+  syncBoothUi();
+}
+
+function syncBoothUi(): void {
+  boothPanel.hidden = captureMode !== "booth";
+  boothResetButton.hidden = captureMode !== "booth" || (boothState === "idle" && captureSession.count === 0);
+  syncBoothFrameButtons();
+}
+
+function syncBoothFrameButtons(): void {
+  boothFrameButtons.forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.dataset.boothFrame === selectedBoothFrame.id));
+  });
+}
+
+function syncPrimaryActionState(): void {
+  const readyForAction = activeStream !== null && app.dataset.cameraState === "ready";
+  const boothBusy = boothState === "countdown" || boothState === "capturing" || boothState === "saving";
+
+  if (captureMode === "booth") {
+    saveButton.textContent = captureSession.complete ? "Save Strip" : "Start 4-Cut";
+    saveButton.disabled = isSaving || !readyForAction || boothBusy;
+    return;
+  }
+
+  saveButton.textContent = "Save PNG";
+  saveButton.disabled = isSaving || !readyForAction;
+}
+
+function showBoothCountdown(second: number, cutNumber: number): void {
+  boothCountdown.hidden = false;
+  boothCountdownValue.textContent = String(second);
+  boothCountdownLabel.textContent = `Cut ${cutNumber}/${BOOTH_CUT_COUNT}`;
+  setAppState("boothCuts", String(captureSession.count));
+}
+
+function hideBoothCountdown(): void {
+  boothCountdown.hidden = true;
+}
+
+function updateBoothProgress(message: string): void {
+  boothProgress.textContent = `${captureSession.count}/${BOOTH_CUT_COUNT}`;
+  boothHint.textContent = message;
+}
+
+function clearBoothThumbnails(): void {
+  boothThumbCanvases.forEach((canvas) => {
+    const ctx = requireContext(canvas.getContext("2d"));
+
+    canvas.dataset.filled = "no";
+    ctx.fillStyle = "#050505";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "#3e3a27";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+  });
+}
+
+function drawBoothThumbnail(frame: HTMLCanvasElement, index: number): void {
+  const canvas = boothThumbCanvases[index];
+
+  if (!canvas) {
+    return;
+  }
+
+  const ctx = requireContext(canvas.getContext("2d"));
+
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+  canvas.dataset.filled = "yes";
+}
+
+function getBoothCountdownSeconds(): number {
+  return rootParams.get("boothFast") === "1" ? 1 : 3;
+}
+
+function getBoothCountdownDelayMs(): number {
+  return rootParams.get("boothFast") === "1" ? 80 : 1000;
+}
+
+function getBoothBetweenShotsDelayMs(): number {
+  return rootParams.get("boothFast") === "1" ? 60 : 500;
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
 function resetManualEvidence(): void {
@@ -822,15 +1188,21 @@ function selectPreset(preset: Preset): void {
   setAppState("activePreset", activePreset.id);
   setAppState("presetCategory", activePreset.category);
   syncPresetButtons();
+
+  if (captureMode === "booth") {
+    setStatus(`4-Cut Booth filter: ${activePreset.shortName}`);
+    return;
+  }
+
   setStatus(activePreset.caption);
 }
 
 function handleCameraFailure(error: unknown): void {
   setAppState("cameraState", "failed");
   setAppState("cameraError", error instanceof CameraError ? error.kind : "unknown");
-  saveButton.disabled = true;
   retryButton.hidden = false;
   bootCard.hidden = false;
+  syncPrimaryActionState();
   setCanvasPlaceholder();
 
   if (error instanceof CameraError && error.kind === "permission-denied") {
@@ -951,6 +1323,10 @@ function buildDebugReport(): string {
     `secure=${app.dataset.secureContext ?? "-"}`,
     `version=${app.dataset.appVersion ?? "-"}`,
     `presets=${app.dataset.presetCount ?? "-"}`,
+    `mode=${app.dataset.captureMode ?? "-"}`,
+    `booth=${app.dataset.boothState ?? "-"}`,
+    `boothCuts=${app.dataset.boothCuts ?? "-"}`,
+    `boothFrame=${app.dataset.boothFrame ?? "-"}`,
     `viewport=${window.innerWidth}x${window.innerHeight}`,
     `devicePixelRatio=${window.devicePixelRatio}`,
     `video=${app.dataset.videoSize ?? "-"}`,
@@ -992,6 +1368,10 @@ function buildPhoneTestReport(): string {
     `secure=${app.dataset.secureContext ?? "-"}`,
     `version=${app.dataset.appVersion ?? "-"}`,
     `presets=${app.dataset.presetCount ?? "-"}`,
+    `mode=${app.dataset.captureMode ?? "-"}`,
+    `booth=${app.dataset.boothState ?? "-"}`,
+    `boothCuts=${app.dataset.boothCuts ?? "-"}`,
+    `boothFrame=${app.dataset.boothFrame ?? "-"}`,
     `viewport=${window.innerWidth}x${window.innerHeight}`,
     `devicePixelRatio=${window.devicePixelRatio}`,
     `video=${app.dataset.videoSize ?? "-"}`,

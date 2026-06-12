@@ -57,6 +57,9 @@ const viteConfigSource = readText("vite.config.ts");
 const fakeCameraSource = fileExists("scripts/fake-camera-check.mjs")
   ? readText("scripts/fake-camera-check.mjs")
   : "";
+const boothCheckSource = fileExists("scripts/booth-check.mjs")
+  ? readText("scripts/booth-check.mjs")
+  : "";
 const downloadCheckSource = fileExists("scripts/download-check.mjs")
   ? readText("scripts/download-check.mjs")
   : "";
@@ -90,6 +93,10 @@ assert(
   "package.json has fake camera verification script",
 );
 assert(
+  packageJson.scripts?.["verify:booth"] === "npm run build && node scripts/booth-check.mjs",
+  "package.json has 4-Cut Booth verification script",
+);
+assert(
   packageJson.scripts?.["verify:download"] === "npm run build && node scripts/download-check.mjs",
   "package.json has fallback download verification script",
 );
@@ -121,6 +128,10 @@ assert(fakeCameraSource.includes('camera === "ready"'), "fake camera verificatio
 assert(fakeCameraSource.includes('phoneReport.includes("source=camera")'), "fake camera verification checks phone test report camera source");
 assert(fakeCameraSource.includes('captureReview === "visible"'), "fake camera verification checks capture review after save");
 assert(fakeCameraSource.includes("cleanup();"), "fake camera verification cleans up browser processes");
+assert(boothCheckSource.includes("boothFast=1"), "4-Cut Booth verification uses fast countdown mode");
+assert(boothCheckSource.includes('captureMode === "booth"'), "4-Cut Booth verification switches capture mode");
+assert(boothCheckSource.includes('boothCuts === "4"'), "4-Cut Booth verification requires four captured cuts");
+assert(boothCheckSource.includes("4-cut-booth-classic-black"), "4-Cut Booth verification checks strip filename");
 assert(downloadCheckSource.includes("Browser.setDownloadBehavior"), "download verification allows a controlled Chrome download folder");
 assert(downloadCheckSource.includes('state.save === "downloaded"'), "download verification requires fallback downloaded state");
 assert(downloadCheckSource.includes("PNG_SIGNATURE"), "download verification checks PNG file signature");
@@ -140,6 +151,9 @@ assert(pagesCheckSource.includes("data-manual-file-opened"), "stable Pages verif
 assert(pagesCheckSource.includes("data-manual-effect-visible"), "stable Pages verification checks manual saved-effect control");
 assert(pagesCheckSource.includes("overflowCount"), "stable Pages verification checks horizontal overflow");
 assert(pagesCheckSource.includes("browserProblems"), "stable Pages verification checks browser warnings/errors");
+assert(pagesCheckSource.includes("BOOTH_CHECK_URL"), "stable Pages verification includes 4-Cut Booth URL");
+assert(pagesCheckSource.includes("runBoothFlow"), "stable Pages verification runs 4-Cut Booth flow");
+assert(pagesCheckSource.includes("4-cut-booth-classic-black"), "stable Pages verification checks 4-Cut Booth filename");
 assert(phoneTestGuideSource.includes("https://souluk319.github.io/TrashCam2004/?debug=1"), "phone test guide prints stable debug URL");
 assert(phoneTestGuideSource.includes("Copy phone test"), "phone test guide explains copied phone report");
 assert(phoneTestGuideSource.includes("pbpaste | npm run verify:phone-report"), "phone test guide prints verification command");
@@ -163,11 +177,13 @@ assert(fileExists("public/.nojekyll"), "GitHub Pages no-Jekyll marker exists");
 assert(fileExists("src/main.ts"), "src/main.ts exists");
 assert(fileExists("src/camera.ts"), "src/camera.ts exists");
 assert(fileExists("src/effects.ts"), "src/effects.ts exists");
+assert(fileExists("src/photo-strip.ts"), "photo strip composer exists");
 assert(fileExists("src/presets.ts"), "src/presets.ts exists");
 assert(fileExists("src/save.ts"), "src/save.ts exists");
 assert(fileExists("src/demo-source.ts"), "src/demo-source.ts exists");
 assert(fileExists("scripts/readiness-check.mjs"), "readiness check script exists");
 assert(fileExists("scripts/fake-camera-check.mjs"), "fake camera verification script exists");
+assert(fileExists("scripts/booth-check.mjs"), "4-Cut Booth verification script exists");
 assert(fileExists("scripts/download-check.mjs"), "fallback download verification script exists");
 assert(fileExists("scripts/phone-report-check.mjs"), "phone report verification script exists");
 assert(fileExists("scripts/pages-check.mjs"), "stable Pages verification script exists");
@@ -252,6 +268,11 @@ assert(mainSource.includes("does not upload photos or video"), "privacy dialog e
 assert(mainSource.includes("data-preset-pack"), "app exposes preset pack tabs");
 assert(mainSource.includes("activePresetCategory"), "preset pack state is tracked");
 assert(mainSource.includes("button.hidden = button.dataset.category !== activePresetCategory"), "preset buttons filter by active pack");
+assert(mainSource.includes("data-capture-mode=\"booth\""), "app exposes 4-Cut Booth mode button");
+assert(mainSource.includes("runBoothCaptureSequence"), "app can run 4-Cut Booth capture sequence");
+assert(mainSource.includes("saveBoothStrip"), "app can save a composed 4-Cut Booth strip");
+assert(mainSource.includes("data-booth-frame"), "app exposes 4-Cut Booth frame choices");
+assert(mainSource.includes("boothFast"), "app supports fast booth countdown verification mode");
 assert(mainSource.includes("data-capture-panel"), "app exposes capture review panel");
 assert(mainSource.includes("data-capture-image"), "capture review renders the saved PNG");
 assert(mainSource.includes("data-share-again"), "capture review can share the same saved PNG again");
@@ -260,6 +281,7 @@ assert(mainSource.includes("lastCaptureBlob"), "app stores the last capture blob
 assert(mainSource.includes("URL.revokeObjectURL"), "app revokes capture object URLs");
 
 assert(saveSource.includes("canvas.toBlob"), "save path converts canvas to PNG blob");
+assert(saveSource.includes("saveNamedCanvas"), "save path can save a canvas with explicit filename");
 assert(saveSource.includes("deliverBlob"), "save path can deliver an existing PNG blob");
 assert(saveSource.includes("getSaveCapability"), "save path exposes share capability diagnostics");
 assert(saveSource.includes("tryCreateShareData"), "save path guards File creation before sharing");

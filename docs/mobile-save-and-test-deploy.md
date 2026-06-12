@@ -116,6 +116,14 @@ Already verified locally:
   - downloaded filename matches the app state
   - downloaded byte count matches `data-last-save-bytes`
   - downloaded file has a PNG signature and 640x480 dimensions
+- 4-Cut Booth synthetic verification:
+  - `npm run verify:booth` opens production preview with `?demo=1&debug=1&save=prepare&boothFast=1`
+  - switches to `4-Cut Booth`
+  - captures 4 frames
+  - selects the Black frame
+  - prepares a vertical strip PNG
+  - opens capture review
+  - checks 390px no-overflow
 - `?demo=1&debug=1&save=prepare` at 390px:
   - visible debug panel
   - `camera=ready`
@@ -187,16 +195,17 @@ Not yet verified:
 
 - Real desktop camera permission and live stream
 - Real desktop downloaded PNG using an actual camera frame
+- Real phone 4-Cut Booth capture and saved strip usability
 - Native share sheet and phone Photos/Files save usability
 - Real iPhone Safari or Android Chrome full loop
 
 Verified HTTPS URL:
 
 - `https://souluk319.github.io/TrashCam2004/`
-- Latest deployed bundle: `assets/index-C15NFgUv.js` and `assets/index-1XxUydf5.css` from `gh-pages` commit `d8bb81e`.
-- Synthetic check passed at `?demo=1&debug=1&save=prepare` with 390px viewport, `secure=true`, active render frames, evidence controls, editable phone-report values, and PNG prepare.
+- Latest deployed bundle: `assets/index-CNl1gmS3.js` and `assets/index-CMtLtmE0.css` from `gh-pages` commit `486ef19`.
+- Synthetic check passed at `?demo=1&debug=1&save=prepare` with 390px viewport, `secure=true`, active render frames, evidence controls, editable phone-report values, PNG prepare, and live 4-Cut Booth strip prepare.
 - Live `favicon.svg` and `.nojekyll` returned HTTP 200.
-- `npm run verify:pages` passed against the stable URL with matching hashed assets, PNG prepare `694042` bytes, automatic device evidence fields, evidence report updates, no overflow, and no browser warnings/errors.
+- `npm run verify:pages` passed against the stable URL with matching hashed assets, normal PNG prepare, live 4-Cut Booth strip prepare, evidence report updates, no overflow, and no browser warnings/errors.
 
 Important honesty rule:
 
@@ -209,6 +218,7 @@ Run these before any HTTPS deployment attempt:
 ```bash
 npm run smoke
 npm run verify:fake-camera
+npm run verify:booth
 npm run verify:download
 npm run verify:phone-report:self-test
 npm run phone:test
@@ -221,6 +231,16 @@ Expected pass signal:
 Smoke check passed.
 TrashCam 2004 readiness check
 ```
+
+4-Cut Booth verification:
+
+```bash
+npm run verify:booth
+```
+
+This builds the app, opens production preview in demo mode with a fast booth countdown, captures 4 frames, selects the Black frame, saves a vertical strip PNG through `?save=prepare`, and verifies capture review plus 390px no-overflow.
+
+It proves the generated photo-strip canvas path works. It does not prove physical phone camera capture, native share sheet behavior, or saved strip usability on iPhone/Android.
 
 If readiness reports that Vercel CLI is missing, do not install it silently. Ask for approval first.
 

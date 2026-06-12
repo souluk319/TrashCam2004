@@ -75,6 +75,12 @@ if (packageJson.scripts?.["verify:pages"] === "npm run build:pages && node scrip
   block("stable Pages verification script missing or changed");
 }
 
+if (packageJson.scripts?.["verify:booth"] === "npm run build && node scripts/booth-check.mjs") {
+  pass("4-Cut Booth verification script is available");
+} else {
+  block("4-Cut Booth verification script missing or changed");
+}
+
 if (packageJson.scripts?.["verify:download"] === "npm run build && node scripts/download-check.mjs") {
   pass("fallback download verification script is available");
 } else {

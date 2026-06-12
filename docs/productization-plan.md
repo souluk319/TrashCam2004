@@ -11,9 +11,10 @@ Open public link -> allow camera -> funny live preview -> switch presets -> save
 ## Current state
 
 - Static Vite + TypeScript app is implemented.
-- Camera, canvas render loop, preset switching, PNG save/share fallback, capture review, `?demo=1`, `?debug=1`, and `?save=prepare` exist.
+- Camera, canvas render loop, preset switching, `4-Cut Booth` first pass, PNG save/share fallback, capture review, `?demo=1`, `?debug=1`, and `?save=prepare` exist.
 - Public beta polish exists: Open Graph metadata, Privacy dialog, 12 presets, app version, preset count diagnostics, capture review, phone-test report copying, editable device/browser/notes fields, automatic device/browser evidence, and debug-only saved-file/effect evidence controls.
 - Local synthetic verification passes.
+- Local 4-Cut Booth verification passes: `npm run verify:booth` proves mode switching, four captures, Black frame strip composition, PNG preparation, capture review, and 390px no-overflow in demo mode.
 - Local fake-camera verification passes: `npm run verify:fake-camera` uses Chrome fake media to prove the real `getUserMedia()` path reaches `source=camera`, `camera=ready`, PNG preparation, and capture review.
 - Local fallback-download verification passes: `npm run verify:download` proves the production preview can write a PNG file to disk and that the file matches app-reported bytes, PNG signature, and 640x480 dimensions.
 - Phone report verifier exists: `npm run verify:phone-report` validates pasted real-device evidence, requires filled device/browser fields, and `npm run verify:phone-report:self-test` proves the parser rejects demo/prepare-only reports.
@@ -57,6 +58,7 @@ Actions:
 npm run build
 npm run smoke
 npm run verify:fake-camera
+npm run verify:booth
 npm run verify:download
 npm run verify:phone-report:self-test
 npm run verify:pages
@@ -69,6 +71,7 @@ Exit criteria:
 - Build passes.
 - Smoke passes.
 - Fake-camera verification passes.
+- 4-Cut Booth synthetic verification passes.
 - Fallback-download file verification passes.
 - Phone-report parser self-test passes.
 - Stable Pages verification passes after the Pages deployment is updated.
@@ -116,6 +119,7 @@ Verification:
 - `npm run verify:pages` now automates the stable URL check: live hashed assets must match the current Pages build, `.nojekyll` must be reachable, demo PNG prepare and evidence report update must pass, and browser warnings/errors or horizontal overflow fail the check.
 - Latest `gh-pages` commit `6d36964` adds the base-path-safe favicon and passes `npm run verify:pages`: live assets match local Pages build, live `favicon.svg`/`.nojekyll` return HTTP 200, PNG prepare succeeds, and the evidence report updates without browser warnings/errors.
 - Latest phone-report metadata deployment is on `gh-pages` commit `d8bb81e`. `npm run verify:pages` passed with live `assets/index-C15NFgUv.js`, editable device/browser/notes values in the report, PNG prepare `694072` bytes, and `gate=synthetic-or-local-check`.
+- 4-Cut Booth first pass is implemented and deployed to GitHub Pages. `npm run verify:booth` passed locally, and `npm run verify:pages` passed against the live URL with a Black frame strip PNG. It still needs real phone acceptance.
 - Phone-test reports now include automatic evidence fields: `userAgent`, `platform`, `maxTouchPoints`, physical `screen`, `orientation`, `language`, and `mobileCandidate`. Smoke, fake-camera, and stable Pages verification check these fields exist.
 - Latest `gh-pages` commit `9063556` deploys the automatic evidence report expansion and passes `npm run verify:pages`: live Pages serves `assets/index-DV-6-8CJ.js`, PNG prepare reaches `694042` bytes, evidence report updates, and the acceptance gate remains `synthetic-or-local-check`.
 
@@ -263,7 +267,35 @@ Verification:
 - `npm run smoke` passes and checks the capture review source contracts.
 - Production preview at `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` with a 390px viewport showed demo render ready, `Save PNG` -> `captureReview=visible`, object URL image preview, filename display, `Share again` reusing the same prepared PNG byte size, `Back to camera` -> `captureReview=hidden`, no horizontal overflow, and no console warnings/errors.
 
-### 3. Shareable brand polish
+### 3. 4-Cut Booth first pass
+
+Status: implemented locally.
+
+Problem:
+
+- Single-frame saves are funny, but a four-cut strip turns the app into a small group-play photo booth.
+
+Implemented fix:
+
+- Add `Single Shot` / `4-Cut Booth` mode switching.
+- Capture 4 filtered frames in sequence.
+- Compose one vertical photo strip canvas.
+- Offer White and Black frame templates.
+- Save the strip through the existing PNG and Capture Review path.
+- Keep shipped UI naming to `4-Cut Booth`; do not use `인생네컷` in the app.
+
+Exit criteria:
+
+- Demo mode can produce a 4-cut PNG strip without camera/download prompts.
+- Real phone test later proves camera capture and saved strip usability.
+
+Verification:
+
+- `npm run verify:booth` passed on production preview using `?demo=1&debug=1&save=prepare&boothFast=1`.
+- In-app browser 390px check produced `trashcam-2004-4-cut-booth-classic-black-...png`, opened Capture Review, and had no horizontal overflow.
+- GitHub Pages deployment `486ef19` passed `npm run verify:pages`; live 4-Cut Booth prepared a non-zero Black frame strip PNG.
+
+### 4. Shareable brand polish
 
 Actions:
 

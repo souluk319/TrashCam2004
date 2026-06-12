@@ -5,7 +5,9 @@ import { spawn } from "node:child_process";
 import net from "node:net";
 
 const PAGES_ROOT_URL = "https://souluk319.github.io/TrashCam2004/";
-const CHECK_URL = `${PAGES_ROOT_URL}?demo=1&debug=1&save=prepare&cacheBust=${Date.now()}`;
+const CACHE_BUST = Date.now();
+const CHECK_URL = `${PAGES_ROOT_URL}?demo=1&debug=1&save=prepare&cacheBust=${CACHE_BUST}`;
+const BOOTH_CHECK_URL = `${PAGES_ROOT_URL}?demo=1&debug=1&save=prepare&boothFast=1&cacheBust=${CACHE_BUST}`;
 const CHROME_CANDIDATES = [
   process.env.CHROME_BIN,
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -112,6 +114,21 @@ async function main() {
       }
 
       logOk(`stable Pages bytes=${finalState.bytes} gate=${finalState.acceptanceGate}`);
+
+      await client.send("Page.navigate", { url: BOOTH_CHECK_URL });
+      await waitForDemoReady(client, expectedAssets);
+      await runBoothFlow(client);
+      const boothState = await readAppState(client);
+
+      if (boothState.overflowCount !== 0) {
+        fail(`expected no 4-Cut Booth overflow, got ${boothState.overflowCount}`);
+      }
+
+      if (browserProblems.length > 0) {
+        fail(`stable Pages emitted browser problems: ${browserProblems.join(" | ")}`);
+      }
+
+      logOk(`stable Pages 4-Cut Booth bytes=${boothState.bytes} frame=${boothState.boothFrame}`);
     } finally {
       await client.close();
     }
@@ -302,6 +319,7 @@ async function waitForDemoReady(client, expectedAssets) {
       && state.hasPhoneDeviceInput
       && state.hasPhoneBrowserInput
       && state.hasPhoneNotesInput
+      && state.hasBoothMode
     );
   }, 15_000, "stable Pages demo did not reach ready state");
 }
@@ -333,6 +351,37 @@ async function waitForManualEvidenceReport(client) {
   }, 5_000, () => `stable Pages phone evidence report did not update: ${JSON.stringify(lastState)}`);
 }
 
+async function runBoothFlow(client) {
+  await evaluate(client, `document.querySelector('button[data-capture-mode="booth"]')?.click()`);
+  await waitFor(async () => {
+    const state = await readAppState(client);
+    return state.captureMode === "booth";
+  }, 5_000, "stable Pages 4-Cut Booth mode did not activate");
+
+  await evaluate(client, "document.querySelector('[data-save]')?.click()");
+  await waitFor(async () => {
+    const state = await readAppState(client);
+    return state.boothState === "ready" && state.boothCuts === "4" && state.filledBoothThumbs === 4;
+  }, 12_000, "stable Pages 4-Cut Booth did not capture four frames");
+
+  await evaluate(client, `document.querySelector('[data-booth-frame="classic-black"]')?.click()`);
+  await waitFor(async () => {
+    const state = await readAppState(client);
+    return state.boothFrame === "classic-black";
+  }, 5_000, "stable Pages 4-Cut Booth frame did not change");
+
+  await evaluate(client, "document.querySelector('[data-save]')?.click()");
+  await waitFor(async () => {
+    const state = await readAppState(client);
+    return (
+      state.save === "prepared"
+      && state.captureReview === "visible"
+      && state.bytes > 0
+      && state.filename.includes("4-cut-booth-classic-black")
+    );
+  }, 8_000, "stable Pages 4-Cut Booth strip did not prepare PNG");
+}
+
 async function readAppState(client) {
   return evaluate(client, `(() => {
     const app = document.querySelector("#app");
@@ -359,6 +408,11 @@ async function readAppState(client) {
       acceptanceGate: app?.dataset.acceptanceGate ?? "",
       captureReview: app?.dataset.captureReview ?? "",
       bytes: Number(app?.dataset.lastSaveBytes ?? 0),
+      filename: app?.dataset.lastSaveName ?? "",
+      captureMode: app?.dataset.captureMode ?? "",
+      boothState: app?.dataset.boothState ?? "",
+      boothCuts: app?.dataset.boothCuts ?? "",
+      boothFrame: app?.dataset.boothFrame ?? "",
       manualFile: app?.dataset.manualSavedFileOpened ?? "",
       manualEffect: app?.dataset.manualSavedEffectVisible ?? "",
       phoneDevice: app?.dataset.phoneDevice ?? "",
@@ -369,6 +423,8 @@ async function readAppState(client) {
       hasPhoneDeviceInput: Boolean(document.querySelector("[data-phone-device-input]")),
       hasPhoneBrowserInput: Boolean(document.querySelector("[data-phone-browser-input]")),
       hasPhoneNotesInput: Boolean(document.querySelector("[data-phone-notes-input]")),
+      hasBoothMode: Boolean(document.querySelector('button[data-capture-mode="booth"]')),
+      filledBoothThumbs: Array.from(document.querySelectorAll("[data-booth-thumb]")).filter((canvas) => canvas.dataset.filled === "yes").length,
       reportHasManualFileYes: phoneReport.includes("manualSavedFileOpened=yes"),
       reportHasManualEffectYes: phoneReport.includes("manualSavedEffectVisible=yes"),
       reportHasAcceptanceCandidateNo: phoneReport.includes("acceptanceCandidate=no"),

@@ -11,6 +11,12 @@ it turns the front camera into a broken-looking old webcam with pixelation, colo
 
 The value is not utility. The value is instant visual comedy.
 
+## 4-Cut Booth mode
+
+`4-Cut Booth` is the first product-style mode expansion. It keeps the same filter presets, captures four frames in sequence, combines them into one vertical photo strip, and saves the strip as a PNG.
+
+Public naming guardrail: do not use `인생네컷` inside the app UI. Use `4-Cut Booth`, `Four Cut`, or `Photo Strip` style naming instead.
+
 ## Target experience
 
 1. Open the app on a phone.
@@ -89,6 +95,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - `npm run smoke` succeeds.
 - `npm run verify:fake-camera` succeeds. It launches Chrome with a fake media device and verifies the real `getUserMedia()` code path reaches `source=camera`, `camera=ready`, PNG preparation, and capture review.
 - `npm run verify:download` succeeds. It launches Chrome against the production preview, triggers fallback download, and verifies the saved PNG file on disk by filename, byte size, PNG signature, and 640x480 dimensions.
+- `npm run verify:booth` succeeds. It verifies the 4-Cut Booth first pass in demo mode: mode switch, four captured cuts, White/Black frame controls, vertical strip PNG preparation, capture review, and no mobile overflow.
 - `npm run verify:phone-report:self-test` succeeds. It self-tests the parser that will validate real `Copy phone test` reports after phone testing.
 - `npm run verify:pages` exists to compare the current Pages build against the live GitHub Pages URL and run a headless demo/evidence check.
 - `npm run readiness` succeeds as a no-side-effect deployment status report, while noting that Vercel CLI and real device tests still require approval.
@@ -114,7 +121,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
   - `data-last-save-name`
   - `data-capture-review`
   - `data-acceptance-gate`
-- Physical camera permission, native share sheet, phone Photos/Files save usability, and phone tests still need manual/external verification.
+- Physical camera permission, native share sheet, phone Photos/Files save usability, 4-Cut Booth on a real phone, and phone tests still need manual/external verification.
 - 2026-06-12 local browser recheck: `?demo=1&save=prepare` on a 390px viewport at `http://127.0.0.1:5174/` rendered frames, had no horizontal overflow, and prepared a PNG Blob/File with no console warnings or errors.
 - Camera startup now checks `window.isSecureContext` before requesting camera access. On non-HTTPS/non-localhost pages, the UI shows explicit HTTPS guidance instead of a vague unsupported-camera error.
 - Camera startup now has a bounded metadata/playback wait. If video startup fails after permission, acquired tracks are stopped, retry is shown, and `?debug=1` exposes `cameraError`.
@@ -164,6 +171,8 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 phone report verifier: `npm run verify:phone-report` added for pasted real-device reports, with `npm run verify:phone-report:self-test` covering pass/fail fixtures. It rejects `demo=1`, `save=prepare`, non-camera source, missing saved-file/effect evidence, and anything short of `acceptanceGate=phone-pass-candidate`.
 - 2026-06-12 phone report metadata: `?debug=1` now includes editable `device`, `browser`, and `notes` inputs. `Copy phone test` copies those sanitized values, and `npm run verify:phone-report` now requires non-empty device/browser fields.
 - 2026-06-12 stable Pages metadata deployment: `gh-pages` was updated to `d8bb81e`, live Pages served `assets/index-C15NFgUv.js`, and `npm run verify:pages` passed with editable phone-report values, PNG prepare `694072` bytes, no overflow, and `gate=synthetic-or-local-check`.
+- 2026-06-12 4-Cut Booth first pass: mode selector added for `Single Shot` / `4-Cut Booth`; booth mode captures 4 filtered frames, composes a vertical photo strip, supports White and Black frame templates, saves through the existing PNG path, and shows the strip in Capture Review. `npm run verify:booth` passed on production preview with `?demo=1&debug=1&save=prepare&boothFast=1`, producing `trashcam-2004-4-cut-booth-classic-black-...png` and no 390px mobile overflow. This is still synthetic-source verification, not a real phone camera/save test.
+- 2026-06-12 stable Pages 4-Cut deployment: `gh-pages` was updated to `486ef19`, live Pages served `assets/index-CNl1gmS3.js`, and `npm run verify:pages` passed. Result: live hashed assets matched local Pages build, normal PNG prepare opened Capture Review, phone evidence report updated, and live 4-Cut Booth prepared a non-zero Black frame strip PNG with no 390px mobile overflow.
 
 ## Local development
 
@@ -237,6 +246,14 @@ For production-build preview verification:
 npm run build
 npm run preview:local
 ```
+
+For 4-Cut Booth verification:
+
+```bash
+npm run verify:booth
+```
+
+This uses demo mode and a fast countdown to verify the four-cut flow without camera/download prompts. It does not prove real phone camera or native share behavior.
 
 For GitHub Pages project hosting:
 

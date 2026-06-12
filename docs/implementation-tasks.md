@@ -100,6 +100,9 @@ Verified:
 - 2026-06-12 continuation: phone report metadata fields added. `?debug=1` now has editable device/browser/notes inputs, `Copy phone test` copies sanitized values, and `npm run verify:phone-report` requires device/browser to be filled.
 - 2026-06-12 continuation: `gh-pages` updated to `d8bb81e` and `npm run verify:pages` passed after the metadata fields. Result: live Pages served `assets/index-C15NFgUv.js`, editable phone-report values were included, PNG prepare reached `694072` bytes, and gate remained `synthetic-or-local-check`.
 - 2026-06-12 continuation: `npm run phone:test` added as a no-deploy real-phone handoff command. It prints the stable debug URL, manual phone checklist, `Copy phone test` instructions, and `pbpaste | npm run verify:phone-report`; `--copy-url` can copy the stable URL locally with `pbcopy`.
+- 2026-06-12 continuation: `4-Cut Booth` first pass added. It introduces `Single Shot` / `4-Cut Booth` mode switching, four sequential captures, vertical strip composition, White and Black frame templates, and PNG save through the existing capture review path.
+- 2026-06-12 continuation: `npm run verify:booth` added and verified. It runs production preview in demo/prepare/fast-booth mode, captures 4 frames, selects the Black frame, prepares a strip PNG, opens capture review, and checks 390px no-overflow.
+- 2026-06-12 continuation: `gh-pages` updated to `486ef19` and `npm run verify:pages` passed after 4-Cut Booth deployment. Result: live Pages served `assets/index-CNl1gmS3.js`, standard PNG prepare opened capture review, phone evidence report updated, and 4-Cut Booth prepared a non-zero Black frame strip PNG.
 
 Not yet verified:
 
@@ -138,6 +141,7 @@ Exit criteria:
   - `preview:local`
   - `smoke`
   - `verify:fake-camera`
+  - `verify:booth`
   - `verify:download`
   - `verify:phone-report`
   - `verify:phone-report:self-test`
@@ -274,6 +278,7 @@ Exit criteria:
 - [x] Add `?save=prepare` path for non-downloading PNG preparation smoke checks.
 - [x] Show a frozen capture review after save with the saved PNG, filename, `Share again`, and `Back to camera`.
 - [x] Reuse the same saved PNG Blob for `Share again`.
+- [x] Support named canvas saving for generated outputs such as 4-Cut Booth strips.
 
 Exit criteria:
 
@@ -295,6 +300,33 @@ Exit criteria:
 
 - Mobile viewport looks usable in browser devtools.
 - No text/button overflow in narrow width.
+
+## Phase 7A - 4-Cut Booth first pass
+
+- [x] Add mode selector for `Single Shot` and `4-Cut Booth`.
+- [x] Keep app UI naming public-safe. Do not use `인생네컷` in shipped copy.
+- [x] Capture 4 filtered frames in sequence.
+- [x] Show 4 captured thumbnails and progress.
+- [x] Compose a vertical photo strip PNG.
+- [x] Add two basic frame templates: White and Black.
+- [x] Save the strip through the existing PNG save/review path.
+- [x] Add fast verification path with `?boothFast=1`.
+- [x] Add `npm run verify:booth`.
+
+Deferred:
+
+- [ ] Background selection.
+- [ ] Instant Film, Cyberpunk, Pixel, and Voxel dedicated frames.
+- [ ] Retake individual cut.
+- [ ] Reorder cuts.
+- [ ] Stickers/text.
+- [ ] GIF or short video output.
+
+Exit criteria:
+
+- 4-Cut Booth can capture four frames and save a vertical PNG strip.
+- 390px mobile layout has no horizontal overflow.
+- Synthetic verification passes without camera/download prompts.
 
 ## Phase 8 - Local verification
 
@@ -326,11 +358,14 @@ Then verify:
 - [x] Production dist preview reaches fallback download branch on `http://127.0.0.1:4174/?demo=1` with `data-last-save-kind="downloaded"`, PNG byte size, PNG filename, and no console warnings/errors.
 - [x] `npm run verify:download` confirms the actual fallback-downloaded file on disk has the expected filename, byte size, PNG signature, and 640x480 dimensions.
 - [x] `npm run verify:phone-report:self-test` confirms the phone report parser accepts pass evidence and rejects demo/prepare-only reports.
+- [x] `npm run verify:booth` confirms the synthetic 4-Cut Booth flow captures 4 cuts and prepares a vertical strip PNG.
 - [x] Phone report verifier requires filled device/browser fields before accepting real-device evidence.
 - [x] Stable GitHub Pages verification confirms editable phone-report values are copied into the live report.
+- [x] Stable GitHub Pages verification confirms the live 4-Cut Booth flow captures 4 cuts and prepares a Black frame strip PNG.
 - [x] `npm run phone:test` prints the stable real-phone checklist and verifier command.
 - [ ] Actual downloaded/shared PNG file from a real camera run is confirmed usable in a real browser/device.
 - [ ] Actual real-device `Copy phone test` report passes `npm run verify:phone-report`.
+- [ ] Actual real-device 4-Cut Booth capture and saved strip usability are confirmed.
 - [x] Presets switch in `?demo=1`.
 - [x] Pixel Art Cam switches in `?demo=1` and prepares a PNG in `?save=prepare`.
 - [x] Cyberpunk Cam and Voxel Block Cam switch in `?demo=1` and prepare PNGs in `?save=prepare`.

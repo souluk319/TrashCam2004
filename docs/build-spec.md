@@ -57,6 +57,47 @@ Open app
 -> App falls back to download link when sharing is unavailable
 ```
 
+## Capture modes
+
+### Single Shot
+
+Default mode. Tapping save captures the current filtered preview and saves one PNG.
+
+### 4-Cut Booth
+
+Product-style mode expansion. Public app copy should use `4-Cut Booth`, `Four Cut`, or `Photo Strip` naming. Do not use `인생네컷` in shipped UI copy.
+
+First pass flow:
+
+```text
+Select 4-Cut Booth
+-> choose any existing filter preset
+-> tap Start 4-Cut
+-> 3 second countdown per cut
+-> capture 4 filtered frames
+-> show 4 thumbnails
+-> choose White or Black frame
+-> compose one vertical photo-strip canvas
+-> save/share PNG through the existing save path
+```
+
+First pass scope:
+
+- Capture 4 frames.
+- Compose a vertical photo strip.
+- Include White and Black frame templates.
+- Save PNG.
+- Reuse existing `src/save.ts` delivery path and Capture Review UI.
+
+Deferred:
+
+- Background picker.
+- Instant Film, Cyberpunk, Pixel, and Voxel dedicated strip frames.
+- Individual cut retake.
+- Cut reorder.
+- Stickers/text.
+- GIF or short video output.
+
 ## Camera behavior
 
 Use `navigator.mediaDevices.getUserMedia()`.
@@ -356,6 +397,7 @@ src/presets.ts
 src/effects.ts
 src/camera.ts
 src/save.ts
+src/photo-strip.ts
 src/main.ts
 src/styles.css
 ```
@@ -416,6 +458,12 @@ Filename:
 
 ```text
 trashcam-2004-{preset-slug}-{YYYYMMDD-HHmmss}.png
+```
+
+4-Cut Booth filename:
+
+```text
+trashcam-2004-4-cut-booth-{frame-slug}-{YYYYMMDD-HHmmss}.png
 ```
 
 Status text examples:
