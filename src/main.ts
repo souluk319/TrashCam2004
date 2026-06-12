@@ -124,11 +124,13 @@ app.innerHTML = `
       <div><span>save</span><output data-debug-key="lastSaveKind">-</output></div>
       <div><span>capture</span><output data-debug-key="captureReview">-</output></div>
       <div><span>share</span><output data-debug-key="shareCapability">-</output></div>
+      <div><span>gate</span><output data-debug-key="acceptanceGate">-</output></div>
       <div><span>bytes</span><output data-debug-key="lastSaveBytes">-</output></div>
       <div><span>video</span><output data-debug-key="videoSize">-</output></div>
       <div class="debug-wide"><span>file</span><output data-debug-key="lastSaveName">-</output></div>
       <div class="debug-wide"><span>status</span><output data-debug-key="statusMessage">-</output></div>
       <button class="debug-copy-button" type="button" data-copy-debug data-debug-report="">Copy state</button>
+      <button class="debug-copy-button" type="button" data-copy-phone-test data-phone-test-report="">Copy phone test</button>
     </aside>
 
     <dialog class="privacy-dialog" data-privacy-dialog>
@@ -173,6 +175,10 @@ const backCameraButton = requireNode(
 const copyDebugButton = requireNode(
   app.querySelector<HTMLButtonElement>("[data-copy-debug]"),
   "Copy debug button is missing."
+);
+const copyPhoneTestButton = requireNode(
+  app.querySelector<HTMLButtonElement>("[data-copy-phone-test]"),
+  "Copy phone test button is missing."
 );
 const privacyOpenButton = requireNode(
   app.querySelector<HTMLButtonElement>("[data-privacy-open]"),
@@ -277,6 +283,10 @@ backCameraButton.addEventListener("click", () => {
 
 copyDebugButton.addEventListener("click", () => {
   void copyDebugState();
+});
+
+copyPhoneTestButton.addEventListener("click", () => {
+  void copyPhoneTestState();
 });
 
 privacyOpenButton.addEventListener("click", () => {
@@ -476,6 +486,15 @@ async function copyDebugState(): Promise<void> {
     setStatus("Debug state copied.");
   } catch {
     setStatus("Debug 복사 실패. 화면 값을 그대로 적어줘.");
+  }
+}
+
+async function copyPhoneTestState(): Promise<void> {
+  try {
+    await copyText(buildPhoneTestReport());
+    setStatus("Phone test report copied.");
+  } catch {
+    setStatus("Phone test 복사 실패. 화면 값을 그대로 적어줘.");
   }
 }
 
@@ -835,8 +854,13 @@ function setDebugValue(name: string, value: string): void {
 }
 
 function refreshDebugReport(): void {
+  const acceptanceGate = getAcceptanceGateStatus();
+  app.dataset.acceptanceGate = acceptanceGate;
+  setDebugValue("acceptanceGate", acceptanceGate);
+
   if (shouldShowDebugPanel()) {
     copyDebugButton.dataset.debugReport = buildDebugReport();
+    copyPhoneTestButton.dataset.phoneTestReport = buildPhoneTestReport();
   }
 }
 
@@ -859,6 +883,7 @@ function buildDebugReport(): string {
     `preset=${app.dataset.activePreset ?? "-"}`,
     `category=${app.dataset.presetCategory ?? "-"}`,
     `shareCapability=${app.dataset.shareCapability ?? "-"}`,
+    `acceptanceGate=${app.dataset.acceptanceGate ?? "-"}`,
     `save=${app.dataset.lastSaveKind ?? "-"}`,
     `captureReview=${app.dataset.captureReview ?? "-"}`,
     `bytes=${app.dataset.lastSaveBytes ?? "-"}`,
@@ -867,6 +892,85 @@ function buildDebugReport(): string {
   ];
 
   return lines.join("\n");
+}
+
+function buildPhoneTestReport(): string {
+  const lines = [
+    "TrashCam 2004 phone test report",
+    `time=${new Date().toISOString()}`,
+    `url=${window.location.href}`,
+    `device=`,
+    `browser=`,
+    `acceptanceGate=${getAcceptanceGateStatus()}`,
+    `source=${app.dataset.sourceMode ?? "-"}`,
+    `camera=${app.dataset.cameraState ?? "-"}`,
+    `cameraError=${app.dataset.cameraError ?? "-"}`,
+    `secure=${app.dataset.secureContext ?? "-"}`,
+    `version=${app.dataset.appVersion ?? "-"}`,
+    `presets=${app.dataset.presetCount ?? "-"}`,
+    `viewport=${window.innerWidth}x${window.innerHeight}`,
+    `devicePixelRatio=${window.devicePixelRatio}`,
+    `video=${app.dataset.videoSize ?? "-"}`,
+    `frames=${app.dataset.renderedFrames ?? "-"}`,
+    `preset=${app.dataset.activePreset ?? "-"}`,
+    `category=${app.dataset.presetCategory ?? "-"}`,
+    `shareCapability=${app.dataset.shareCapability ?? "-"}`,
+    `save=${app.dataset.lastSaveKind ?? "-"}`,
+    `captureReview=${app.dataset.captureReview ?? "-"}`,
+    `bytes=${app.dataset.lastSaveBytes ?? "-"}`,
+    `file=${app.dataset.lastSaveName ?? "-"}`,
+    `status=${statusLine.textContent ?? "-"}`,
+    `manualCameraPermission=`,
+    `manualPreviewMoving=`,
+    `manualShareSheetOrDownload=`,
+    `manualSavedFileOpened=`,
+    `manualSavedEffectVisible=`,
+    `notes=`
+  ];
+
+  return lines.join("\n");
+}
+
+function getAcceptanceGateStatus(): string {
+  if (app.dataset.secureContext !== "true") {
+    return "blocked-insecure";
+  }
+
+  if (app.dataset.sourceMode !== "camera") {
+    return "synthetic-or-local-check";
+  }
+
+  if (app.dataset.cameraState !== "ready") {
+    return `camera-${app.dataset.cameraState ?? "unknown"}`;
+  }
+
+  if (Number(app.dataset.renderedFrames ?? 0) <= 0) {
+    return "waiting-render";
+  }
+
+  const saveKind = app.dataset.lastSaveKind;
+
+  if (!saveKind) {
+    return "camera-ready-save-needed";
+  }
+
+  if (saveKind === "prepared") {
+    return "png-prepared-only";
+  }
+
+  if (saveKind === "shared" || saveKind === "downloaded") {
+    return "manual-file-check-needed";
+  }
+
+  if (saveKind === "cancelled") {
+    return "share-cancelled";
+  }
+
+  if (saveKind === "failed") {
+    return "save-failed";
+  }
+
+  return "unknown";
 }
 
 async function copyText(text: string): Promise<void> {

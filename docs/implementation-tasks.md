@@ -80,6 +80,8 @@ Verified:
 - 2026-06-12 continuation: stable GitHub Pages URL verified with `?demo=1&debug=1&save=prepare` at 390px. Result: HTTP 200, `secure=true`, app version `0.1.0-beta.1`, preset count `12`, `Game` pack switched to `Pixel Art`/`Voxel`, Pixel Art PNG prepare succeeded, no horizontal overflow, no console warnings/errors.
 - 2026-06-12 continuation: productization capture review added. After `Save PNG`, the app shows a frozen saved PNG preview, filename, `Share again`, and `Back to camera`; `Share again` reuses the same saved PNG Blob.
 - 2026-06-12 continuation: capture review verified on production preview with `?demo=1&debug=1&save=prepare` at 390px. Result: `captureReview=visible` after save, Blob preview image, same PNG byte size after `Share again`, `captureReview=hidden` after `Back to camera`, no horizontal overflow, no console warnings/errors.
+- 2026-06-12 continuation: real-device diagnostics were expanded with `acceptanceGate` and `Copy phone test`. The phone-test report includes device/browser blanks, current camera/save state, and manual fields for file-open/effect-visible confirmation.
+- 2026-06-12 continuation: phone-test report verified on production preview with `?demo=1&debug=1&save=prepare` at 390px. Result: `data-phone-test-report` filled, `acceptanceGate=synthetic-or-local-check`, report updated after save with `save=prepared` and `captureReview=visible`, no horizontal overflow, no console warnings/errors.
 
 Not yet verified:
 
@@ -145,6 +147,7 @@ Exit criteria:
 - [x] Add opt-in `?debug=1` diagnostics for real-device testing.
 - [x] Add `Copy state` action inside `?debug=1` diagnostics.
 - [x] Include save/share capability, source video size, viewport, and device pixel ratio in debug diagnostics.
+- [x] Add `acceptanceGate` and `Copy phone test` report for real-device acceptance notes.
 - [x] Add public beta metadata and compact Privacy dialog.
 
 Exit criteria:

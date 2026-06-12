@@ -12,7 +12,7 @@ Open public link -> allow camera -> funny live preview -> switch presets -> save
 
 - Static Vite + TypeScript app is implemented.
 - Camera, canvas render loop, preset switching, PNG save/share fallback, capture review, `?demo=1`, `?debug=1`, and `?save=prepare` exist.
-- Public beta polish exists: Open Graph metadata, Privacy dialog, 12 presets, app version, and preset count diagnostics.
+- Public beta polish exists: Open Graph metadata, Privacy dialog, 12 presets, app version, preset count diagnostics, capture review, and phone-test report copying.
 - Local synthetic verification passes.
 - Actual product risk is still external-device behavior, not source code structure.
 
@@ -23,7 +23,7 @@ TrashCam becomes a public beta when all P0 items are true:
 - A stable HTTPS URL exists.
 - iPhone Safari opens the URL, requests camera permission, renders live preview, and saves or shares a usable PNG.
 - Android Chrome opens the URL, requests camera permission, renders live preview, and saves or shares a usable PNG.
-- `?debug=1` report can identify failures by version, preset count, browser, video size, viewport, camera state, and save state.
+- `?debug=1` report can identify failures by version, preset count, browser, video size, viewport, camera state, acceptance gate, and save state.
 - Privacy copy is visible from the app and honestly states that camera frames stay in the browser.
 - The app still works with no backend, no account, no upload, and no database.
 
@@ -164,12 +164,12 @@ Pass:
 
 ### Failure logging
 
-If any phone check fails, open the same URL with `?debug=1`, tap `Copy state`, and record:
+If any phone check fails, open the same URL with `?debug=1`, tap `Copy phone test`, and record:
 
 - Device and browser
 - Exact URL
 - Visible status/error
-- Copied debug report
+- Copied phone test report
 - Whether the failure is camera permission, camera playback, render, preset switch, save/share, or file usability
 
 ## P1 - Make it feel like a product

@@ -109,6 +109,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
   - `data-last-save-bytes`
   - `data-last-save-name`
   - `data-capture-review`
+  - `data-acceptance-gate`
 - Real camera permission, actual downloaded/shared PNG file usability, HTTPS deploy, and phone tests still need manual/external verification.
 - 2026-06-12 local browser recheck: `?demo=1&save=prepare` on a 390px viewport at `http://127.0.0.1:5174/` rendered frames, had no horizontal overflow, and prepared a PNG Blob/File with no console warnings or errors.
 - Camera startup now checks `window.isSecureContext` before requesting camera access. On non-HTTPS/non-localhost pages, the UI shows explicit HTTPS guidance instead of a vague unsupported-camera error.
@@ -142,6 +143,8 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 stable HTTPS recheck: `https://souluk319.github.io/TrashCam2004/?demo=1&debug=1&save=prepare` loaded from GitHub Pages at 390px, reported `secure=true`, rendered demo frames, switched `Game` pack to `Pixel Art`/`Voxel`, prepared a Pixel Art PNG, had no horizontal overflow, and produced no console warnings/errors.
 - 2026-06-12 productization polish: capture review state added. After `Save PNG`, the app shows the saved PNG preview, filename, `Share again`, and `Back to camera`. `Share again` reuses the same saved PNG Blob instead of capturing a new frame.
 - 2026-06-12 capture review production recheck: `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` at 390px showed `captureReview=visible` after save, a Blob preview image, matching PNG filename text, `Share again` preserving the same prepared byte size, `Back to camera` returning to `captureReview=hidden`, no horizontal overflow, and no console warnings/errors. This is still synthetic-source verification, not a real phone camera/save test.
+- 2026-06-12 real-device diagnostics: `?debug=1` now exposes `acceptanceGate` and `Copy phone test`, a paste-ready report with device/browser blanks, current camera/save state, and manual fields for file-open/effect-visible confirmation.
+- 2026-06-12 phone-test report recheck: `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` at 390px filled `data-phone-test-report`, showed `acceptanceGate=synthetic-or-local-check`, updated the report after `Save PNG` with `save=prepared` and `captureReview=visible`, had no horizontal overflow, and produced no console warnings/errors.
 
 ## Local development
 
@@ -182,7 +185,7 @@ You can combine it with test modes:
 http://127.0.0.1:5174/?demo=1&debug=1
 ```
 
-The debug panel shows source, camera state, camera error reason, secure context, app version, preset count, source video size, share capability, frame count, active preset, and last save result. The copied report also includes viewport size and device pixel ratio. `Copy state` copies the current debug report for failure notes. It is only visible when `debug=1` is present, and it does not replace real camera/phone verification.
+The debug panel shows source, camera state, camera error reason, secure context, app version, preset count, source video size, share capability, real-device acceptance gate, frame count, active preset, and last save result. The copied report also includes viewport size and device pixel ratio. `Copy state` copies the current debug report for failure notes. `Copy phone test` copies a paste-ready phone test report with manual fields for device/browser, saved file open, and saved effect visibility. These controls are only visible when `debug=1` is present, and they do not replace real camera/phone verification.
 After a successful save, the copied report also includes `captureReview=visible` while the frozen saved PNG panel is open.
 
 For local PNG preparation verification without downloading a file:
