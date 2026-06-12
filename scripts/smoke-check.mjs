@@ -1,0 +1,155 @@
+import { existsSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
+
+const root = process.cwd();
+const failures = [];
+
+function pass(message) {
+  console.log(`ok - ${message}`);
+}
+
+function fail(message) {
+  failures.push(message);
+  console.error(`fail - ${message}`);
+}
+
+function assert(condition, message) {
+  if (condition) {
+    pass(message);
+    return;
+  }
+
+  fail(message);
+}
+
+function readJson(path) {
+  return JSON.parse(readFileSync(join(root, path), "utf8"));
+}
+
+function readText(path) {
+  return readFileSync(join(root, path), "utf8");
+}
+
+function fileExists(path) {
+  return existsSync(join(root, path)) && statSync(join(root, path)).isFile();
+}
+
+function directoryExists(path) {
+  return existsSync(join(root, path)) && statSync(join(root, path)).isDirectory();
+}
+
+function headerValue(key) {
+  const allPathHeaders =
+    vercelJson.headers?.find((rule) => rule.source === "/(.*)")?.headers ?? [];
+  return allPathHeaders.find((header) => header.key === key)?.value;
+}
+
+const packageJson = readJson("package.json");
+const vercelJson = readJson("vercel.json");
+const distIndex = fileExists("dist/index.html") ? readText("dist/index.html") : "";
+const mainSource = readText("src/main.ts");
+const cameraSource = readText("src/camera.ts");
+const saveSource = readText("src/save.ts");
+const effectsSource = readText("src/effects.ts");
+const presetSource = readText("src/presets.ts");
+
+assert(packageJson.scripts?.dev === "vite", "package.json has dev script");
+assert(
+  packageJson.scripts?.["dev:local"] === "vite --host 127.0.0.1 --port 5174 --strictPort",
+  "package.json has stable TrashCam local dev port",
+);
+assert(packageJson.scripts?.build === "tsc && vite build", "package.json has build script");
+assert(packageJson.scripts?.preview === "vite preview", "package.json has preview script");
+assert(
+  packageJson.scripts?.["preview:local"] === "vite preview --host 127.0.0.1 --port 4174 --strictPort",
+  "package.json has stable local preview port",
+);
+assert(
+  packageJson.scripts?.readiness === "npm run smoke && node scripts/readiness-check.mjs",
+  "package.json has readiness check script",
+);
+
+assert(vercelJson.framework === "vite", "vercel framework is vite");
+assert(vercelJson.buildCommand === "npm run build", "vercel build command is npm run build");
+assert(vercelJson.outputDirectory === "dist", "vercel output directory is dist");
+assert(
+  headerValue("Permissions-Policy") === "camera=(self), microphone=(), geolocation=()",
+  "vercel allows same-origin camera and disables unused device permissions",
+);
+assert(headerValue("Referrer-Policy") === "no-referrer", "vercel sends no-referrer policy");
+assert(
+  headerValue("X-Content-Type-Options") === "nosniff",
+  "vercel sends nosniff content type protection",
+);
+
+assert(fileExists("index.html"), "index.html exists");
+assert(fileExists("src/main.ts"), "src/main.ts exists");
+assert(fileExists("src/camera.ts"), "src/camera.ts exists");
+assert(fileExists("src/effects.ts"), "src/effects.ts exists");
+assert(fileExists("src/presets.ts"), "src/presets.ts exists");
+assert(fileExists("src/save.ts"), "src/save.ts exists");
+assert(fileExists("src/demo-source.ts"), "src/demo-source.ts exists");
+assert(fileExists("scripts/readiness-check.mjs"), "readiness check script exists");
+
+assert(fileExists("dist/index.html"), "dist/index.html exists after build");
+assert(directoryExists("dist/assets"), "dist/assets exists after build");
+assert(/assets\/index-.*\.js/.test(distIndex), "dist index references bundled JavaScript");
+assert(/assets\/index-.*\.css/.test(distIndex), "dist index references bundled CSS");
+
+assert(cameraSource.includes("navigator.mediaDevices.getUserMedia"), "camera uses getUserMedia");
+assert(cameraSource.includes("window.isSecureContext"), "camera checks secure context before getUserMedia");
+assert(cameraSource.includes('"insecure-context"'), "camera has insecure context error kind");
+assert(cameraSource.includes('"playback-blocked"'), "camera distinguishes blocked video playback");
+assert(cameraSource.includes('facingMode: "user"'), "camera prefers front-facing mode");
+assert(cameraSource.includes("GENERIC_CAMERA_CONSTRAINTS"), "camera has generic fallback constraints");
+assert(cameraSource.includes("CAMERA_START_TIMEOUT_MS"), "camera startup has a bounded metadata wait");
+assert(cameraSource.includes("stopStream(stream)"), "camera stops acquired stream after startup failure");
+
+assert(mainSource.includes("data-preview"), "UI creates visible preview canvas");
+assert(mainSource.includes("data-video"), "UI creates hidden video source");
+assert(mainSource.includes("requestAnimationFrame(render)"), "render loop uses requestAnimationFrame");
+assert(mainSource.includes("imageSmoothingEnabled = false"), "render path disables image smoothing");
+assert(mainSource.includes('setAppState("secureContext"'), "app exposes secure context smoke state");
+assert(mainSource.includes("HTTPS 링크로 다시 열어줘"), "UI explains HTTPS requirement for phone camera");
+assert(mainSource.includes('setAppState("renderedFrames"'), "app exposes render smoke state");
+assert(mainSource.includes("shouldShowDebugPanel"), "app has opt-in debug panel mode");
+assert(mainSource.includes('data-debug-key="cameraState"'), "debug panel exposes camera state");
+assert(mainSource.includes('data-debug-key="cameraError"'), "debug panel exposes camera failure reason");
+assert(mainSource.includes('data-debug-key="shareCapability"'), "debug panel exposes save/share capability");
+assert(mainSource.includes('data-debug-key="videoSize"'), "debug panel exposes source video dimensions");
+assert(mainSource.includes("cameraError="), "debug report includes camera failure reason");
+assert(mainSource.includes("viewport="), "debug report includes viewport size");
+assert(mainSource.includes("devicePixelRatio="), "debug report includes device pixel ratio");
+assert(mainSource.includes("shareCapability="), "debug report includes save/share capability");
+assert(mainSource.includes("video="), "debug report includes source video dimensions");
+assert(mainSource.includes("buildDebugReport"), "debug panel can build a copyable state report");
+assert(mainSource.includes("data-debug-report"), "debug panel exposes generated state report for safe checks");
+assert(mainSource.includes("navigator.clipboard"), "debug panel can copy state to clipboard");
+
+assert(saveSource.includes("canvas.toBlob"), "save path converts canvas to PNG blob");
+assert(saveSource.includes("getSaveCapability"), "save path exposes share capability diagnostics");
+assert(saveSource.includes("tryCreateShareData"), "save path guards File creation before sharing");
+assert(saveSource.includes('typeof File !== "function"'), "save path falls back when File is unavailable");
+assert(saveSource.includes("navigator.canShare"), "save path checks file share support");
+assert(saveSource.includes("try {\n    return navigator.canShare"), "save path tolerates canShare failures");
+assert(saveSource.includes("navigator.share"), "save path uses Web Share API when available");
+assert(saveSource.includes("URL.createObjectURL"), "save path has object URL fallback");
+assert(saveSource.includes("prepareOnly"), "save path supports prepared PNG smoke mode");
+assert(mainSource.includes('setAppState("lastSaveBytes"'), "app exposes save byte smoke state");
+assert(mainSource.includes('data-debug-key="lastSaveBytes"'), "debug panel exposes save byte state");
+
+assert(presetSource.includes("PC Bang Cam 2004"), "PC Bang preset exists");
+assert(presetSource.includes("Cyworld Selfie Cam"), "Cyworld preset exists");
+assert(presetSource.includes("Laptop Webcam Hell"), "Laptop Webcam Hell preset exists");
+assert(presetSource.includes("Pixel Art Cam"), "Pixel Art Cam preset exists");
+assert(presetSource.includes('category: "game"'), "game preset category exists");
+assert(mainSource.includes("data-category"), "preset buttons expose preset category");
+assert(effectsSource.includes("applyPaletteLimit"), "palette limit effect exists");
+assert(effectsSource.includes("applyDither"), "dither effect exists");
+
+if (failures.length > 0) {
+  console.error(`\nSmoke check failed: ${failures.length} issue(s).`);
+  process.exit(1);
+}
+
+console.log("\nSmoke check passed.");

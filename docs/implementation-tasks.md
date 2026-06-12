@@ -1,0 +1,336 @@
+# TrashCam 2004 Implementation Tasks
+
+Use this as the Codex loop checklist. Complete tasks in order and verify each phase before moving on.
+
+## Goal
+
+Build the minimum testable TrashCam 2004 web MVP:
+
+```text
+HTTPS web link -> phone camera permission -> degraded live preview -> preset switch -> PNG save/share
+```
+
+## Progress note - 2026-06-12
+
+Implemented locally:
+
+- Vite TypeScript app scaffold.
+- One-screen camera UI.
+- `getUserMedia()` camera startup with front-camera preference and generic fallback.
+- Synthetic camera verification mode via `?demo=1`.
+- Hidden video to low-resolution canvas to visible canvas render loop.
+- Three visual presets.
+- `canvas.toBlob()` PNG save/share path with download fallback.
+- Mobile-friendly layout and safe-area padding.
+
+Verified:
+
+- `npm install` succeeds.
+- `npm run build` succeeds.
+- In-app browser UI/console check succeeds with `?camera=off`.
+- 390px mobile viewport has no horizontal overflow.
+- 2026-06-12 continuation: `npm run build` rechecked successfully.
+- 2026-06-12 continuation: `vercel.json` added for Vercel static Vite deployment.
+- 2026-06-12 continuation: `?demo=1` synthetic source renders through the hidden-video/canvas path.
+- 2026-06-12 continuation: `?demo=1` preset switch to Cyworld updates selected state and caption.
+- 2026-06-12 continuation: `?demo=1` at 390px mobile width has no horizontal overflow and keeps Save enabled.
+- 2026-06-12 continuation: render state attributes added on `#app`.
+- 2026-06-12 continuation: `?demo=1` verified with `data-source-mode="demo"`, `data-camera-state="ready"`, increasing `data-rendered-frames`, active preset switch to `hell`, and no console errors.
+- 2026-06-12 continuation: 390px mobile `?demo=1` rechecked with no horizontal overflow, active render frames, and Save enabled.
+- 2026-06-12 continuation: `npm run smoke` added and verified. It runs production build and checks dist output, Vercel config, core camera/save/preset source contracts.
+- 2026-06-12 continuation: `?demo=1&save=prepare` added for local PNG preparation verification without triggering browser download/share.
+- 2026-06-12 continuation: Save prepare path verified in browser: `data-last-save-kind="prepared"`, PNG filename generated, `data-last-save-bytes=693913`, render frames continued, no console errors.
+- 2026-06-12 continuation: Vercel response headers added and covered by `npm run smoke`: `Permissions-Policy`, `Referrer-Policy`, `X-Content-Type-Options`.
+- 2026-06-12 continuation: `npm run smoke` rechecked successfully after deployment header changes.
+- 2026-06-12 continuation: `dev:local` and `preview:local` scripts added to reserve stable TrashCam local ports and avoid confusing another Vite app on 5173 for this project.
+- 2026-06-12 continuation: `?demo=1&save=prepare` rechecked at `http://127.0.0.1:5174/` in a 390px browser viewport. Result: `data-source-mode="demo"`, `data-camera-state="ready"`, active render frames, no horizontal overflow, PNG prepared with byte size, no console warnings/errors.
+- 2026-06-12 continuation: secure-context camera guard added. Non-HTTPS/non-localhost pages now fail before `getUserMedia()` with explicit HTTPS guidance instead of a vague unsupported-camera message.
+- 2026-06-12 continuation: local browser recheck confirmed `data-secure-context="true"` on `http://127.0.0.1:5174/?demo=1&save=prepare`, active synthetic render frames, Save enabled, and no console warnings/errors.
+- 2026-06-12 continuation: production dist preview verified at `http://127.0.0.1:4174/?demo=1&save=prepare` in a 390px browser viewport. Result: `data-source-mode="demo"`, `data-camera-state="ready"`, `data-secure-context="true"`, active render frames, no horizontal overflow, PNG prepared with byte size, no console warnings/errors.
+- 2026-06-12 continuation: production dist preview fallback-save path verified at `http://127.0.0.1:4174/?demo=1`. After `Save PNG`, app state reached `data-last-save-kind="downloaded"`, `data-last-save-bytes=692817`, generated a `.png` filename, kept rendering, and showed no console warnings/errors.
+- 2026-06-12 continuation: Codex in-app Browser reports downloads are unsupported, so the previous item verifies app fallback branch/state only. It does not prove actual file receipt or file usability on disk.
+- 2026-06-12 continuation: `docs/mobile-save-and-test-deploy.md` expanded with deployment gate, desktop camera checklist, HTTPS deployment checklist, real iPhone/Android test checklist, and evidence to record on failure.
+- 2026-06-12 continuation: `?debug=1` visible diagnostics added for real-device testing. It shows source, camera state, secure context, frame count, active preset, and save result without changing the default app UI.
+- 2026-06-12 continuation: `?demo=1&debug=1&save=prepare` verified at 390px. Debug panel was visible, render frames advanced, prepared PNG save state appeared in the panel, no horizontal overflow, and no console warnings/errors.
+- 2026-06-12 continuation: production dist preview verified at `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` in a 390px browser viewport. Result: visible debug panel, `data-source-mode="demo"`, `data-camera-state="ready"`, `data-secure-context="true"`, active render frames, no horizontal overflow, PNG prepared with `data-last-save-bytes=694086`, no console warnings/errors.
+- 2026-06-12 continuation: debug panel `Copy state` action added. It builds a text report with URL, user agent, source/camera/secure/frame/preset/save/file/status state for phone-test failure notes.
+- 2026-06-12 continuation: production dist preview verified `Copy state` report generation through `data-debug-report` without writing to the real clipboard. Report included URL, user agent, `camera=ready`, `save=prepared`, and PNG filename.
+- 2026-06-12 continuation: save/share fallback hardened. `File` creation is now guarded, `navigator.canShare()` failures fall through safely, and non-cancel share errors continue to the download fallback.
+- 2026-06-12 continuation: after save/share hardening, production dist preview was rechecked at `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` in a 390px browser viewport. Result: synthetic render ready, Save enabled, prepared PNG byte size/file name recorded, debug report included `save=prepared`, no horizontal overflow, no console warnings/errors.
+- 2026-06-12 continuation: camera startup hardened for real-device testing. Metadata wait is bounded, blocked video playback is reported separately, and an acquired stream is stopped if startup fails after permission.
+- 2026-06-12 continuation: after camera startup hardening, production dist preview was rechecked at `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` in a 390px browser viewport. Result: synthetic render ready, debug panel visible, `cameraError=none` included in the debug report, PNG prepare succeeded, no horizontal overflow, no console warnings/errors.
+- 2026-06-12 continuation: debug diagnostics expanded for real phone testing. The panel/report now includes save/share capability, source video dimensions, viewport size, and device pixel ratio alongside the existing camera/save state.
+- 2026-06-12 continuation: after debug diagnostics expansion, production dist preview was rechecked at `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` in a 390px browser viewport. Result: `shareCapability=file-share`, `video=640x480`, `viewport=390x844`, device pixel ratio present, PNG prepare succeeded, no horizontal overflow, no console warnings/errors.
+- 2026-06-12 continuation: `npm run readiness` added. It runs smoke, then reports project root, `dist`, Node/npm, Vercel CLI availability, and remaining approval-required external gates without installing or deploying anything.
+- 2026-06-12 continuation: `npm run readiness` verified. Result: smoke passed, project root/dist/Node/npm checks passed, Vercel CLI reported as approval-needed/missing, and external camera/download/deployment/phone gates remained explicitly listed.
+- 2026-06-12 continuation: `Pixel Art Cam` added as the first game-style preset. It uses `category: "game"`, a public-safe name, limited palette mapping, ordered dithering, and block grid lines.
+- 2026-06-12 continuation: `Pixel Art Cam` verified on production preview with `?demo=1&debug=1&save=prepare` at 390px. Result: active preset `pixelart`, `category=game`, PNG prepared with `trashcam-2004-pixel-art-cam-...png`, no horizontal overflow, no console warnings/errors.
+
+Not yet verified:
+
+- Real desktop browser camera permission and live camera stream.
+- Desktop PNG save using an actual camera frame.
+- Actual downloaded/shared PNG file receipt and usability on a real browser/device.
+- HTTPS deployment.
+- Real iPhone Safari / Android Chrome test.
+- Vercel CLI is not installed in this shell, so deployment was not attempted.
+
+## Phase 0 - Repo sanity
+
+- [x] Confirm current directory is `projects/experiments/trashcam-2004`.
+- [x] Read `README.md`.
+- [x] Read `docs/product-brief.md`.
+- [x] Read `docs/mvp-plan.md`.
+- [x] Read `docs/mobile-save-and-test-deploy.md`.
+- [x] Read `docs/build-spec.md`.
+- [x] Check whether app files already exist before scaffolding.
+
+Exit criteria:
+
+- Existing project state is understood.
+- No unrelated workspace files are modified.
+
+## Phase 1 - Scaffold app
+
+- [x] Create Vite TypeScript app files if they do not already exist.
+- [x] Keep the app static and frontend-only.
+- [x] Add or verify `package.json` scripts:
+  - `dev`
+  - `dev:local`
+  - `build`
+  - `preview`
+  - `preview:local`
+  - `smoke`
+  - `readiness`
+- [x] Create `src/` structure:
+  - `main.ts`
+  - `camera.ts`
+  - `presets.ts`
+  - `effects.ts`
+  - `save.ts`
+  - `styles.css`
+
+Exit criteria:
+
+- `npm install` succeeds.
+- `npm run dev` starts the app.
+- `npm run build` succeeds.
+
+## Phase 2 - Base UI
+
+- [x] Build a one-screen camera tool, not a landing page.
+- [x] Add visible preview canvas.
+- [x] Add hidden video element.
+- [x] Add compact title `TrashCam 2004`.
+- [x] Add preset segmented control.
+- [x] Add save/share button.
+- [x] Add status line for errors and short feedback.
+- [x] Add retry camera button that appears only after camera failure.
+- [x] Make layout responsive for phone viewport.
+- [x] Add opt-in `?debug=1` diagnostics for real-device testing.
+- [x] Add `Copy state` action inside `?debug=1` diagnostics.
+- [x] Include save/share capability, source video size, viewport, and device pixel ratio in debug diagnostics.
+
+Exit criteria:
+
+- UI loads without camera code breaking.
+- Text does not overflow on narrow mobile width.
+- Controls do not overlap the canvas.
+
+## Phase 3 - Camera startup
+
+- [x] Request camera on page load.
+- [x] Prefer front camera using `facingMode: "user"`.
+- [x] Fall back to generic video if front-camera constraints fail.
+- [x] Attach stream to hidden video.
+- [x] Wait until video metadata is ready before rendering.
+- [x] Bound camera metadata/playback startup so the app does not stay stuck loading forever.
+- [x] Stop acquired camera tracks if video startup fails after permission.
+- [x] Handle permission denied.
+- [x] Handle blocked video playback after camera permission.
+- [x] Handle insecure context before requesting camera.
+- [x] Handle missing camera API.
+- [x] Implement retry camera.
+- [x] Add synthetic camera mode for local render verification without permission prompts.
+- [x] Add non-visual render state attributes for smoke verification.
+
+Exit criteria:
+
+- Desktop Chrome asks for webcam permission.
+- Allowing permission starts video stream.
+- Denying permission shows a useful error and retry button.
+
+## Phase 4 - Canvas render loop
+
+- [x] Draw video into low-resolution offscreen canvas.
+- [x] Upscale to visible canvas.
+- [x] Disable image smoothing.
+- [x] Keep visible canvas dimensions stable.
+- [x] Limit render rate based on active preset FPS.
+- [x] Stop duplicate animation loops when restarting camera.
+
+Exit criteria:
+
+- Live preview appears on desktop.
+- Preview is visibly pixelated.
+- App remains responsive.
+
+## Phase 5 - Presets and effects
+
+- [x] Define preset config in `presets.ts`.
+- [x] Implement PC Bang Cam 2004.
+- [x] Implement Cyworld Selfie Cam.
+- [x] Implement Laptop Webcam Hell.
+- [x] Implement Pixel Art Cam as the first game-style preset expansion.
+- [x] Implement noise effect.
+- [x] Implement color cast effect.
+- [x] Implement contrast/brightness tweaks.
+- [x] Implement palette limit and ordered dither effects for Pixel Art Cam.
+- [x] Implement scanlines for PC Bang preset.
+- [x] Implement jitter for Laptop Webcam Hell.
+- [x] Add short per-preset status/caption copy.
+- [x] Add `preset.category` with `trash`/`future`/`game` categories.
+
+Exit criteria:
+
+- Default preset looks bad in under 3 seconds.
+- All three presets are visually distinct.
+- Preset switching does not restart the camera.
+
+## Phase 6 - Save/share
+
+- [x] Capture the currently visible canvas.
+- [x] Convert canvas to PNG with `canvas.toBlob()`.
+- [x] Create a `File` for Web Share API when supported.
+- [x] Use `navigator.canShare()` and `navigator.share()` when available.
+- [x] Guard `File` creation and `navigator.canShare()` so unsupported mobile browsers still reach download fallback.
+- [x] Fall back to temporary download link.
+- [x] Revoke temporary object URL after fallback download starts.
+- [x] Disable save button while saving.
+- [x] Show success/failure status text.
+- [x] Add `?save=prepare` path for non-downloading PNG preparation smoke checks.
+
+Exit criteria:
+
+- Desktop Chrome downloads PNG.
+- Saved PNG includes the degraded effect, not the raw camera image.
+- Save failure does not crash the app.
+
+## Phase 7 - Mobile polish
+
+- [x] Ensure controls are thumb-friendly.
+- [x] Ensure canvas stays visible above bottom controls.
+- [x] Avoid fixed heights that break small phones.
+- [x] Add safe-area padding for iPhone.
+- [x] Keep status copy short.
+- [x] Confirm no explanatory onboarding blocks were added.
+
+Exit criteria:
+
+- Mobile viewport looks usable in browser devtools.
+- No text/button overflow in narrow width.
+
+## Phase 8 - Local verification
+
+Run:
+
+```bash
+npm run build
+```
+
+Then verify:
+
+- [x] No TypeScript build errors.
+- [x] `npm run smoke` passes.
+- [x] `npm run readiness` reports local readiness and external approval gates.
+- [x] No obvious console runtime errors during `?camera=off` and `?demo=1` local use.
+- [ ] Desktop camera starts.
+- [ ] PNG saves.
+- [x] PNG Blob/File preparation succeeds in `?demo=1&save=prepare`.
+- [x] `?demo=1&save=prepare` succeeds on the stable local URL `http://127.0.0.1:5174/`.
+- [x] Production dist preview succeeds on `http://127.0.0.1:4174/?demo=1&save=prepare`.
+- [x] Production dist preview succeeds on `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare`.
+- [x] Production dist preview rechecked after save fallback hardening with `?demo=1&debug=1&save=prepare`.
+- [x] Production dist preview rechecked after camera startup hardening with `?demo=1&debug=1&save=prepare`.
+- [x] Production dist preview rechecked after debug diagnostics expansion with `?demo=1&debug=1&save=prepare`.
+- [x] Production dist preview reaches fallback download branch on `http://127.0.0.1:4174/?demo=1` with `data-last-save-kind="downloaded"`, PNG byte size, PNG filename, and no console warnings/errors.
+- [ ] Actual downloaded/shared PNG file is confirmed usable in a real browser/device.
+- [x] Presets switch in `?demo=1`.
+- [x] Pixel Art Cam switches in `?demo=1` and prepares a PNG in `?save=prepare`.
+- [x] Synthetic render frame counter advances in `?demo=1`.
+- [x] `?debug=1` verified visually on mobile-size viewport with synthetic source and PNG prepare mode.
+- [x] `Copy state` report generation verified on production preview without changing the user's real clipboard during automation.
+- [x] Debug report includes camera failure reason via `cameraError`.
+- [x] Debug report includes save/share capability, source video dimensions, viewport, and device pixel ratio.
+
+Exit criteria:
+
+- Local MVP is ready for external HTTPS deployment.
+
+## Phase 9 - HTTPS deployment
+
+- [x] Add Vercel build/output configuration.
+- [x] Add Vercel response headers for same-origin camera allowance and unused permission lock-down.
+- [x] Add no-side-effect readiness check before external deployment.
+- [ ] Deploy to Vercel or another HTTPS static host.
+- [ ] Record the deployed URL in project notes or final report.
+- [ ] Open deployed URL on desktop first.
+- [ ] Open deployed URL on phone.
+
+Exit criteria:
+
+- HTTPS URL loads the app.
+- Phone browser asks for camera permission.
+
+## Phase 10 - Real phone test
+
+Test at least one real phone before calling the MVP complete.
+
+iPhone Safari:
+
+- [ ] HTTPS URL opens.
+- [ ] Camera permission prompt appears.
+- [ ] Front camera preview renders.
+- [ ] Degraded preset is visible.
+- [ ] Save/share creates a usable PNG or opens a usable path.
+
+Android Chrome:
+
+- [ ] HTTPS URL opens.
+- [ ] Camera permission prompt appears.
+- [ ] Front camera preview renders.
+- [ ] Degraded preset is visible.
+- [ ] Save/share creates a usable PNG or downloads a usable PNG.
+
+Exit criteria:
+
+- At least one real smartphone completes the full loop.
+- Any untested browser/device is documented honestly.
+
+## Final report format
+
+When the loop finishes, report:
+
+- What was built
+- Local verification result
+- Deployment URL
+- Phone test result
+- Known gaps
+- Recommended next product meeting topics
+
+## Known risks
+
+- iPhone Safari may not save directly to Photos.
+- Some browsers require user interaction before camera playback.
+- Web Share API file support varies.
+- Canvas effects may be too heavy if resolution or FPS is too high.
+- If the degraded effect is subtle, the product fails even if the code works.
+
+## Product meeting after MVP
+
+After first phone testing, discuss only these:
+
+- Is the result funny enough?
+- Which preset should be the default?
+- Should the next feature be video/GIF, stickers, or audio-reactive damage?
+- Is this still a toy, or does it become a small physics-AI/camera-AI experiment track?

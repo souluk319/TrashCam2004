@@ -1,0 +1,19 @@
+{
+  "name": "trashcam-2004",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:local": "vite --host 127.0.0.1 --port 5174 --strictPort",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "preview:local": "vite preview --host 127.0.0.1 --port 4174 --strictPort",
+    "smoke": "npm run build && node scripts/smoke-check.mjs",
+    "readiness": "npm run smoke && node scripts/readiness-check.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  }
+}
