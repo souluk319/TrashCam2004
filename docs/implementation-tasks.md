@@ -85,10 +85,12 @@ Verified:
 - 2026-06-12 continuation: `feat/dev0.1` latest build was deployed to the `gh-pages` branch, preserving `main` as the stable source checkpoint.
 - 2026-06-12 continuation: stable GitHub Pages latest build verified with `?demo=1&debug=1&save=prepare` at 390px. Result: served `assets/index-DoCWuob4.js`, included `Copy phone test`, reported `secure=true`, `version=0.1.0-beta.1`, `acceptanceGate=synthetic-or-local-check`, prepared a PNG, opened capture review, had no horizontal overflow, and no console warnings/errors.
 - 2026-06-12 continuation: `public/.nojekyll` added and smoke now verifies `dist/.nojekyll`; live Pages marker returned HTTP 200.
+- 2026-06-12 continuation: `npm run verify:fake-camera` added and verified. It launches Chrome with fake media devices, exercises the real `getUserMedia()` path, reaches `source=camera` / `camera=ready`, prepares a PNG at `766737` bytes, confirms phone-test report `source=camera`, opens capture review, and exits cleanly.
+- 2026-06-12 continuation: `npm run smoke` now checks the fake-camera script contract, and `npm run readiness` rechecked successfully after the fake-camera verification addition.
 
 Not yet verified:
 
-- Real desktop browser camera permission and live camera stream.
+- Physical desktop browser camera permission and live camera stream.
 - Desktop PNG save using an actual camera frame.
 - Actual downloaded/shared PNG file receipt and usability on a real browser/device.
 - Real iPhone Safari / Android Chrome test.
@@ -121,6 +123,7 @@ Exit criteria:
   - `preview`
   - `preview:local`
   - `smoke`
+  - `verify:fake-camera`
   - `readiness`
 - [x] Create `src/` structure:
   - `main.ts`
@@ -175,6 +178,7 @@ Exit criteria:
 - [x] Implement retry camera.
 - [x] Add synthetic camera mode for local render verification without permission prompts.
 - [x] Add non-visual render state attributes for smoke verification.
+- [x] Add Chrome fake-camera verification for the real `getUserMedia()` path without accepting a physical camera permission prompt.
 
 Exit criteria:
 

@@ -87,6 +87,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - `npm install` succeeds.
 - `npm run build` succeeds.
 - `npm run smoke` succeeds.
+- `npm run verify:fake-camera` succeeds. It launches Chrome with a fake media device and verifies the real `getUserMedia()` code path reaches `source=camera`, `camera=ready`, PNG preparation, and capture review.
 - `npm run readiness` succeeds as a no-side-effect deployment status report, while noting that Vercel CLI and real device tests still require approval.
 - `npm run dev:local` reserves `http://127.0.0.1:5174/` for this project so another Vite app on 5173 does not get mistaken for TrashCam.
 - `vercel.json` pins Vercel to Vite, `npm run build`, and `dist`.
@@ -110,7 +111,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
   - `data-last-save-name`
   - `data-capture-review`
   - `data-acceptance-gate`
-- Real camera permission, actual downloaded/shared PNG file usability, HTTPS deploy, and phone tests still need manual/external verification.
+- Physical camera permission, actual downloaded/shared PNG file usability, and phone tests still need manual/external verification.
 - 2026-06-12 local browser recheck: `?demo=1&save=prepare` on a 390px viewport at `http://127.0.0.1:5174/` rendered frames, had no horizontal overflow, and prepared a PNG Blob/File with no console warnings or errors.
 - Camera startup now checks `window.isSecureContext` before requesting camera access. On non-HTTPS/non-localhost pages, the UI shows explicit HTTPS guidance instead of a vague unsupported-camera error.
 - Camera startup now has a bounded metadata/playback wait. If video startup fails after permission, acquired tracks are stopped, retry is shown, and `?debug=1` exposes `cameraError`.
@@ -147,6 +148,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 phone-test report recheck: `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` at 390px filled `data-phone-test-report`, showed `acceptanceGate=synthetic-or-local-check`, updated the report after `Save PNG` with `save=prepared` and `captureReview=visible`, had no horizontal overflow, and produced no console warnings/errors.
 - 2026-06-12 stable HTTPS latest recheck: `https://souluk319.github.io/TrashCam2004/?demo=1&debug=1&save=prepare` served `assets/index-DoCWuob4.js`, included `Copy phone test`, reported `secure=true`, `version=0.1.0-beta.1`, `acceptanceGate=synthetic-or-local-check`, prepared a PNG, opened capture review, had no horizontal overflow, and produced no console warnings/errors.
 - 2026-06-12 Pages deployment hardening: `public/.nojekyll` added and smoke now verifies that the marker is copied to `dist/.nojekyll`; the live Pages marker returned HTTP 200.
+- 2026-06-12 fake-camera verification: `npm run verify:fake-camera` passed using Chrome fake media. Result: app reported `source=camera`, `camera=ready`, non-zero source video size, PNG prepared at `766737` bytes, phone-test report included `source=camera`, capture review opened, and the script exited cleanly. This is stronger than `?demo=1`, but it is still not a physical webcam or real phone test.
 
 ## Local development
 
@@ -278,6 +280,7 @@ This runs the production build and checks:
 - app supports `?debug=1` for visible real-device diagnostics
 - debug panel can copy a state report for phone-test failure notes
 - debug report includes app version, preset count, share capability, video size, viewport, and device pixel ratio for phone-test triage
+- fake-camera verification script exists and requires Chrome fake media to reach `source=camera`, `camera=ready`, phone-test `source=camera`, and capture review after save
 - the three baseline presets, Pixel Art Cam, Cyberpunk Cam, Voxel Block Cam, Receipt Printer Cam, CCTV Evidence Cam, School ID Cam, ASCII Terminal Cam, Deep Fried Meme Cam, and Sticker Booth Cam exist
 - Pixel Art Cam has a game preset category
 - Cyberpunk Cam has a future preset category
@@ -291,6 +294,25 @@ This runs the production build and checks:
 - ASCII terminal, deep fried, and sticker booth helpers exist
 
 This does not prove real camera permission, actual downloaded/shared file usability, or phone support.
+
+## Fake camera verification
+
+```bash
+npm run verify:fake-camera
+```
+
+This builds the app, opens the production preview in Chrome with `--use-fake-device-for-media-stream`, and verifies the browser camera path without accepting a real camera permission prompt.
+
+It proves:
+
+- the app calls the real `getUserMedia()` path
+- `#app` reaches `data-source-mode="camera"` and `data-camera-state="ready"`
+- rendered frames advance from the camera source
+- `Save PNG` can prepare a PNG Blob
+- capture review opens after save
+- the phone-test report includes `source=camera`
+
+It does not prove a physical webcam, native download/share receipt, iPhone Safari, or Android Chrome behavior.
 
 ## Deployment readiness check
 

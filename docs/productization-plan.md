@@ -14,6 +14,7 @@ Open public link -> allow camera -> funny live preview -> switch presets -> save
 - Camera, canvas render loop, preset switching, PNG save/share fallback, capture review, `?demo=1`, `?debug=1`, and `?save=prepare` exist.
 - Public beta polish exists: Open Graph metadata, Privacy dialog, 12 presets, app version, preset count diagnostics, capture review, and phone-test report copying.
 - Local synthetic verification passes.
+- Local fake-camera verification passes: `npm run verify:fake-camera` uses Chrome fake media to prove the real `getUserMedia()` path reaches `source=camera`, `camera=ready`, PNG preparation, and capture review.
 - Actual product risk is still external-device behavior, not source code structure.
 
 ## Product success criteria
@@ -53,6 +54,7 @@ Actions:
 ```bash
 npm run build
 npm run smoke
+npm run verify:fake-camera
 npm run readiness
 ```
 
@@ -60,6 +62,7 @@ Exit criteria:
 
 - Build passes.
 - Smoke passes.
+- Fake-camera verification passes.
 - Readiness only reports known external gates.
 
 ### 2. Deploy to stable HTTPS
@@ -98,6 +101,7 @@ Verification:
 - Browser verification passed at `?demo=1&debug=1&save=prepare` with 390px viewport: `secure=true`, version `0.1.0-beta.1`, preset count `12`, demo render frames advancing, `Game` pack switching to `Pixel Art`/`Voxel`, Pixel Art PNG prepare, no horizontal overflow, and no console warnings/errors.
 - Latest `feat/dev0.1` diagnostics were deployed to `gh-pages` and verified on the stable URL: `assets/index-DoCWuob4.js`, `Copy phone test`, `acceptanceGate=synthetic-or-local-check`, capture review after PNG prepare, no horizontal overflow, no console warnings/errors.
 - Live `.nojekyll` marker returned HTTP 200.
+- Local fake-camera verification passed with Chrome fake media: `source=camera`, `camera=ready`, PNG prepared, capture review opened, and phone-test report included `source=camera`. This is an automated preflight, not real phone acceptance.
 
 Exit criteria:
 
@@ -108,6 +112,11 @@ Exit criteria:
 ### 3. Real desktop browser check
 
 Owner: 성욱
+
+Automated preflight:
+
+- `npm run verify:fake-camera` now covers the browser `getUserMedia()` path without accepting a real permission prompt.
+- This reduces code-path risk before manual testing, but it does not prove a physical webcam permission prompt, actual file download, or phone behavior.
 
 Actions:
 

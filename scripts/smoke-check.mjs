@@ -54,6 +54,9 @@ const saveSource = readText("src/save.ts");
 const effectsSource = readText("src/effects.ts");
 const presetSource = readText("src/presets.ts");
 const viteConfigSource = readText("vite.config.ts");
+const fakeCameraSource = fileExists("scripts/fake-camera-check.mjs")
+  ? readText("scripts/fake-camera-check.mjs")
+  : "";
 
 assert(packageJson.scripts?.dev === "vite", "package.json has dev script");
 assert(
@@ -71,11 +74,21 @@ assert(
   "package.json has readiness check script",
 );
 assert(
+  packageJson.scripts?.["verify:fake-camera"] === "npm run build && node scripts/fake-camera-check.mjs",
+  "package.json has fake camera verification script",
+);
+assert(
   packageJson.scripts?.["build:pages"] === "VITE_BASE_PATH=/TrashCam2004/ npm run build",
   "package.json has GitHub Pages build script",
 );
 assert(viteConfigSource.includes("VITE_BASE_PATH"), "vite config supports deployment base path override");
 assert(readText("scripts/readiness-check.mjs").includes("GitHub Pages is the configured stable HTTPS fallback"), "readiness check recognizes GitHub Pages fallback");
+assert(fakeCameraSource.includes("--use-fake-device-for-media-stream"), "fake camera verification uses Chrome fake media device");
+assert(fakeCameraSource.includes('source === "camera"'), "fake camera verification requires source=camera");
+assert(fakeCameraSource.includes('camera === "ready"'), "fake camera verification requires camera=ready");
+assert(fakeCameraSource.includes('phoneReport.includes("source=camera")'), "fake camera verification checks phone test report camera source");
+assert(fakeCameraSource.includes('captureReview === "visible"'), "fake camera verification checks capture review after save");
+assert(fakeCameraSource.includes("cleanup();"), "fake camera verification cleans up browser processes");
 
 assert(vercelJson.framework === "vite", "vercel framework is vite");
 assert(vercelJson.buildCommand === "npm run build", "vercel build command is npm run build");
@@ -99,6 +112,7 @@ assert(fileExists("src/presets.ts"), "src/presets.ts exists");
 assert(fileExists("src/save.ts"), "src/save.ts exists");
 assert(fileExists("src/demo-source.ts"), "src/demo-source.ts exists");
 assert(fileExists("scripts/readiness-check.mjs"), "readiness check script exists");
+assert(fileExists("scripts/fake-camera-check.mjs"), "fake camera verification script exists");
 assert(indexSource.includes('name="description"'), "index has public beta description meta");
 assert(indexSource.includes('property="og:title"'), "index has Open Graph title");
 assert(indexSource.includes('property="og:description"'), "index has Open Graph description");
