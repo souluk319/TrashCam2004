@@ -81,6 +81,12 @@ if (packageJson.scripts?.["verify:download"] === "npm run build && node scripts/
   block("fallback download verification script missing or changed");
 }
 
+if (packageJson.scripts?.["verify:phone-report"] === "node scripts/phone-report-check.mjs") {
+  pass("phone report verification script is available");
+} else {
+  block("phone report verification script missing or changed");
+}
+
 if (existsSync(join(root, "dist", "index.html"))) {
   pass("dist exists from latest smoke/build run");
 } else {

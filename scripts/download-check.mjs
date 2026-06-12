@@ -412,11 +412,11 @@ function cleanup() {
   stopProcess(previewProcess);
 
   if (userDataDir) {
-    rmSync(userDataDir, { force: true, recursive: true });
+    rmSync(userDataDir, { force: true, maxRetries: 5, recursive: true, retryDelay: 100 });
   }
 
   if (downloadDir && existsSync(downloadDir)) {
-    rmSync(downloadDir, { force: true, recursive: true });
+    rmSync(downloadDir, { force: true, maxRetries: 5, recursive: true, retryDelay: 100 });
   }
 }
 

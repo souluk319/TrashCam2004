@@ -60,6 +60,9 @@ const fakeCameraSource = fileExists("scripts/fake-camera-check.mjs")
 const downloadCheckSource = fileExists("scripts/download-check.mjs")
   ? readText("scripts/download-check.mjs")
   : "";
+const phoneReportCheckSource = fileExists("scripts/phone-report-check.mjs")
+  ? readText("scripts/phone-report-check.mjs")
+  : "";
 const pagesCheckSource = fileExists("scripts/pages-check.mjs")
   ? readText("scripts/pages-check.mjs")
   : "";
@@ -88,6 +91,14 @@ assert(
   "package.json has fallback download verification script",
 );
 assert(
+  packageJson.scripts?.["verify:phone-report"] === "node scripts/phone-report-check.mjs",
+  "package.json has phone report verification script",
+);
+assert(
+  packageJson.scripts?.["verify:phone-report:self-test"] === "node scripts/phone-report-check.mjs --self-test",
+  "package.json has phone report parser self-test script",
+);
+assert(
   packageJson.scripts?.["verify:pages"] === "npm run build:pages && node scripts/pages-check.mjs",
   "package.json has stable Pages verification script",
 );
@@ -108,6 +119,12 @@ assert(downloadCheckSource.includes('state.save === "downloaded"'), "download ve
 assert(downloadCheckSource.includes("PNG_SIGNATURE"), "download verification checks PNG file signature");
 assert(downloadCheckSource.includes("readUInt32BE(16)"), "download verification checks PNG dimensions");
 assert(downloadCheckSource.includes("buffer.length !== expectedBytes"), "download verification compares file size with app bytes");
+assert(phoneReportCheckSource.includes("phone-pass-candidate"), "phone report verification requires phone pass candidate gate");
+assert(phoneReportCheckSource.includes('source") === "camera"'), "phone report verification requires camera source");
+assert(phoneReportCheckSource.includes("VALID_SAVE_KINDS"), "phone report verification requires shared or downloaded save");
+assert(phoneReportCheckSource.includes('manualSavedEffectVisible") === "yes"'), "phone report verification requires visible saved effect evidence");
+assert(phoneReportCheckSource.includes('url.searchParams.get("demo") !== "1"'), "phone report verification rejects demo reports");
+assert(phoneReportCheckSource.includes("--self-test"), "phone report verification includes parser self-test mode");
 assert(pagesCheckSource.includes("https://souluk319.github.io/TrashCam2004/"), "stable Pages verification targets GitHub Pages URL");
 assert(pagesCheckSource.includes("getExpectedDistAssets"), "stable Pages verification compares live assets with local Pages build");
 assert(pagesCheckSource.includes("data-manual-file-opened"), "stable Pages verification checks manual saved-file control");
@@ -139,6 +156,7 @@ assert(fileExists("src/demo-source.ts"), "src/demo-source.ts exists");
 assert(fileExists("scripts/readiness-check.mjs"), "readiness check script exists");
 assert(fileExists("scripts/fake-camera-check.mjs"), "fake camera verification script exists");
 assert(fileExists("scripts/download-check.mjs"), "fallback download verification script exists");
+assert(fileExists("scripts/phone-report-check.mjs"), "phone report verification script exists");
 assert(fileExists("scripts/pages-check.mjs"), "stable Pages verification script exists");
 assert(fileExists("public/favicon.svg"), "public favicon exists");
 assert(indexSource.includes('name="description"'), "index has public beta description meta");

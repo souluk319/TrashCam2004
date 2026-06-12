@@ -169,6 +169,10 @@ Already verified locally:
 - phone-test automatic device evidence:
   - `Copy state` and `Copy phone test` include `userAgent`, `platform`, `maxTouchPoints`, physical `screen`, `orientation`, `language`, and `mobileCandidate`
   - `npm run smoke`, `npm run verify:fake-camera`, and `npm run verify:pages` check these fields exist
+- phone-report verifier:
+  - `npm run verify:phone-report` validates pasted `Copy phone test` output from a real phone
+  - `npm run verify:phone-report:self-test` confirms the parser accepts a pass fixture and rejects demo/prepare-only reports
+  - pass requires `source=camera`, `camera=ready`, `save=shared` or `save=downloaded`, saved-file/effect evidence, and `acceptanceGate=phone-pass-candidate`
 - stable Pages verification script:
   - `npm run verify:pages` builds with `/TrashCam2004/`
   - live GitHub Pages HTML must reference the same hashed JS/CSS as local `dist`
@@ -205,6 +209,7 @@ Run these before any HTTPS deployment attempt:
 npm run smoke
 npm run verify:fake-camera
 npm run verify:download
+npm run verify:phone-report:self-test
 npm run readiness
 ```
 
@@ -250,6 +255,7 @@ Pass checklist:
 - With `?debug=1`, `camera` becomes `ready`, `frames` increases, and `save` changes after tapping `Save PNG`.
 - After opening the saved file, check `file opened` and `effect visible`; on a real camera run this should move `acceptanceGate` to `phone-pass-candidate`.
 - If a debug run fails, tap `Copy state` and paste the copied report into the test notes.
+- After a debug run passes, tap `Copy phone test` and validate it with `pbpaste | npm run verify:phone-report`.
 
 If Codex is driving a browser, do not accept the camera/download permission prompt unless 성욱 has explicitly approved that exact action.
 

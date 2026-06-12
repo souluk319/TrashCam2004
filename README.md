@@ -89,6 +89,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - `npm run smoke` succeeds.
 - `npm run verify:fake-camera` succeeds. It launches Chrome with a fake media device and verifies the real `getUserMedia()` code path reaches `source=camera`, `camera=ready`, PNG preparation, and capture review.
 - `npm run verify:download` succeeds. It launches Chrome against the production preview, triggers fallback download, and verifies the saved PNG file on disk by filename, byte size, PNG signature, and 640x480 dimensions.
+- `npm run verify:phone-report:self-test` succeeds. It self-tests the parser that will validate real `Copy phone test` reports after phone testing.
 - `npm run verify:pages` exists to compare the current Pages build against the live GitHub Pages URL and run a headless demo/evidence check.
 - `npm run readiness` succeeds as a no-side-effect deployment status report, while noting that Vercel CLI and real device tests still require approval.
 - `npm run dev:local` reserves `http://127.0.0.1:5174/` for this project so another Vite app on 5173 does not get mistaken for TrashCam.
@@ -160,6 +161,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 phone-test evidence expansion: `Copy state` and `Copy phone test` now include automatic browser/device evidence: `userAgent`, `platform`, `maxTouchPoints`, physical `screen`, `orientation`, `language`, and `mobileCandidate`. Smoke, fake-camera, and stable Pages verification now check these fields exist.
 - 2026-06-12 stable Pages evidence deployment: `gh-pages` was updated to `9063556`, live Pages served `assets/index-DV-6-8CJ.js`, and `npm run verify:pages` passed with PNG prepare `694042` bytes, manual evidence report updates, no overflow, and `gate=synthetic-or-local-check`.
 - 2026-06-12 fallback download verification: `npm run verify:download` added and passed. Chrome headless creates a `trashcam-2004-...png` file in a temporary download folder, checks that the file byte count matches the app state, verifies the PNG signature, and confirms 640x480 dimensions. This proves desktop fallback file receipt for synthetic source, not phone/native share behavior.
+- 2026-06-12 phone report verifier: `npm run verify:phone-report` added for pasted real-device reports, with `npm run verify:phone-report:self-test` covering pass/fail fixtures. It rejects `demo=1`, `save=prepare`, non-camera source, missing saved-file/effect evidence, and anything short of `acceptanceGate=phone-pass-candidate`.
 
 ## Local development
 
@@ -289,6 +291,7 @@ This runs the production build and checks:
 - save code guards mobile share capability checks so fallback download remains available
 - save code supports `?save=prepare` for non-downloading local PNG preparation checks
 - fallback download verification script exists and checks downloaded PNG filename, byte size, signature, and dimensions
+- phone report verification script exists and rejects demo/prepare-only reports before accepting real-device evidence
 - app supports `?debug=1` for visible real-device diagnostics
 - debug panel can copy a state report for phone-test failure notes
 - debug report includes app version, preset count, share capability, video size, viewport, and device pixel ratio for phone-test triage
@@ -345,6 +348,30 @@ It proves:
 - the PNG dimensions are 640x480
 
 It does not prove a physical camera frame, native share sheet behavior, iPhone Safari, or Android Chrome behavior.
+
+## Phone report verification
+
+After a real phone test, open the app with:
+
+```text
+https://souluk319.github.io/TrashCam2004/?debug=1
+```
+
+Then tap `Copy phone test` after the saved image has been opened and the `file opened` / `effect visible` checks are both on.
+
+Validate the copied report:
+
+```bash
+pbpaste | npm run verify:phone-report
+```
+
+Parser self-test:
+
+```bash
+npm run verify:phone-report:self-test
+```
+
+The verifier only passes real-device acceptance evidence: HTTPS stable URL, no `demo=1`, `source=camera`, `camera=ready`, moving frames, `save=shared` or `save=downloaded`, opened file, visible effect, and `acceptanceGate=phone-pass-candidate`.
 
 ## Stable Pages verification
 

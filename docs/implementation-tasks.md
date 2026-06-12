@@ -96,12 +96,14 @@ Verified:
 - 2026-06-12 continuation: phone-test report device evidence expanded. `Copy state` and `Copy phone test` now include `userAgent`, `platform`, `maxTouchPoints`, physical `screen`, `orientation`, `language`, and `mobileCandidate`; smoke, fake-camera, and Pages verification check the fields exist.
 - 2026-06-12 continuation: `gh-pages` updated to `9063556` and `npm run verify:pages` passed after the device-evidence report expansion. Result: live Pages served `assets/index-DV-6-8CJ.js`, PNG prepare reached `694042` bytes, phone evidence report updated, and gate remained correctly `synthetic-or-local-check`.
 - 2026-06-12 continuation: `npm run verify:download` added and verified. It opens production preview in Chrome, triggers fallback download, confirms the app reaches `save=downloaded`, and checks the actual downloaded file by filename, matching app-reported byte count, PNG signature, and 640x480 dimensions.
+- 2026-06-12 continuation: `npm run verify:phone-report` added for pasted `Copy phone test` output, plus `npm run verify:phone-report:self-test`. The self-test accepts a real-device pass fixture and rejects demo/prepare-only reports.
 
 Not yet verified:
 
 - Physical desktop browser camera permission and live camera stream.
 - Desktop PNG save using an actual camera frame.
 - Native share sheet and phone Photos/Files save usability.
+- Actual real-device `Copy phone test` report passing `npm run verify:phone-report`.
 - Real iPhone Safari / Android Chrome test.
 - Vercel CLI is not installed in this shell, so deployment was not attempted.
 - GitHub Pages stable HTTPS deployment is verified with synthetic source only; it does not prove real phone camera/save behavior.
@@ -134,6 +136,8 @@ Exit criteria:
   - `smoke`
   - `verify:fake-camera`
   - `verify:download`
+  - `verify:phone-report`
+  - `verify:phone-report:self-test`
   - `verify:pages`
   - `readiness`
 - [x] Create `src/` structure:
@@ -316,7 +320,9 @@ Then verify:
 - [x] Production dist preview rechecked after debug diagnostics expansion with `?demo=1&debug=1&save=prepare`.
 - [x] Production dist preview reaches fallback download branch on `http://127.0.0.1:4174/?demo=1` with `data-last-save-kind="downloaded"`, PNG byte size, PNG filename, and no console warnings/errors.
 - [x] `npm run verify:download` confirms the actual fallback-downloaded file on disk has the expected filename, byte size, PNG signature, and 640x480 dimensions.
+- [x] `npm run verify:phone-report:self-test` confirms the phone report parser accepts pass evidence and rejects demo/prepare-only reports.
 - [ ] Actual downloaded/shared PNG file from a real camera run is confirmed usable in a real browser/device.
+- [ ] Actual real-device `Copy phone test` report passes `npm run verify:phone-report`.
 - [x] Presets switch in `?demo=1`.
 - [x] Pixel Art Cam switches in `?demo=1` and prepares a PNG in `?save=prepare`.
 - [x] Cyberpunk Cam and Voxel Block Cam switch in `?demo=1` and prepare PNGs in `?save=prepare`.

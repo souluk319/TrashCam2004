@@ -13,6 +13,8 @@
     "smoke": "npm run build && node scripts/smoke-check.mjs",
     "verify:fake-camera": "npm run build && node scripts/fake-camera-check.mjs",
     "verify:download": "npm run build && node scripts/download-check.mjs",
+    "verify:phone-report": "node scripts/phone-report-check.mjs",
+    "verify:phone-report:self-test": "node scripts/phone-report-check.mjs --self-test",
     "verify:pages": "npm run build:pages && node scripts/pages-check.mjs",
     "readiness": "npm run smoke && node scripts/readiness-check.mjs"
   },

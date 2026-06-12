@@ -16,6 +16,7 @@ Open public link -> allow camera -> funny live preview -> switch presets -> save
 - Local synthetic verification passes.
 - Local fake-camera verification passes: `npm run verify:fake-camera` uses Chrome fake media to prove the real `getUserMedia()` path reaches `source=camera`, `camera=ready`, PNG preparation, and capture review.
 - Local fallback-download verification passes: `npm run verify:download` proves the production preview can write a PNG file to disk and that the file matches app-reported bytes, PNG signature, and 640x480 dimensions.
+- Phone report verifier exists: `npm run verify:phone-report` validates pasted real-device evidence and `npm run verify:phone-report:self-test` proves the parser rejects demo/prepare-only reports.
 - Actual product risk is now real physical camera permission, native share/save behavior, and external phone behavior, not source code structure.
 
 ## Product success criteria
@@ -57,6 +58,7 @@ npm run build
 npm run smoke
 npm run verify:fake-camera
 npm run verify:download
+npm run verify:phone-report:self-test
 npm run verify:pages
 npm run readiness
 ```
@@ -67,6 +69,7 @@ Exit criteria:
 - Smoke passes.
 - Fake-camera verification passes.
 - Fallback-download file verification passes.
+- Phone-report parser self-test passes.
 - Stable Pages verification passes after the Pages deployment is updated.
 - Readiness only reports known external gates.
 
@@ -128,6 +131,7 @@ Automated preflight:
 
 - `npm run verify:fake-camera` now covers the browser `getUserMedia()` path without accepting a real permission prompt.
 - `npm run verify:download` now covers desktop fallback file receipt without touching the user's real Downloads folder.
+- `npm run verify:phone-report` will validate the copied `Copy phone test` report after the manual desktop or phone run.
 - These reduce code-path risk before manual testing, but they do not prove a physical webcam permission prompt, actual-camera image content, native share sheet behavior, or phone behavior.
 
 Actions:
@@ -144,6 +148,7 @@ Exit criteria:
 - Debug report says `source=camera`, `camera=ready`, and `save=downloaded` or `save=shared`.
 - Saved PNG opens correctly.
 - After opening the saved file and confirming the effect, `acceptanceGate` reaches `phone-pass-candidate`.
+- The copied phone-test report passes `npm run verify:phone-report`.
 
 ## P0 - Real phone acceptance
 
@@ -167,6 +172,7 @@ Pass:
 - Saved image includes the active effect.
 - No layout overlap blocks Save.
 - With `?debug=1`, the file-open/effect-visible checks can make `acceptanceGate=phone-pass-candidate`.
+- Copied phone-test report passes `npm run verify:phone-report`.
 
 ### Android Chrome
 
@@ -188,6 +194,7 @@ Pass:
 - Saved image includes the active effect.
 - No layout overlap blocks Save.
 - With `?debug=1`, the file-open/effect-visible checks can make `acceptanceGate=phone-pass-candidate`.
+- Copied phone-test report passes `npm run verify:phone-report`.
 
 ### Failure logging
 
