@@ -69,6 +69,12 @@ if (packageJson.scripts?.["build:pages"] === "VITE_BASE_PATH=/TrashCam2004/ npm 
   block("GitHub Pages build script missing or changed");
 }
 
+if (packageJson.scripts?.["verify:pages"] === "npm run build:pages && node scripts/pages-check.mjs") {
+  pass("stable Pages verification script is available");
+} else {
+  block("stable Pages verification script missing or changed");
+}
+
 if (existsSync(join(root, "dist", "index.html"))) {
   pass("dist exists from latest smoke/build run");
 } else {

@@ -90,6 +90,8 @@ Verified:
 - 2026-06-12 continuation: phone acceptance evidence controls added to `?debug=1`. The phone report now records saved-file-open and saved-effect-visible values, and real camera runs can only reach `phone-pass-candidate` after both are checked following shared/downloaded save.
 - 2026-06-12 continuation: production preview evidence UI rechecked at `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` in a 390px viewport. Result: evidence controls visible, PNG prepared, report updated with manual evidence values, no horizontal overflow, no console warnings/errors.
 - 2026-06-12 continuation: evidence UI deployed to `gh-pages` commit `4a9e84e`. Stable URL now serves `assets/index-DJDukQqd.js` and `assets/index-CgIRwTF0.css`; live `?demo=1&debug=1&save=prepare` at 390px verified evidence controls, PNG prepare, phone report manual values, no horizontal overflow, and no console warnings/errors.
+- 2026-06-12 continuation: `npm run verify:pages` added. It builds with `/TrashCam2004/`, compares the live Pages hashed assets with local `dist`, verifies `.nojekyll`, runs a headless stable-URL demo save/evidence flow, and fails on browser warnings/errors or horizontal overflow.
+- 2026-06-12 continuation: favicon added as `public/favicon.svg` and linked via `%BASE_URL%favicon.svg` to prevent missing favicon requests on GitHub Pages.
 
 Not yet verified:
 
@@ -127,6 +129,7 @@ Exit criteria:
   - `preview:local`
   - `smoke`
   - `verify:fake-camera`
+  - `verify:pages`
   - `readiness`
 - [x] Create `src/` structure:
   - `main.ts`
@@ -300,6 +303,7 @@ Then verify:
 - [x] Production dist preview succeeds on `http://127.0.0.1:4174/?demo=1&save=prepare`.
 - [x] Production dist preview succeeds on `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare`.
 - [x] Stable GitHub Pages URL succeeds on `https://souluk319.github.io/TrashCam2004/?demo=1&debug=1&save=prepare` with evidence controls and PNG prepare.
+- [x] Stable GitHub Pages verification is scripted through `npm run verify:pages`.
 - [x] Production dist preview rechecked after save fallback hardening with `?demo=1&debug=1&save=prepare`.
 - [x] Production dist preview rechecked after Receipt/CCTV/School ID preset expansion with `?demo=1&debug=1&save=prepare` at 390px.
 - [x] Production dist preview rechecked after public beta polish and ASCII/Deep Fried/Sticker preset expansion with `?demo=1&debug=1&save=prepare` at 390px.

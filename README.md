@@ -88,6 +88,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - `npm run build` succeeds.
 - `npm run smoke` succeeds.
 - `npm run verify:fake-camera` succeeds. It launches Chrome with a fake media device and verifies the real `getUserMedia()` code path reaches `source=camera`, `camera=ready`, PNG preparation, and capture review.
+- `npm run verify:pages` exists to compare the current Pages build against the live GitHub Pages URL and run a headless demo/evidence check.
 - `npm run readiness` succeeds as a no-side-effect deployment status report, while noting that Vercel CLI and real device tests still require approval.
 - `npm run dev:local` reserves `http://127.0.0.1:5174/` for this project so another Vite app on 5173 does not get mistaken for TrashCam.
 - `vercel.json` pins Vercel to Vite, `npm run build`, and `dist`.
@@ -152,6 +153,8 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 phone acceptance evidence: `?debug=1` now includes file-open and effect-visible checkboxes. For a real camera run, `acceptanceGate` advances from save-needed to `manual-file-open-needed`, then `manual-effect-check-needed`, and finally `phone-pass-candidate` only after the saved file is opened and the effect is confirmed.
 - 2026-06-12 evidence UI recheck: production preview at `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` in a 390px viewport showed the new evidence controls, prepared a PNG, updated `data-phone-test-report`, had no horizontal overflow, and produced no console warnings/errors. This is still synthetic-source verification.
 - 2026-06-12 stable HTTPS evidence deployment: `gh-pages` was updated to `4a9e84e`; live Pages now serves `assets/index-DJDukQqd.js` and `assets/index-CgIRwTF0.css`, `.nojekyll` returns HTTP 200, and `https://souluk319.github.io/TrashCam2004/?demo=1&debug=1&save=prepare` verified the evidence controls, PNG prepare, phone report manual values, no horizontal overflow, and no console warnings/errors.
+- 2026-06-12 stable Pages verification script: `npm run verify:pages` added. It builds with the GitHub Pages base path, checks that live Pages serves the same hashed JS/CSS assets, verifies `.nojekyll`, runs a headless 390px demo save/evidence flow, and fails on browser warnings/errors or horizontal overflow.
+- 2026-06-12 favicon added through `%BASE_URL%favicon.svg` so GitHub Pages and local builds avoid the default missing favicon request.
 
 ## Local development
 
@@ -296,6 +299,7 @@ This runs the production build and checks:
 - CCTV grayscale tint and HUD helpers exist
 - School ID overlay helper exists
 - ASCII terminal, deep fried, and sticker booth helpers exist
+- stable Pages verification script exists and checks live hashed assets, evidence controls, PNG prepare, no-overflow, and browser warnings/errors
 
 This does not prove real camera permission, actual downloaded/shared file usability, or phone support.
 
@@ -317,6 +321,24 @@ It proves:
 - the phone-test report includes `source=camera`
 
 It does not prove a physical webcam, native download/share receipt, iPhone Safari, or Android Chrome behavior.
+
+## Stable Pages verification
+
+```bash
+npm run verify:pages
+```
+
+This builds with the GitHub Pages base path, then checks the live stable URL:
+
+- live HTML references the same JS/CSS assets as the local Pages build
+- `.nojekyll` is reachable
+- `?demo=1&debug=1&save=prepare` reaches demo ready state
+- `Save PNG` prepares a PNG and opens capture review
+- phone evidence controls update the phone-test report
+- no horizontal overflow appears at 390px
+- browser warnings/errors fail the check
+
+This is a stable-URL deployment check. It still does not prove physical phone camera or native file usability.
 
 ## Deployment readiness check
 

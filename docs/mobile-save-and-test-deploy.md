@@ -160,6 +160,14 @@ Already verified locally:
   - checking them updated `data-phone-test-report`
   - `acceptanceCandidate=no` remained correct in synthetic source mode
   - no horizontal overflow or console warnings/errors
+- stable Pages verification script:
+  - `npm run verify:pages` builds with `/TrashCam2004/`
+  - live GitHub Pages HTML must reference the same hashed JS/CSS as local `dist`
+  - `.nojekyll` must return HTTP 200
+  - headless Chrome must pass demo save/evidence flow with no overflow and no browser warnings/errors
+- favicon:
+  - `public/favicon.svg` is linked through `%BASE_URL%favicon.svg`
+  - this avoids missing favicon requests on the GitHub Pages base path
 
 Not yet verified:
 
@@ -184,6 +192,7 @@ Run these before any HTTPS deployment attempt:
 
 ```bash
 npm run smoke
+npm run verify:fake-camera
 npm run readiness
 ```
 
@@ -195,6 +204,12 @@ TrashCam 2004 readiness check
 ```
 
 If readiness reports that Vercel CLI is missing, do not install it silently. Ask for approval first.
+
+After updating the `gh-pages` branch, run:
+
+```bash
+npm run verify:pages
+```
 
 Then manually confirm one desktop browser loop when possible:
 

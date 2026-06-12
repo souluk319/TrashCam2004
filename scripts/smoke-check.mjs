@@ -57,6 +57,9 @@ const viteConfigSource = readText("vite.config.ts");
 const fakeCameraSource = fileExists("scripts/fake-camera-check.mjs")
   ? readText("scripts/fake-camera-check.mjs")
   : "";
+const pagesCheckSource = fileExists("scripts/pages-check.mjs")
+  ? readText("scripts/pages-check.mjs")
+  : "";
 
 assert(packageJson.scripts?.dev === "vite", "package.json has dev script");
 assert(
@@ -78,6 +81,10 @@ assert(
   "package.json has fake camera verification script",
 );
 assert(
+  packageJson.scripts?.["verify:pages"] === "npm run build:pages && node scripts/pages-check.mjs",
+  "package.json has stable Pages verification script",
+);
+assert(
   packageJson.scripts?.["build:pages"] === "VITE_BASE_PATH=/TrashCam2004/ npm run build",
   "package.json has GitHub Pages build script",
 );
@@ -89,6 +96,12 @@ assert(fakeCameraSource.includes('camera === "ready"'), "fake camera verificatio
 assert(fakeCameraSource.includes('phoneReport.includes("source=camera")'), "fake camera verification checks phone test report camera source");
 assert(fakeCameraSource.includes('captureReview === "visible"'), "fake camera verification checks capture review after save");
 assert(fakeCameraSource.includes("cleanup();"), "fake camera verification cleans up browser processes");
+assert(pagesCheckSource.includes("https://souluk319.github.io/TrashCam2004/"), "stable Pages verification targets GitHub Pages URL");
+assert(pagesCheckSource.includes("getExpectedDistAssets"), "stable Pages verification compares live assets with local Pages build");
+assert(pagesCheckSource.includes("data-manual-file-opened"), "stable Pages verification checks manual saved-file control");
+assert(pagesCheckSource.includes("data-manual-effect-visible"), "stable Pages verification checks manual saved-effect control");
+assert(pagesCheckSource.includes("overflowCount"), "stable Pages verification checks horizontal overflow");
+assert(pagesCheckSource.includes("browserProblems"), "stable Pages verification checks browser warnings/errors");
 
 assert(vercelJson.framework === "vite", "vercel framework is vite");
 assert(vercelJson.buildCommand === "npm run build", "vercel build command is npm run build");
@@ -113,9 +126,12 @@ assert(fileExists("src/save.ts"), "src/save.ts exists");
 assert(fileExists("src/demo-source.ts"), "src/demo-source.ts exists");
 assert(fileExists("scripts/readiness-check.mjs"), "readiness check script exists");
 assert(fileExists("scripts/fake-camera-check.mjs"), "fake camera verification script exists");
+assert(fileExists("scripts/pages-check.mjs"), "stable Pages verification script exists");
+assert(fileExists("public/favicon.svg"), "public favicon exists");
 assert(indexSource.includes('name="description"'), "index has public beta description meta");
 assert(indexSource.includes('property="og:title"'), "index has Open Graph title");
 assert(indexSource.includes('property="og:description"'), "index has Open Graph description");
+assert(indexSource.includes('href="%BASE_URL%favicon.svg"'), "index links favicon with deployment base path");
 
 assert(fileExists("dist/index.html"), "dist/index.html exists after build");
 assert(fileExists("dist/.nojekyll"), "dist includes GitHub Pages no-Jekyll marker");
