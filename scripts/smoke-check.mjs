@@ -53,6 +53,7 @@ const cameraSource = readText("src/camera.ts");
 const saveSource = readText("src/save.ts");
 const effectsSource = readText("src/effects.ts");
 const presetSource = readText("src/presets.ts");
+const viteConfigSource = readText("vite.config.ts");
 
 assert(packageJson.scripts?.dev === "vite", "package.json has dev script");
 assert(
@@ -69,6 +70,12 @@ assert(
   packageJson.scripts?.readiness === "npm run smoke && node scripts/readiness-check.mjs",
   "package.json has readiness check script",
 );
+assert(
+  packageJson.scripts?.["build:pages"] === "VITE_BASE_PATH=/TrashCam2004/ npm run build",
+  "package.json has GitHub Pages build script",
+);
+assert(viteConfigSource.includes("VITE_BASE_PATH"), "vite config supports deployment base path override");
+assert(readText("scripts/readiness-check.mjs").includes("GitHub Pages is the configured stable HTTPS fallback"), "readiness check recognizes GitHub Pages fallback");
 
 assert(vercelJson.framework === "vite", "vercel framework is vite");
 assert(vercelJson.buildCommand === "npm run build", "vercel build command is npm run build");

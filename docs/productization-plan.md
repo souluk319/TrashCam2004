@@ -84,7 +84,11 @@ Actions:
 
 Fallback path:
 
-- Cloudflare Pages can also work with the same build command and output directory.
+- GitHub Pages is configured as the current no-extra-account fallback.
+- Pages uses `npm run build:pages` so Vite assets resolve under `/TrashCam2004/`.
+- Pages publishes from the `gh-pages` branch because the current GitHub token cannot push workflow files without `workflow` scope.
+- Stable URL: `https://souluk319.github.io/TrashCam2004/`.
+- Cloudflare Pages can also work with the normal build command and output directory.
 - Cloudflare Quick Tunnel is only for temporary testing, not a stable product URL.
 
 Exit criteria:

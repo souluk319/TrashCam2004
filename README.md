@@ -137,6 +137,7 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 public beta diagnostics: `?debug=1` now exposes app version and preset count in both the visible panel and copied state report.
 - 2026-06-12 productization polish: preset controls now use `Trash`, `Future`, and `Game` pack tabs so mobile users are not staring at all 12 modes at once.
 - 2026-06-12 pack-tab verification: temporary HTTPS tunnel + `?demo=1&debug=1&save=prepare` at 390px showed the `Trash` pack filtering to 8 visible presets, `Future` switching to `Cyberpunk`/`ASCII`, `Cyberpunk` PNG prepare succeeding, no horizontal overflow, and no console warnings/errors.
+- 2026-06-12 GitHub Pages pipeline: added a Pages build script, enabled the Pages site, and prepared `gh-pages` branch deployment for stable HTTPS at `https://souluk319.github.io/TrashCam2004/`.
 
 ## Local development
 
@@ -208,6 +209,14 @@ For production-build preview verification:
 npm run build
 npm run preview:local
 ```
+
+For GitHub Pages project hosting:
+
+```bash
+npm run build:pages
+```
+
+This sets the Vite base path to `/TrashCam2004/` so assets load correctly from `https://souluk319.github.io/TrashCam2004/`.
 
 Open:
 
@@ -306,6 +315,13 @@ Vercel is the intended first HTTPS host. This repo now includes:
 ```text
 vercel.json -> npm install -> npm run build -> dist
 headers -> same-origin camera allowed, microphone/geolocation disabled
+```
+
+GitHub Pages is also configured as the no-extra-account stable HTTPS fallback:
+
+```text
+npm run build:pages -> push dist contents to gh-pages branch
+expected URL -> https://souluk319.github.io/TrashCam2004/
 ```
 
 Current local note:

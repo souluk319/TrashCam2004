@@ -63,6 +63,12 @@ if (packageJson.scripts?.readiness === "npm run smoke && node scripts/readiness-
   block("readiness script contract changed; inspect package.json before deploying");
 }
 
+if (packageJson.scripts?.["build:pages"] === "VITE_BASE_PATH=/TrashCam2004/ npm run build") {
+  pass("GitHub Pages build script is available");
+} else {
+  block("GitHub Pages build script missing or changed");
+}
+
 if (existsSync(join(root, "dist", "index.html"))) {
   pass("dist exists from latest smoke/build run");
 } else {
@@ -88,12 +94,12 @@ if (npmVersion) {
 if (vercelVersion) {
   pass(`vercel CLI available: ${vercelVersion}`);
 } else {
-  block("vercel CLI is not installed or not on PATH; install/use it only after approval");
+warn("vercel CLI is not installed or not on PATH; GitHub Pages is the configured stable HTTPS fallback");
 }
 
 warn("desktop real-camera permission test still requires explicit approval before accepting the prompt");
 warn("actual PNG download/share usability still requires a real browser/device check");
-warn("HTTPS deployment changes external state and still requires approval");
+warn("stable HTTPS deployment still needs a pushed gh-pages branch and GitHub Pages source check");
 warn("goal completion requires at least one real phone to complete camera preview and PNG save/share");
 
 console.log("\nSummary:");

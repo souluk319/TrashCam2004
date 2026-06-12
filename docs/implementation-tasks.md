@@ -76,6 +76,7 @@ Verified:
 - 2026-06-12 continuation: the new fun presets were verified on production preview with `?demo=1&debug=1&save=prepare` at 390px. Result: 12 preset buttons, Privacy dialog opened, active presets `ascii`/`deepfried`/`stickerbooth`, PNG prepared for all three, no horizontal overflow, no console warnings/errors.
 - 2026-06-12 continuation: productization preset navigation added. The 12 presets are now grouped behind `Trash`, `Future`, and `Game` pack tabs.
 - 2026-06-12 continuation: pack-tab navigation was verified through the temporary HTTPS tunnel with `?demo=1&debug=1&save=prepare` at 390px. Result: `Trash` pack showed 8 visible presets, `Future` pack switched to `Cyberpunk`/`ASCII`, `Cyberpunk` PNG prepare succeeded, no horizontal overflow, no console warnings/errors.
+- 2026-06-12 continuation: GitHub Pages deployment pipeline added and Pages site enabled. `npm run build:pages` builds with `/TrashCam2004/` Vite base path, `dist` is published through the `gh-pages` branch, and the stable URL is `https://souluk319.github.io/TrashCam2004/`.
 
 Not yet verified:
 
@@ -85,6 +86,7 @@ Not yet verified:
 - HTTPS deployment.
 - Real iPhone Safari / Android Chrome test.
 - Vercel CLI is not installed in this shell, so deployment was not attempted.
+- GitHub Pages still needs a pushed `gh-pages` branch and live URL check to prove stable HTTPS deployment. Readiness now treats Vercel CLI absence as a note because GitHub Pages is the configured fallback.
 
 ## Phase 0 - Repo sanity
 
