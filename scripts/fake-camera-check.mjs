@@ -79,6 +79,10 @@ async function main() {
         fail(`expected captureReview=visible, got ${afterSave.captureReview}`);
       }
 
+      if (afterSave.acceptanceGate !== "png-prepared-only") {
+        fail(`expected acceptanceGate=png-prepared-only, got ${afterSave.acceptanceGate}`);
+      }
+
       if (afterSave.bytes <= 0) {
         fail(`expected positive PNG bytes, got ${afterSave.bytes}`);
       }
@@ -293,6 +297,7 @@ async function readAppState(client) {
       frames: Number(app?.dataset.renderedFrames ?? 0),
       videoSize: app?.dataset.videoSize ?? "",
       save: app?.dataset.lastSaveKind ?? "",
+      acceptanceGate: app?.dataset.acceptanceGate ?? "",
       bytes: Number(app?.dataset.lastSaveBytes ?? 0),
       captureReview: app?.dataset.captureReview ?? "",
       phoneReportHasCamera: phoneReport.includes("source=camera")

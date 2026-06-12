@@ -43,6 +43,13 @@ The MVP should use:
 
 The debug report exposes `shareCapability` so iPhone/Android save failures can be compared against the browser's reported Web Share file support.
 
+`?debug=1` also exposes two phone evidence checkboxes:
+
+- `file opened`
+- `effect visible`
+
+For real camera runs, `acceptanceGate` should only reach `phone-pass-candidate` after the image has been saved/shared, opened from the phone, and confirmed to contain the active TrashCam effect.
+
 ## Save button behavior
 
 Preferred flow:
@@ -147,6 +154,12 @@ Already verified locally:
   - Save prepare produced a PNG byte size and `.png` filename
   - debug report included `save=prepared`
   - no horizontal overflow or console warnings/errors
+- phone evidence UI:
+  - `?demo=1&debug=1&save=prepare` rendered from `dist` at 390px
+  - saved-file and saved-effect checkboxes appeared in the debug panel
+  - checking them updated `data-phone-test-report`
+  - `acceptanceCandidate=no` remained correct in synthetic source mode
+  - no horizontal overflow or console warnings/errors
 
 Not yet verified:
 
@@ -206,6 +219,7 @@ Pass checklist:
 - Preset buttons visibly change the effect.
 - `Save PNG` creates a PNG file that opens locally.
 - With `?debug=1`, `camera` becomes `ready`, `frames` increases, and `save` changes after tapping `Save PNG`.
+- After opening the saved file, check `file opened` and `effect visible`; on a real camera run this should move `acceptanceGate` to `phone-pass-candidate`.
 - If a debug run fails, tap `Copy state` and paste the copied report into the test notes.
 
 If Codex is driving a browser, do not accept the camera/download permission prompt unless 성욱 has explicitly approved that exact action.
@@ -250,6 +264,8 @@ iPhone Safari:
 - At least one other preset visibly changes the preview.
 - `Save PNG` opens a share/save path or creates a usable file.
 - Saved/shared PNG opens and contains the degraded effect.
+- In `?debug=1`, `file opened` and `effect visible` can both be checked.
+- `Copy phone test` includes `acceptanceCandidate=yes` or `acceptanceGate=phone-pass-candidate`.
 
 Android Chrome:
 
@@ -261,6 +277,8 @@ Android Chrome:
 - At least one other preset visibly changes the preview.
 - `Save PNG` opens share or download path.
 - Saved/downloaded PNG opens and contains the degraded effect.
+- In `?debug=1`, `file opened` and `effect visible` can both be checked.
+- `Copy phone test` includes `acceptanceCandidate=yes` or `acceptanceGate=phone-pass-candidate`.
 
 Record failures with:
 
@@ -271,6 +289,7 @@ Record failures with:
 - `cameraError` from the `?debug=1` state report
 - `version` and `presets` from the copied report
 - `shareCapability`, `video`, `viewport`, and `devicePixelRatio` from the copied report
+- `manualSavedFileOpened`, `manualSavedEffectVisible`, and `acceptanceCandidate` from the copied report
 - copied `?debug=1` state report when available
 - whether the issue was camera permission, preview render, preset switch, save/share, or file usability
 
@@ -283,3 +302,4 @@ The project is ready for first external testing when:
 3. Live preview renders.
 4. At least one low-quality preset is applied.
 5. Save/share button produces a usable PNG on phone.
+6. `?debug=1` phone report can reach `acceptanceGate=phone-pass-candidate` after the saved image is opened and confirmed.

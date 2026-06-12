@@ -149,6 +149,8 @@ Reason: the core product is a camera/canvas effect. A full framework is unnecess
 - 2026-06-12 stable HTTPS latest recheck: `https://souluk319.github.io/TrashCam2004/?demo=1&debug=1&save=prepare` served `assets/index-DoCWuob4.js`, included `Copy phone test`, reported `secure=true`, `version=0.1.0-beta.1`, `acceptanceGate=synthetic-or-local-check`, prepared a PNG, opened capture review, had no horizontal overflow, and produced no console warnings/errors.
 - 2026-06-12 Pages deployment hardening: `public/.nojekyll` added and smoke now verifies that the marker is copied to `dist/.nojekyll`; the live Pages marker returned HTTP 200.
 - 2026-06-12 fake-camera verification: `npm run verify:fake-camera` passed using Chrome fake media. Result: app reported `source=camera`, `camera=ready`, non-zero source video size, PNG prepared at `766737` bytes, phone-test report included `source=camera`, capture review opened, and the script exited cleanly. This is stronger than `?demo=1`, but it is still not a physical webcam or real phone test.
+- 2026-06-12 phone acceptance evidence: `?debug=1` now includes file-open and effect-visible checkboxes. For a real camera run, `acceptanceGate` advances from save-needed to `manual-file-open-needed`, then `manual-effect-check-needed`, and finally `phone-pass-candidate` only after the saved file is opened and the effect is confirmed.
+- 2026-06-12 evidence UI recheck: production preview at `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` in a 390px viewport showed the new evidence controls, prepared a PNG, updated `data-phone-test-report`, had no horizontal overflow, and produced no console warnings/errors. This is still synthetic-source verification.
 
 ## Local development
 
@@ -280,6 +282,7 @@ This runs the production build and checks:
 - app supports `?debug=1` for visible real-device diagnostics
 - debug panel can copy a state report for phone-test failure notes
 - debug report includes app version, preset count, share capability, video size, viewport, and device pixel ratio for phone-test triage
+- debug panel includes saved-file and saved-effect checkboxes so a phone report can reach `phone-pass-candidate` only after manual file usability evidence is recorded
 - fake-camera verification script exists and requires Chrome fake media to reach `source=camera`, `camera=ready`, phone-test `source=camera`, and capture review after save
 - the three baseline presets, Pixel Art Cam, Cyberpunk Cam, Voxel Block Cam, Receipt Printer Cam, CCTV Evidence Cam, School ID Cam, ASCII Terminal Cam, Deep Fried Meme Cam, and Sticker Booth Cam exist
 - Pixel Art Cam has a game preset category

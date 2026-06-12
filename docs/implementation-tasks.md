@@ -87,6 +87,8 @@ Verified:
 - 2026-06-12 continuation: `public/.nojekyll` added and smoke now verifies `dist/.nojekyll`; live Pages marker returned HTTP 200.
 - 2026-06-12 continuation: `npm run verify:fake-camera` added and verified. It launches Chrome with fake media devices, exercises the real `getUserMedia()` path, reaches `source=camera` / `camera=ready`, prepares a PNG at `766737` bytes, confirms phone-test report `source=camera`, opens capture review, and exits cleanly.
 - 2026-06-12 continuation: `npm run smoke` now checks the fake-camera script contract, and `npm run readiness` rechecked successfully after the fake-camera verification addition.
+- 2026-06-12 continuation: phone acceptance evidence controls added to `?debug=1`. The phone report now records saved-file-open and saved-effect-visible values, and real camera runs can only reach `phone-pass-candidate` after both are checked following shared/downloaded save.
+- 2026-06-12 continuation: production preview evidence UI rechecked at `http://127.0.0.1:4174/?demo=1&debug=1&save=prepare` in a 390px viewport. Result: evidence controls visible, PNG prepared, report updated with manual evidence values, no horizontal overflow, no console warnings/errors.
 
 Not yet verified:
 
@@ -154,6 +156,7 @@ Exit criteria:
 - [x] Add `Copy state` action inside `?debug=1` diagnostics.
 - [x] Include save/share capability, source video size, viewport, and device pixel ratio in debug diagnostics.
 - [x] Add `acceptanceGate` and `Copy phone test` report for real-device acceptance notes.
+- [x] Add debug-only saved-file and saved-effect evidence checkboxes for phone acceptance reports.
 - [x] Add public beta metadata and compact Privacy dialog.
 
 Exit criteria:
@@ -307,6 +310,7 @@ Then verify:
 - [x] Cyberpunk Cam and Voxel Block Cam switch in `?demo=1` and prepare PNGs in `?save=prepare`.
 - [x] Synthetic render frame counter advances in `?demo=1`.
 - [x] `?debug=1` verified visually on mobile-size viewport with synthetic source and PNG prepare mode.
+- [x] `?debug=1` phone evidence checkboxes verified at 390px with synthetic source and PNG prepare mode.
 - [x] `Copy state` report generation verified on production preview without changing the user's real clipboard during automation.
 - [x] Debug report includes camera failure reason via `cameraError`.
 - [x] Debug report includes save/share capability, source video dimensions, viewport, and device pixel ratio.

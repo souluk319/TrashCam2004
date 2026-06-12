@@ -12,7 +12,7 @@ Open public link -> allow camera -> funny live preview -> switch presets -> save
 
 - Static Vite + TypeScript app is implemented.
 - Camera, canvas render loop, preset switching, PNG save/share fallback, capture review, `?demo=1`, `?debug=1`, and `?save=prepare` exist.
-- Public beta polish exists: Open Graph metadata, Privacy dialog, 12 presets, app version, preset count diagnostics, capture review, and phone-test report copying.
+- Public beta polish exists: Open Graph metadata, Privacy dialog, 12 presets, app version, preset count diagnostics, capture review, phone-test report copying, and debug-only saved-file/effect evidence controls.
 - Local synthetic verification passes.
 - Local fake-camera verification passes: `npm run verify:fake-camera` uses Chrome fake media to prove the real `getUserMedia()` path reaches `source=camera`, `camera=ready`, PNG preparation, and capture review.
 - Actual product risk is still external-device behavior, not source code structure.
@@ -24,7 +24,7 @@ TrashCam becomes a public beta when all P0 items are true:
 - A stable HTTPS URL exists.
 - iPhone Safari opens the URL, requests camera permission, renders live preview, and saves or shares a usable PNG.
 - Android Chrome opens the URL, requests camera permission, renders live preview, and saves or shares a usable PNG.
-- `?debug=1` report can identify failures by version, preset count, browser, video size, viewport, camera state, acceptance gate, and save state.
+- `?debug=1` report can identify failures by version, preset count, browser, video size, viewport, camera state, acceptance gate, save state, and saved-file usability evidence.
 - Privacy copy is visible from the app and honestly states that camera frames stay in the browser.
 - The app still works with no backend, no account, no upload, and no database.
 
@@ -102,6 +102,7 @@ Verification:
 - Latest `feat/dev0.1` diagnostics were deployed to `gh-pages` and verified on the stable URL: `assets/index-DoCWuob4.js`, `Copy phone test`, `acceptanceGate=synthetic-or-local-check`, capture review after PNG prepare, no horizontal overflow, no console warnings/errors.
 - Live `.nojekyll` marker returned HTTP 200.
 - Local fake-camera verification passed with Chrome fake media: `source=camera`, `camera=ready`, PNG prepared, capture review opened, and phone-test report included `source=camera`. This is an automated preflight, not real phone acceptance.
+- Local evidence UI verification passed at 390px with synthetic source: saved-file/effect checkboxes were visible in `?debug=1`, the phone report updated their values, and no overflow or console warnings/errors appeared. This is still not real phone acceptance.
 
 Exit criteria:
 
@@ -131,6 +132,7 @@ Exit criteria:
 
 - Debug report says `source=camera`, `camera=ready`, and `save=downloaded` or `save=shared`.
 - Saved PNG opens correctly.
+- After opening the saved file and confirming the effect, `acceptanceGate` reaches `phone-pass-candidate`.
 
 ## P0 - Real phone acceptance
 
@@ -153,6 +155,7 @@ Pass:
 - Preview updates.
 - Saved image includes the active effect.
 - No layout overlap blocks Save.
+- With `?debug=1`, the file-open/effect-visible checks can make `acceptanceGate=phone-pass-candidate`.
 
 ### Android Chrome
 
@@ -173,6 +176,7 @@ Pass:
 - Preview updates.
 - Saved image includes the active effect.
 - No layout overlap blocks Save.
+- With `?debug=1`, the file-open/effect-visible checks can make `acceptanceGate=phone-pass-candidate`.
 
 ### Failure logging
 

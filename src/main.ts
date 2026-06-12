@@ -127,8 +127,14 @@ app.innerHTML = `
       <div><span>gate</span><output data-debug-key="acceptanceGate">-</output></div>
       <div><span>bytes</span><output data-debug-key="lastSaveBytes">-</output></div>
       <div><span>video</span><output data-debug-key="videoSize">-</output></div>
+      <div><span>file open</span><output data-debug-key="manualSavedFileOpened">no</output></div>
+      <div><span>effect</span><output data-debug-key="manualSavedEffectVisible">no</output></div>
       <div class="debug-wide"><span>file</span><output data-debug-key="lastSaveName">-</output></div>
       <div class="debug-wide"><span>status</span><output data-debug-key="statusMessage">-</output></div>
+      <div class="debug-manual-checks" aria-label="Manual phone evidence">
+        <label><input type="checkbox" data-manual-file-opened /> file opened</label>
+        <label><input type="checkbox" data-manual-effect-visible /> effect visible</label>
+      </div>
       <button class="debug-copy-button" type="button" data-copy-debug data-debug-report="">Copy state</button>
       <button class="debug-copy-button" type="button" data-copy-phone-test data-phone-test-report="">Copy phone test</button>
     </aside>
@@ -179,6 +185,14 @@ const copyDebugButton = requireNode(
 const copyPhoneTestButton = requireNode(
   app.querySelector<HTMLButtonElement>("[data-copy-phone-test]"),
   "Copy phone test button is missing."
+);
+const manualFileOpenedInput = requireNode(
+  app.querySelector<HTMLInputElement>("[data-manual-file-opened]"),
+  "Manual file-opened checkbox is missing."
+);
+const manualEffectVisibleInput = requireNode(
+  app.querySelector<HTMLInputElement>("[data-manual-effect-visible]"),
+  "Manual effect-visible checkbox is missing."
 );
 const privacyOpenButton = requireNode(
   app.querySelector<HTMLButtonElement>("[data-privacy-open]"),
@@ -235,6 +249,7 @@ setAppState("renderedFrames", "0");
 setAppState("activePreset", activePreset.id);
 setAppState("presetCategory", activePreset.category);
 setAppState("captureReview", "hidden");
+resetManualEvidence();
 syncPresetButtons();
 
 if (shouldSkipCameraForLocalCheck()) {
@@ -288,6 +303,9 @@ copyDebugButton.addEventListener("click", () => {
 copyPhoneTestButton.addEventListener("click", () => {
   void copyPhoneTestState();
 });
+
+manualFileOpenedInput.addEventListener("change", syncManualEvidenceState);
+manualEffectVisibleInput.addEventListener("change", syncManualEvidenceState);
 
 privacyOpenButton.addEventListener("click", () => {
   if (typeof privacyDialog.showModal === "function") {
@@ -436,6 +454,7 @@ async function shareLastCapture(): Promise<void> {
 }
 
 function storeSaveResult(result: SaveResult): void {
+  resetManualEvidence();
   setAppState("lastSaveKind", result.kind);
   setAppState("lastSaveBytes", String(result.bytes));
   setAppState("lastSaveName", result.filename);
@@ -478,6 +497,17 @@ function revokeCaptureUrl(): void {
 function setCaptureActionsDisabled(disabled: boolean): void {
   shareAgainButton.disabled = disabled || !lastCaptureBlob;
   backCameraButton.disabled = disabled;
+}
+
+function resetManualEvidence(): void {
+  manualFileOpenedInput.checked = false;
+  manualEffectVisibleInput.checked = false;
+  syncManualEvidenceState();
+}
+
+function syncManualEvidenceState(): void {
+  setAppState("manualSavedFileOpened", manualFileOpenedInput.checked ? "yes" : "no");
+  setAppState("manualSavedEffectVisible", manualEffectVisibleInput.checked ? "yes" : "no");
 }
 
 async function copyDebugState(): Promise<void> {
@@ -888,6 +918,8 @@ function buildDebugReport(): string {
     `captureReview=${app.dataset.captureReview ?? "-"}`,
     `bytes=${app.dataset.lastSaveBytes ?? "-"}`,
     `file=${app.dataset.lastSaveName ?? "-"}`,
+    `manualSavedFileOpened=${app.dataset.manualSavedFileOpened ?? "no"}`,
+    `manualSavedEffectVisible=${app.dataset.manualSavedEffectVisible ?? "no"}`,
     `status=${statusLine.textContent ?? "-"}`
   ];
 
@@ -920,11 +952,12 @@ function buildPhoneTestReport(): string {
     `bytes=${app.dataset.lastSaveBytes ?? "-"}`,
     `file=${app.dataset.lastSaveName ?? "-"}`,
     `status=${statusLine.textContent ?? "-"}`,
-    `manualCameraPermission=`,
-    `manualPreviewMoving=`,
-    `manualShareSheetOrDownload=`,
-    `manualSavedFileOpened=`,
-    `manualSavedEffectVisible=`,
+    `manualCameraPermission=${app.dataset.sourceMode === "camera" && app.dataset.cameraState === "ready" ? "yes" : "no"}`,
+    `manualPreviewMoving=${Number(app.dataset.renderedFrames ?? 0) > 0 ? "yes" : "no"}`,
+    `manualShareSheetOrDownload=${getSaveDeliveryEvidence()}`,
+    `manualSavedFileOpened=${app.dataset.manualSavedFileOpened ?? "no"}`,
+    `manualSavedEffectVisible=${app.dataset.manualSavedEffectVisible ?? "no"}`,
+    `acceptanceCandidate=${getAcceptanceGateStatus() === "phone-pass-candidate" ? "yes" : "no"}`,
     `notes=`
   ];
 
@@ -959,7 +992,15 @@ function getAcceptanceGateStatus(): string {
   }
 
   if (saveKind === "shared" || saveKind === "downloaded") {
-    return "manual-file-check-needed";
+    if (app.dataset.manualSavedFileOpened !== "yes") {
+      return "manual-file-open-needed";
+    }
+
+    if (app.dataset.manualSavedEffectVisible !== "yes") {
+      return "manual-effect-check-needed";
+    }
+
+    return "phone-pass-candidate";
   }
 
   if (saveKind === "cancelled") {
@@ -971,6 +1012,24 @@ function getAcceptanceGateStatus(): string {
   }
 
   return "unknown";
+}
+
+function getSaveDeliveryEvidence(): string {
+  const saveKind = app.dataset.lastSaveKind;
+
+  if (saveKind === "shared" || saveKind === "downloaded") {
+    return "yes";
+  }
+
+  if (saveKind === "prepared") {
+    return "prepare-only";
+  }
+
+  if (saveKind === "cancelled" || saveKind === "failed") {
+    return saveKind;
+  }
+
+  return "no";
 }
 
 async function copyText(text: string): Promise<void> {

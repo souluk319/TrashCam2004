@@ -148,6 +148,10 @@ assert(mainSource.includes('data-debug-key="shareCapability"'), "debug panel exp
 assert(mainSource.includes('data-debug-key="captureReview"'), "debug panel exposes capture review state");
 assert(mainSource.includes('data-debug-key="acceptanceGate"'), "debug panel exposes real-device acceptance gate");
 assert(mainSource.includes('data-debug-key="videoSize"'), "debug panel exposes source video dimensions");
+assert(mainSource.includes('data-debug-key="manualSavedFileOpened"'), "debug panel exposes manual saved-file evidence");
+assert(mainSource.includes('data-debug-key="manualSavedEffectVisible"'), "debug panel exposes manual saved-effect evidence");
+assert(mainSource.includes("data-manual-file-opened"), "debug panel has manual saved-file checkbox");
+assert(mainSource.includes("data-manual-effect-visible"), "debug panel has manual saved-effect checkbox");
 assert(mainSource.includes("cameraError="), "debug report includes camera failure reason");
 assert(mainSource.includes("version="), "debug report includes app version");
 assert(mainSource.includes("presets="), "debug report includes preset count");
@@ -157,11 +161,16 @@ assert(mainSource.includes("shareCapability="), "debug report includes save/shar
 assert(mainSource.includes("acceptanceGate="), "debug report includes real-device acceptance gate");
 assert(mainSource.includes("captureReview="), "debug report includes capture review state");
 assert(mainSource.includes("video="), "debug report includes source video dimensions");
+assert(mainSource.includes("manualSavedFileOpened="), "phone test report includes manual saved-file evidence");
+assert(mainSource.includes("manualSavedEffectVisible="), "phone test report includes manual saved-effect evidence");
+assert(mainSource.includes("acceptanceCandidate="), "phone test report includes acceptance candidate field");
 assert(mainSource.includes("buildDebugReport"), "debug panel can build a copyable state report");
 assert(mainSource.includes("data-debug-report"), "debug panel exposes generated state report for safe checks");
 assert(mainSource.includes("buildPhoneTestReport"), "debug panel can build a copyable phone test report");
 assert(mainSource.includes("data-phone-test-report"), "debug panel exposes generated phone test report for safe checks");
-assert(mainSource.includes("manualSavedFileOpened="), "phone test report includes manual file usability field");
+assert(mainSource.includes("manual-file-open-needed"), "acceptance gate waits for saved file open confirmation");
+assert(mainSource.includes("manual-effect-check-needed"), "acceptance gate waits for saved effect confirmation");
+assert(mainSource.includes("phone-pass-candidate"), "acceptance gate can mark a phone pass candidate");
 assert(mainSource.includes("navigator.clipboard"), "debug panel can copy state to clipboard");
 assert(mainSource.includes("data-privacy-open"), "app exposes privacy dialog trigger");
 assert(mainSource.includes("does not upload photos or video"), "privacy dialog explains local camera handling");
